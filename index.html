@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Learning Portal | Home</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        portal: {
+                            bg: '#070b14',
+                            card: '#0f172a',
+                            border: '#1e293b',
+                            accent: '#6366f1',
+                            cyan: '#06b6d4',
+                            emerald: '#10b981',
+                            amber: '#f59e0b'
+                        }
+                    },
+                    animation: {
+                        'float': 'float 4s ease-in-out infinite',
+                        'pulse-slow': 'pulse 5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Ambient Grid Pattern */
+        .bg-portal-grid {
+            background-size: 36px 36px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        /* Hover Glow Effect */
+        .course-card {
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .course-card:hover {
+            transform: translateY(-6px);
+        }
+        .card-fds:hover {
+            box-shadow: 0 0 30px -5px rgba(16, 185, 129, 0.3);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+        .card-os:hover {
+            box-shadow: 0 0 30px -5px rgba(6, 182, 212, 0.3);
+            border-color: rgba(6, 182, 212, 0.5);
+        }
+        .card-py:hover {
+            box-shadow: 0 0 30px -5px rgba(245, 158, 11, 0.3);
+            border-color: rgba(245, 158, 11, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-portal-bg text-slate-100 min-h-screen font-sans bg-portal-grid relative overflow-x-hidden antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Ambient Gradient Backdrops -->
+    <div class="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-indigo-600/10 via-cyan-500/10 to-emerald-500/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="fixed bottom-10 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+
+    <div class="max-w-6xl mx-auto px-4 py-12 md:py-20 flex flex-col justify-between min-h-screen">
+        
+        <!-- Header Section -->
+        <header class="text-center mb-16 relative">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-400 text-xs font-mono tracking-widest uppercase mb-4 animate-float">
+                <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+                Academic Repository Hub
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-indigo-400 mb-4">
+                Course Learning Portal
+            </h1>
+            <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+                Select a discipline below to access comprehensive notes, unit modules, algorithmic guides, and hands-on handbooks. 📚 CREATED BY KISHOR S, AP/CSE-MVIT.
+            </p>
+        </header>
+
+        <!-- Main Courses Grid Section -->
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            
+            <!-- Course 1: Fundamentals of Data Science -->
+            <a href="FDS/index.html" class="course-card card-fds group block p-8 bg-portal-card/80 backdrop-blur-xl border border-portal-border rounded-2xl relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-full pointer-events-none transition-all group-hover:bg-emerald-500/10"></div>
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-3 py-1 rounded-md uppercase tracking-wider">Course 01</span>
+                        <div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors">Fundamentals of Data Science</h2>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">Explore statistics, EDA, relationship analysis, Python data wrangling, and visual analytics dashboards.</p>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 font-mono text-xs text-emerald-400 font-semibold group-hover:translate-x-1 transition-transform">
+                        <span>Access FDS Repository</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Course 2: Operating Systems -->
+            <a href="OS/index.html" class="course-card card-os group block p-8 bg-portal-card/80 backdrop-blur-xl border border-portal-border rounded-2xl relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-bl-full pointer-events-none transition-all group-hover:bg-cyan-500/10"></div>
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-3 py-1 rounded-md uppercase tracking-wider">Course 02</span>
+                        <div class="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">Operating Systems</h2>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">Study system architectures, CPU scheduling, memory management, synchronization, and file systems.</p>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 font-mono text-xs text-cyan-400 font-semibold group-hover:translate-x-1 transition-transform">
+                        <span>Access OS Repository</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Course 3: Python Training -->
+            <a href="Python Traning/Python-Zero-To-Master-Handbook.html" class="course-card card-py group block p-8 bg-portal-card/80 backdrop-blur-xl border border-portal-border rounded-2xl relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-bl-full pointer-events-none transition-all group-hover:bg-amber-500/10"></div>
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-xs font-mono font-bold text-amber-400 bg-amber-950/60 border border-amber-800/50 px-3 py-1 rounded-md uppercase tracking-wider">Handbook</span>
+                        <div class="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 group-hover:scale-110 transition-transform">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-3 group-hover:text-amber-300 transition-colors">Python Zero to Master</h2>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">Comprehensive training handbook covering fundamentals, object-oriented programming, modules, and advanced scripts.</p>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 font-mono text-xs text-amber-400 font-semibold group-hover:translate-x-1 transition-transform">
+                        <span>Open Python Handbook</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </div>
+                </div>
+            </a>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center pt-8 border-t border-slate-800/60 text-xs font-mono text-slate-500">
+            <p>© Course Repository Portal • All Study Materials & Guides</p>
+        </footer>
+
+    </div>
+</body>
+</html>

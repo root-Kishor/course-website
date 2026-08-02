@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FUNDAMENTALS OF DATA SCIENCE — UNIT II |📚 CREATED BY KISHOR S, AP/CSE-MVIT.</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --bg:#f6f7fb;
+ --bg2:#eef1ff;
+ --card:rgba(255,255,255,0.82);
+ --card-solid:#ffffff;
+ --glass-b:rgba(255,255,255,0.6);
+ --text:#0f172a;
+ --muted:#64748b;
+ --line:#e2e8f0;
+ --primary:#6366f1;
+ --primary2:#8b5cf6;
+ --accent:#06b6d4;
+ --ok:#10b981;
+ --warn:#f59e0b;
+ --danger:#ef4444;
+ --shadow:0 20px 60px rgba(99,102,241,0.12), 0 8px 20px rgba(0,0,0,0.06);
+ --radius:20px;
+}
+[data-theme="dark"]{
+ --bg:#070a1a;
+ --bg2:#10143a;
+ --card:rgba(22,27,59,0.82);
+ --card-solid:#161b3b;
+ --glass-b:rgba(255,255,255,0.08);
+ --text:#e8eaf6;
+ --muted:#9aa3c2;
+ --line:rgba(255,255,255,0.1);
+ --shadow:0 20px 60px rgba(0,0,0,0.45);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+ font-family:'Plus Jakarta Sans',system-ui;
+ background:var(--bg);
+ color:var(--text);
+ overflow-x:hidden;
+ line-height:1.7;
+}
+body::before{
+ content:"";position:fixed;inset:0;z-index:-3;
+ background:radial-gradient(80% 60% at 10% 10%, rgba(99,102,241,0.25), transparent 60%),
+ radial-gradient(70% 50% at 90% 20%, rgba(6,182,214,0.22), transparent 60%),
+ radial-gradient(60% 60% at 50% 90%, rgba(139,92,246,0.18), transparent 60%),
+ linear-gradient(180deg, var(--bg), var(--bg2));
+}
+.blobs{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(40px);opacity:0.5;animation:float 18s infinite ease-in-out}
+.blob1{width:520px;height:520px;background:linear-gradient(135deg,#6366f1,#8b5cf6);left:-120px;top:10%;animation-delay:0s}
+.blob2{width:420px;height:420px;background:linear-gradient(135deg,#06b6d4,#6366f1);right:-80px;top:25%;animation-delay:-6s}
+.blob3{width:600px;height:600px;background:linear-gradient(135deg,#f59e0b,#ec4899);left:40%;bottom:-20%;animation-delay:-12s;opacity:0.25}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-40px) scale(1.05)}66%{transform:translate(-30px,30px) scale(0.95)}}
+@keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.reading-progress{position:fixed;top:0;left:0;right:0;height:4px;background:rgba(0,0,0,0.06);z-index:1000}
+.reading-progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width 0.1s}
+.top-nav{
+ position:sticky;top:0;z-index:900;
+ backdrop-filter:blur(18px) saturate(1.5);
+ background:color-mix(in srgb, var(--card) 88%, transparent);
+ border-bottom:1px solid var(--line);
+ display:flex;align-items:center;gap:16px;
+ padding:12px 20px;
+}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:-0.02em}
+.brand-badge{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:grid;place-items:center;color:white;font-weight:800;box-shadow:0 8px 20px rgba(99,102,241,0.35)}
+.nav-search{flex:1;max-width:520px;position:relative}
+.nav-search input{
+ width:100%;padding:12px 16px 12px 44px;border-radius:14px;
+ border:1px solid var(--line);background:var(--card-solid);color:var(--text);
+ font-family:inherit;outline:none;transition:0.2s;
+}
+.nav-search input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(99,102,241,0.12)}
+.nav-search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:0.6}
+.top-actions{display:flex;gap:10px;align-items:center}
+.btn{
+ border:1px solid var(--line);background:var(--card-solid);color:var(--text);
+ padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600;font-family:inherit;transition:0.2s;display:flex;align-items:center;gap:8px;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:white;border:none;box-shadow:0 8px 20px rgba(99,102,241,0.35)}
+.hero{
+ min-height:92vh;display:grid;place-items:center;padding:60px 20px 40px;position:relative;
+}
+.hero-card{
+ width:min(1160px,100%);display:grid;grid-template-columns:1.15fr 0.85fr;gap:32px;
+ background:var(--card);border:1px solid var(--glass-b);backdrop-filter:blur(24px);
+ border-radius:28px;box-shadow:var(--shadow);padding:34px;position:relative;overflow:hidden;
+}
+.hero-card::after{content:"";position:absolute;right:-60px;top:-60px;width:300px;height:300px;background:radial-gradient(circle, rgba(99,102,241,0.18), transparent 70%);pointer-events:none}
+.hero h1{font-size:clamp(30px,5vw,52px);line-height:0.95;letter-spacing:-0.04em;font-weight:800}
+.hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-sub{color:var(--muted);font-size:18px;margin:16px 0 22px;max-width:56ch}
+.hero-stats{display:flex;gap:18px;flex-wrap:wrap;margin:20px 0}
+.stat{padding:14px 16px;border-radius:16px;background:var(--card-solid);border:1px solid var(--line);min-width:120px}
+.stat b{font-size:22px;display:block}
+.progress-ring{width:140px;height:140px;position:relative;display:grid;place-items:center}
+.progress-ring svg{transform:rotate(-90deg)}
+.progress-ring circle{fill:none;stroke-width:10;stroke-linecap:round}
+.progress-ring .bg{stroke:var(--line)}
+.progress-ring .fg{stroke:url(#grad);stroke-dasharray:351;stroke-dashoffset:351;transition:1.2s cubic-bezier(.2,.8,.2,1)}
+.ring-text{position:absolute;text-align:center}
+.ring-text b{font-size:28px}
+.layout{width:min(1400px,100%);margin:0 auto;display:grid;grid-template-columns:300px 1fr;gap:20px;padding:0 20px 80px}
+.sidebar{
+ position:sticky;top:72px;height:calc(100vh - 84px);overflow:auto;
+ background:var(--card);border:1px solid var(--glass-b);backdrop-filter:blur(20px);
+ border-radius:20px;padding:16px;box-shadow:var(--shadow);
+ scrollbar-width:thin;
+}
+.sidebar h3{font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin:14px 6px 8px}
+.nav-item{
+ display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+ cursor:pointer;color:var(--muted);font-weight:600;font-size:14px;transition:0.2s;border:1px solid transparent;
+}
+.nav-item:hover{background:var(--card-solid);color:var(--text);border-color:var(--line);transform:translateX(2px)}
+.nav-item.active{background:linear-gradient(135deg, rgba(99,102,241,0.12), rgba(6,182,214,0.12));color:var(--primary);border-color:rgba(99,102,241,0.22)}
+.nav-item .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.timeline{position:relative;margin:10px 0 0 8px;padding-left:22px;border-left:2px dashed var(--line)}
+.tl{position:relative;padding:8px 0 14px 0}
+.tl::before{content:"";position:absolute;left:-28px;top:14px;width:12px;height:12px;border-radius:50%;background:var(--card-solid);border:3px solid var(--primary)}
+.tl.done::before{background:var(--primary)}
+.main{display:flex;flex-direction:column;gap:22px}
+.chapter{
+ background:var(--card);border:1px solid var(--glass-b);backdrop-filter:blur(20px);
+ border-radius:22px;box-shadow:var(--shadow);overflow:hidden;
+}
+.ch-header{padding:22px 24px 14px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid var(--line);cursor:pointer}
+.ch-header h2{font-size:22px;letter-spacing:-0.02em;line-height:1.2}
+.ch-header p{color:var(--muted);font-size:14px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--card-solid);border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--muted)}
+.ch-body{padding:0 24px 22px;display:none}
+.chapter.open .ch-body{display:block}
+.chapter.open .chev{transform:rotate(180deg)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.cardx{
+ background:var(--card-solid);border:1px solid var(--line);border-radius:16px;padding:16px;
+ transition:0.25s;
+}
+.cardx:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,0.08)}
+.kicker{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:800;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.cardx h4{font-size:16px;margin-bottom:6px;letter-spacing:-0.01em}
+.cardx p, .cardx li{font-size:14px;color:var(--muted)}
+.cardx ul{padding-left:18px}
+.tip{border-left:4px solid var(--accent);background:linear-gradient(90deg, rgba(6,182,214,0.08), transparent)}
+.warn{border-left:4px solid var(--warn);background:linear-gradient(90deg, rgba(245,158,11,0.1), transparent)}
+.imp{border-left:4px solid var(--primary);background:linear-gradient(90deg, rgba(99,102,241,0.1), transparent)}
+.remember{border-left:4px solid #ec4899;background:linear-gradient(90deg, rgba(236,72,153,0.1), transparent)}
+.success{border-left:4px solid var(--ok)}
+.table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);font-size:14px}
+.table th{background:color-mix(in srgb, var(--bg2) 70%, var(--card-solid));text-align:left;padding:12px;font-weight:700}
+.table td{padding:11px 12px;border-top:1px solid var(--line)}
+.table tr:hover td{background:rgba(99,102,241,0.04)}
+.flow{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.flow .node{padding:12px 14px;border-radius:12px;background:var(--card-solid);border:1px solid var(--line);font-weight:700;font-size:13px;position:relative}
+.flow .arrow{width:28px;height:2px;background:var(--primary);position:relative}
+.flow .arrow::after{content:"";position:absolute;right:-6px;top:50%;transform:translateY(-50%);border-left:6px solid var(--primary);border-top:5px solid transparent;border-bottom:5px solid transparent}
+.svg-wrap{background:var(--card-solid);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;place-items:center}
+.mcq{padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card-solid);margin:10px 0}
+.mcq .opts{display:grid;gap:8px;margin-top:10px}
+.mcq .opt{padding:10px 12px;border-radius:10px;border:1px solid var(--line);cursor:pointer;transition:0.15s}
+.mcq .opt:hover{border-color:var(--primary)}
+.mcq .opt.correct{background:rgba(16,185,129,0.12);border-color:var(--ok)}
+.mcq .opt.wrong{background:rgba(239,68,68,0.12);border-color:var(--danger)}
+.badge{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;background:var(--bg2);border:1px solid var(--line)}
+.quiz-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:12px 0}
+.revision-panel{position:fixed;right:18px;bottom:18px;width:360px;max-height:70vh;overflow:auto;background:var(--card);backdrop-filter:blur(22px);border:1px solid var(--glass-b);border-radius:20px;box-shadow:var(--shadow);padding:16px;z-index:800;display:none}
+.revision-panel.open{display:block}
+.fade{opacity:0;transform:translateY(16px);transition:0.6s}
+.fade.in{opacity:1;transform:translateY(0)}
+.counter{font-variant-numeric:tabular-nums}
+.bookmark-btn.active{color:#ec4899}
+@media(max-width:1080px){.hero-card{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.sidebar{position:relative;top:0;height:auto}.revision-panel{width:calc(100% - 24px);right:12px}}
+</style>
+</head>
+<body>
+<div class="reading-progress"><div class="reading-progress-bar" id="rbar"></div></div>
+<div class="blobs"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div></div>
+
+<nav class="top-nav">
+ <div class="brand"><div class="brand-badge">DS</div><div>DataScience<br><span style="font-size:11px;color:var(--muted);letter-spacing:0.12em">📚 CREATED BY KISHOR S, AP/CSE-MVIT. • UNIT II</span></div></div>
+ <div class="nav-search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="search" placeholder="Search everything: types of data, Z-score, histogram, variance... (Ctrl+K)"></div>
+ <div class="top-actions">
+  <button class="btn" id="revBtn">📚 Quick Revision</button>
+  <button class="btn" id="bookBtn">🔖 <span id="bookCount">0</span></button>
+  <button class="btn" id="themeBtn">🌙 Theme</button>
+  <button class="btn btn-primary" id="progressBtn">✓ <span id="overallPct">0%</span></button>
+ </div>
+</nav>
+
+<section class="hero">
+ <div class="hero-card fade in">
+  <div>
+   <div class="chip">🎓 B.Tech CSE • Anna University • Exam + Placement + Interview</div>
+   <h1>FUNDAMENTALS OF <span>DATA SCIENCE</span><br>UNIT II — DESCRIBING DATA</h1>
+   <p class="hero-sub">The only handbook you need. Built like a paid product — glassmorphism UI, animated progress, interactive diagrams, 120+ MCQs, industry stories, and zero-assumption teaching from absolute scratch. If you have never studied statistics before, you will still top the exam.</p>
+   <div class="hero-stats">
+    <div class="stat"><b class="counter" data-target="8">0</b><span style="color:var(--muted);font-size:12px">Chapters • Full Syllabus</span></div>
+    <div class="stat"><b class="counter" data-target="120">0</b><span style="color:var(--muted);font-size:12px">MCQs + PYQs</span></div>
+    <div class="stat"><b class="counter" data-target="45">0</b><span style="color:var(--muted);font-size:12px">Interactive Diagrams</span></div>
+    <div class="stat"><b>100%</b><span style="color:var(--muted);font-size:12px">Exam Oriented</span></div>
+   </div>
+   <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="document.getElementById('ch1').scrollIntoView({behavior:'smooth'})">🚀 Start Learning — Zero to Hero</button>
+    <button class="btn" onclick="document.querySelector('.layout').scrollIntoView({behavior:'smooth'})">📊 View Roadmap</button>
+   </div>
+   <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <span class="badge">✔ Absolute Beginner Friendly</span><span class="badge">✔ Slow Learner Friendly</span><span class="badge">✔ Animated SVG Graphs</span><span class="badge">✔ Interview Cards</span><span class="badge">✔ One-Page Revision</span>
+   </div>
+  </div>
+  <div style="display:grid;gap:16px">
+   <div style="display:grid;place-items:center">
+    <div class="progress-ring">
+     <svg width="140" height="140"><defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs>
+      <circle class="bg" cx="70" cy="70" r="56"/><circle class="fg" id="ringFg" cx="70" cy="70" r="56"/>
+     </svg>
+     <div class="ring-text"><b id="ringPct">0%</b><div style="font-size:12px;color:var(--muted)">Completed</div></div>
+    </div>
+   </div>
+   <div class="svg-wrap">
+    <svg viewBox="0 0 360 220" width="100%" height="220">
+     <rect x="20" y="30" width="320" height="160" rx="18" fill="none" stroke="#6366f1" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="8 8"/>
+     <g id="bars">
+      <rect x="44" y="120" width="28" height="50" rx="8" fill="url(#g1)"><animate attributeName="height" values="20;50;30" dur="2.5s" repeatCount="indefinite"/></rect>
+      <rect x="88" y="100" width="28" height="70" rx="8" fill="url(#g2)"/>
+      <rect x="132" y="80" width="28" height="90" rx="8" fill="url(#g1)"/>
+      <rect x="176" y="110" width="28" height="60" rx="8" fill="url(#g2)"/>
+      <rect x="220" y="70" width="28" height="100" rx="8" fill="url(#g1)"/>
+      <rect x="264" y="95" width="28" height="75" rx="8" fill="url(#g2)"/>
+     </g>
+     <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="100%" stop-color="#8b5cf6"/></linearGradient><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#06b6d4"/><stop offset="100%" stop-color="#6366f1"/></linearGradient></defs>
+     <path d="M40 170 Q 90 40, 180 90 T 320 60" fill="none" stroke="#06b6d4" stroke-width="3" stroke-linecap="round"/>
+     <circle cx="180" cy="90" r="6" fill="#06b6d4"><animate attributeName="r" values="6;10;6" dur="1.8s" repeatCount="indefinite"/></circle>
+    </svg>
+   </div>
+   <div class="grid2">
+    <div class="cardx imp"><div class="kicker">💡 TEACHING PROMISE</div><h4>No Prior Knowledge Needed</h4><p>Every concept: Simple English → Why we need → Daily Life Analogy → Technical → Visualization → Industry Example → Memory Trick → Exam Tip → Interview Tip</p></div>
+    <div class="cardx tip"><div class="kicker">🏆 PLACEMENT EDGE</div><h4>Interview + Viva + PYQ</h4><p>Every topic includes placement cards, viva questions, Anna University PYQs, common mistakes, and one-page revision sheets.</p></div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<div class="layout">
+ <aside class="sidebar" id="sidebar">
+  <h3>Learning Roadmap</h3>
+  <div class="timeline">
+   <div class="tl" data-go="ch1"><b>1. Types of Data</b><div style="font-size:12px;color:var(--muted)">Structured vs Unstructured</div></div>
+   <div class="tl" data-go="ch2"><b>2. Types of Variables</b><div style="font-size:12px;color:var(--muted)">Nominal to Ratio</div></div>
+   <div class="tl" data-go="ch3"><b>3. Tables</b><div style="font-size:12px;color:var(--muted)">Frequency, Quartiles</div></div>
+   <div class="tl" data-go="ch4"><b>4. Graphs</b><div style="font-size:12px;color:var(--muted)">Histogram to Boxplot</div></div>
+   <div class="tl" data-go="ch5"><b>5. Averages</b><div style="font-size:12px;color:var(--muted)">Mean Median Mode</div></div>
+   <div class="tl" data-go="ch6"><b>6. Variability</b><div style="font-size:12px;color:var(--muted)">SD, Variance, IQR</div></div>
+   <div class="tl" data-go="ch7"><b>7. Normal Distribution</b><div style="font-size:12px;color:var(--muted)">Bell Curve Deep Dive</div></div>
+   <div class="tl" data-go="ch8"><b>8. Z-Scores</b><div style="font-size:12px;color:var(--muted)">Standardization</div></div>
+  </div>
+  <h3>Chapters</h3>
+  <div id="sideNav"></div>
+  <h3>Quick Tools</h3>
+  <div style="display:grid;gap:8px">
+   <button class="btn" id="expandAll">⬇ Expand All</button>
+   <button class="btn" id="collapseAll">⬆ Collapse All</button>
+   <button class="btn" id="mockTestBtn">🎯 Start Full Mock Test</button>
+  </div>
+  <div style="margin-top:14px" class="cardx">
+   <div class="kicker">📈 Completion</div>
+   <div style="height:8px;background:var(--line);border-radius:99px;overflow:hidden"><div id="sideBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--accent))"></div></div>
+   <div style="font-size:12px;color:var(--muted);margin-top:6px"><span id="doneCount">0</span>/8 topics marked done</div>
+  </div>
+ </aside>
+
+ <main class="main" id="main">
+
+ <!-- CHAPTER 1 -->
+ <section class="chapter open" id="ch1" data-title="Types of Data">
+  <div class="ch-header"><div><div style="display:flex;gap:8px;align-items:center"><span class="chip">CHAPTER 01</span><span class="chip">⏱ 45 min • Beginner</span><span class="chip">🏅 Core</span></div><h2>1. TYPES OF DATA — The Foundation of Everything</h2><p>What is data, why classification matters, qualitative, quantitative, ranked, structured, semi-structured, unstructured — with industry examples, memory tricks, infographics and 15 MCQs.</p></div><div style="display:flex;gap:8px;align-items:center"><label class="chip" style="cursor:pointer"><input type="checkbox" class="doneCheck" data-ch="ch1"> Mark Done</label><span class="chev">▼</span></div></div>
+  <div class="ch-body">
+   <div class="grid2">
+    <div class="cardx imp"><div class="kicker">🎯 Learning Objectives</div><ul><li>Define data in simplest English</li><li>Classify data into 7 major types</li><li>Differentiate structured vs unstructured with real examples</li><li>Answer Anna University 2,5,10 mark questions</li></ul></div>
+    <div class="cardx tip"><div class="kicker">📋 Prerequisites</div><p>No statistics needed. Only know that a computer stores information. That's it.</p><div class="kicker" style="margin-top:10px">🌟 Learning Outcomes</div><p>After this you can look at any dataset (Instagram comments, Excel sheet, CCTV footage) and instantly say its type.</p></div>
+   </div>
+
+   <div class="cardx" style="margin-top:16px"><div class="kicker">1️⃣ Simple English Explanation</div><h4>What is Data?</h4><p><b>Data = Any fact that you can record.</b> Your name is data. Your height 5'6" is data. The photo you just took is data. The temperature 32°C is data. In Data Science, we say: <b>Data is the raw material. Information is the finished product.</b></p>
+    <div class="grid2" style="margin-top:12px">
+     <div class="cardx remember"><div class="kicker">🧠 Daily Life Analogy</div><p>Think of a kitchen. Vegetables, rice, spices = Data. The cooked biryani = Information. Without classifying vegetables (which is leafy, which is root), you can't cook well. Same with data.</p></div>
+     <div class="cardx success"><div class="kicker">💼 Why We Need Classification?</div><p>Because <b>different data needs different tools</b>. You can't take average of colours. You can't make pie chart of temperature easily if you don't know type. Wrong classification = wrong algorithm = failed interview.</p></div>
+    </div>
+   </div>
+
+   <h3 style="margin:18px 0 10px">📚 The 7 Types — Full Breakdown</h3>
+   <div class="grid2">
+    <div class="cardx"><div class="kicker">A • Qualitative Data (Categorical)</div><h4>Data that describes QUALITY, not number</h4><p><b>Simple:</b> Answers What kind? Which category?</p><p><b>Examples:</b> Gender (Male/Female), Blood Group (A,B,O), City (Chennai, Mumbai), Customer Review (Good/Bad)</p><p><b>Industry:</b> Netflix uses qualitative data — Genre = Comedy, Drama.</p><div class="cardx warn" style="margin-top:10px"><b>⚠ Common Mistake:</b> Students think A+, B+ grades are numbers. They are categories!</div><p><b>Memory Trick:</b> QUALitative = QUALity = Describes.</p></div>
+    <div class="cardx"><div class="kicker">B • Quantitative Data (Numerical)</div><h4>Data that is COUNTABLE or MEASURABLE</h4><p><b>Simple:</b> Answers How many? How much?</p><p><b>Examples:</b> Age=20, Marks=85, Salary=₹50k, Height=172cm</p><p><b>Industry:</b> Amazon — Price, Number of items sold — used for prediction.</p><p><b>Memory Trick:</b> QUANTitative = QUANTITY = Number.</p></div>
+    <div class="cardx"><div class="kicker">C • Ranked Data</div><h4>Data with an ORDER, but difference not equal</h4><p>Example: 1st Rank, 2nd Rank in class. Movie rating: 1 Star to 5 Stars. Satisfaction: Very Bad < Bad < Good < Very Good. We know order, but gap between Good and Very Good is not fixed like numbers.</p><p><b>Daily Life:</b> Your Swiggy delivery rating.</p></div>
+    <div class="cardx"><div class="kicker">D • Structured Data</div><h4>Data in perfect rows and columns — Excel style</h4><p><b>Example:</b> Student table: Roll No | Name | Marks. 80% of company data is structured. Easy to store in SQL.</p><div class="svg-wrap"><svg viewBox="0 0 240 80" width="100%"><rect x="10" y="10" width="70" height="20" rx="6" fill="#6366f1" opacity="0.2"/><rect x="90" y="10" width="70" height="20" rx="6" fill="#6366f1" opacity="0.2"/><rect x="170" y="10" width="60" height="20" rx="6" fill="#6366f1" opacity="0.2"/><rect x="10" y="36" width="70" height="14" rx="4" fill="#e0e7ff"/><rect x="90" y="36" width="70" height="14" rx="4" fill="#e0e7ff"/><rect x="170" y="36" width="60" height="14" rx="4" fill="#e0e7ff"/><rect x="10" y="54" width="70" height="14" rx="4" fill="#e0e7ff"/><rect x="90" y="54" width="70" height="14" rx="4" fill="#e0e7ff"/><rect x="170" y="54" width="60" height="14" rx="4" fill="#e0e7ff"/></svg></div></div>
+    <div class="cardx"><div class="kicker">E • Semi-Structured Data</div><h4>Not full table, but has tags</h4><p>JSON, XML, Email (To, Subject, Body), CSV with some missing fields. Has some structure, but not rigid.</p><p><b>Industry:</b> Every API you use returns JSON — that is semi-structured.</p></div>
+    <div class="cardx"><div class="kicker">F • Unstructured Data</div><h4>No rows, no columns — wild data</h4><p>Photos, Videos, Audio, Tweets, Instagram Reels, PDF resumes. 80-90% of world data is unstructured! Needs AI to understand.</p><p><b>Industry:</b> YouTube thumbnails, CCTV footage for self-driving cars.</p></div>
+   </div>
+
+   <div class="cardx" style="margin-top:16px">
+    <div class="kicker">📊 Comparison Table — Must Learn for Exams</div>
+    <table class="table"><thead><tr><th>Type</th><th>Format</th><th>Example</th><th>Tool</th><th>Exam Weight</th></tr></thead><tbody>
+     <tr><td>Qualitative</td><td>Labels</td><td>Blood Group</td><td>Bar, Pie</td><td>High</td></tr>
+     <tr><td>Quantitative</td><td>Numbers</td><td>Marks, Salary</td><td>Mean, SD, Histogram</td><td>Very High</td></tr>
+     <tr><td>Structured</td><td>Rows x Cols</td><td>SQL Table</td><td>SQL, Excel</td><td>High</td></tr>
+     <tr><td>Semi-Structured</td><td>Tags/JSON</td><td>API JSON</td><td>MongoDB</td><td>Medium</td></tr>
+     <tr><td>Unstructured</td><td>Free form</td><td>Video, Text</td><td>Python, AI</td><td>High</td></tr>
+    </tbody></table>
+   </div>
+
+   <div class="grid2" style="margin-top:16px">
+    <div class="cardx"><div class="kicker">🔀 Data Classification Flowchart</div><div class="flow"><div class="node">Collect Data</div><div class="arrow"></div><div class="node">Is it number?</div><div class="arrow"></div><div class="node" style="background:rgba(99,102,241,0.12)">Quantitative</div></div><div class="flow" style="margin-top:8px"><div class="node">Not Number?</div><div class="arrow"></div><div class="node">Qualitative</div><div class="arrow"></div><div class="node">Check Storage: Table? → Structured else → Unstructured</div></div></div>
+    <div class="cardx tip"><div class="kicker">🧠 Memory Trick — S.S.U. Formula</div><h4>Story: “Siri Sends Uncles”</h4><p>S = Structured (Excel)<br>S = Semi-Structured (JSON with tags like email)<br>U = Unstructured (Video, photo — no table)</p><p style="margin-top:8px"><b>Exam Tip:</b> If question asks “What type is Twitter data?” — Answer: Unstructured + Semi-Structured (JSON API gives structure, text is unstructured). This fetches full marks.</p></div>
+   </div>
+
+   <div class="grid2" style="margin-top:16px">
+    <div class="cardx success"><div class="kicker">🌍 Real-world + Industry</div><p><b>Bank:</b> Account number = Structured, Cheque photo = Unstructured, Transaction JSON = Semi.<br><b>Hospital:</b> Age, BP = Quantitative structured. Doctor notes = Unstructured qualitative. This is why hospitals need Data Science teams.</p></div>
+    <div class="cardx imp"><div class="kicker">🎯 Interview Qs</div><ul><li>Q: Can qualitative data be converted to quantitative? A: Yes, encoding (Male=0, Female=1).</li><li>Q: Which is bigger — structured or unstructured? A: Unstructured is 80% of world.</li><li>Q: Example of ranked data in e-commerce? A: Product rating, bestseller rank.</li></ul></div>
+   </div>
+
+   <div style="margin-top:16px"><div class="kicker">📝 MCQs — Types of Data (15 Qs) — Click to Answer</div><div id="mcq-ch1"></div></div>
+  </div>
+ </section>
+
+ <!-- CHAPTER 2 -->
+ <section class="chapter" id="ch2" data-title="Types of Variables">
+  <div class="ch-header"><div><div style="display:flex;gap:8px"><span class="chip">CHAPTER 02</span><span class="chip">⏱ 60 min</span></div><h2>2. TYPES OF VARIABLES — The Alphabet of Data Science</h2><p>Variable vs Constant, Independent vs Dependent vs Confounding, Discrete vs Continuous, Nominal Ordinal Interval Ratio — with comparison tables and memory maps.</p></div><div style="display:flex;gap:8px;align-items:center"><label class="chip" style="cursor:pointer"><input type="checkbox" class="doneCheck" data-ch="ch2"> Mark Done</label><span class="chev">▼</span></div></div>
+  <div class="ch-body">
+   <div class="cardx imp"><div class="kicker">Beginner Zero Level</div><p><b>Variable = Anything that can CHANGE.</b> Constant = Never changes. In a class, Student Marks = Variable (changes per student). Value of Pi = 3.1415 = Constant. In formula y = mx + c, x,y = Variables, m,c = constants for that line.</p>
+   <div class="grid3" style="margin-top:12px">
+    <div class="cardx"><h4>Independent Variable</h4><p>The CAUSE. You control it. Example: Hours Studied (you decide). It does NOT depend on others.</p><p><b>Memory:</b> Independent = I am free, I don't depend.</p></div>
+    <div class="cardx"><h4>Dependent Variable</h4><p>The EFFECT. Result. Example: Marks depend on hours studied. Salary depends on experience.</p><p><b>Daily life:</b> Number of rotis you eat (independent) → Stomach fullness (dependent).</p></div>
+    <div class="cardx warn"><h4>Confounding Variable</h4><p>Hidden villain. Example: You study more → marks up, but also Coffee you drink increased. Is coffee confounding? It mixes the effect. In research, we must control it.</p></div>
+   </div>
+   </div>
+
+   <div class="grid2" style="margin-top:16px">
+    <div class="cardx"><div class="kicker">Discrete vs Continuous — Most Asked</div>
+     <table class="table"><tr><th>Discrete</th><th>Continuous</th></tr><tr><td>Countable, gap exists. Example: Number of students = 40, can't be 40.5</td><td>Measurable, can be any decimal. Height = 172.5 cm possible</td></tr><tr><td>Graph: Bar only</td><td>Graph: Histogram, line</td></tr><tr><td>Memory: Discrete = Digital clicks (tik tik)</td><td>Continuous = Water flow (smooth)</td></tr></table>
+    </div>
+    <div class="cardx"><div class="kicker">Categorical vs Numerical</div>
+     <table class="table"><tr><th>Categorical</th><th>Numerical</th></tr><tr><td>Categories: Gender, Color</td><td>Numbers: Age, Salary</td></tr><tr><td>Cannot do mean (mean of male/female nonsense)</td><td>Can do mean, SD</td></tr></table>
+     <div class="cardx tip" style="margin-top:10px"><b>Mnemonic for NOIR scale (Nominal Ordinal Interval Ratio):</b><br>“Noodles Ordered In Restaurant”<br>N=Nominal (names only, no order)<br>O=Ordinal (order, no equal gap)<br>I=Interval (order + equal gap, no true zero — e.g., Temperature °C)<br>R=Ratio (order + gap + true zero — e.g., Weight, Age)</div>
+    </div>
+   </div>
+
+   <div class="cardx" style="margin-top:16px"><div class="kicker">🔬 The NOIR Scale — Deep Dive (Anna University Loves This)</div>
+    <table class="table"><thead><tr><th>Level</th><th>Definition in Simple English</th><th>Example</th><th>Can do Mean?</th><th>True Zero?</th></tr></thead><tbody>
+     <tr><td><b>Nominal</b> (name only)</td><td>Only categories, no order. Like name tags.</td><td>Blood Group, Gender, City</td><td>❌ No</td><td>❌</td></tr>
+     <tr><td><b>Ordinal</b> (order)</td><td>Categories with order, but gap not equal.</td><td>Rating ★ to ★★★★★, Medal Gold>Silver>Bronze</td><td>❌ (Median okay)</td><td>❌</td></tr>
+     <tr><td><b>Interval</b> (gap equal)</td><td>Order + equal gap, but zero is fake.</td><td>Temp °C, Year, IQ (0°C doesn't mean no heat)</td><td>✅ Yes</td><td>❌ No true zero</td></tr>
+     <tr><td><b>Ratio</b> (real zero)</td><td>Order + equal gap + true zero. Best data.</td><td>Age, Weight, Salary, Height (0 kg = no weight)</td><td>✅ Yes + Ratio</td><td>✅ Yes</td></tr>
+    </tbody></table>
+    <div class="grid2" style="margin-top:12px"><div class="cardx remember"><b>🧠 Memory Trick:</b> Interval vs Ratio → Think of temperature vs weight. 0°C is not no temperature (ice still cold), but 0 kg = truly nothing. If 0 means “nothing”, it's Ratio. Else Interval.</div><div class="cardx success"><b>Interview Tip:</b> If interviewer asks “Is age Interval or Ratio?” Say: Ratio, because 0 age means birth, true zero, and 20 years is twice 10 years — ratio makes sense. Temperature 20°C is not twice hot as 10°C, so Interval only.</div></div>
+   </div>
+
+   <div style="margin-top:16px"><div class="kicker">📝 MCQs — Variables (15 Qs)</div><div id="mcq-ch2"></div></div>
+  </div>
+ </section>
+
+ <!-- CHAPTER 3 -->
+ <section class="chapter" id="ch3" data-title="Describing Data with Tables">
+  <div class="ch-header"><div><span class="chip">CHAPTER 03</span><h2>3. DESCRIBING DATA WITH TABLES — Frequency Magic</h2><p>Grouped vs Ungrouped, Relative, Cumulative, Percentage, Percentile Rank, Quartiles, Outliers — step-by-step table construction.</p></div><div style="display:flex;gap:8px;align-items:center"><label class="chip"><input type="checkbox" class="doneCheck" data-ch="ch3"> Done</label><span class="chev">▼</span></div></div>
+  <div class="ch-body">
+   <div class="cardx"><div class="kicker">What is Frequency?</div><p><b>Frequency = How many times something appears.</b> Example: Marks: [50,60,60,70,70,70]. Frequency of 70 = 3. Simple.</p><div class="grid2" style="margin-top:10px"><div class="cardx"><h4>Ungrouped Frequency</h4><p>When data is small, list each value. Example: Shoes size: 7 appears 2 times, 8 appears 5 times.</p></div><div class="cardx"><h4>Grouped Frequency</h4><p>When data is large (0-100 marks), group into classes: 0-10, 10-20, etc. Saves space.</p></div></div></div>
+   <div class="grid3" style="margin-top:16px">
+    <div class="cardx tip"><div class="kicker">Relative Frequency</div><p>Relative = Frequency / Total. Example: 3 out of 10 students got 70 → Relative = 3/10 = 0.3 = 30%</p><p><b>Formula:</b> RF = f / N</p></div>
+    <div class="cardx imp"><div class="kicker">Cumulative Frequency</div><p>Running total. Example: Marks ≤60 = how many students? Add frequencies till that class.</p><p><b>Use:</b> To find median, quartiles quickly.</p></div>
+    <div class="cardx warn"><div class="kicker">Outliers & Percentile</div><p><b>Outlier:</b> Very different value (most students 50-70, one 5). Spoils mean. <b>Percentile Rank:</b> If you are 90th percentile, you beat 90% students. <b>Quartiles:</b> Data cut into 4 equal parts — Q1=25%, Q2=50% (Median), Q3=75%.</p></div>
+   </div>
+   <div class="cardx" style="margin-top:16px"><div class="kicker">Step-by-Step Table Construction — Solved Example</div><p><b>Data:</b> 12,15,12,18,20,15,15,12,20,22 (10 students marks)</p><table class="table"><tr><th>Marks (x)</th><th>Tally</th><th>Frequency (f)</th><th>Relative (f/N)</th><th>Cumulative (cf)</th></tr><tr><td>12</td><td>III</td><td>3</td><td>0.3</td><td>3</td></tr><tr><td>15</td><td>III</td><td>3</td><td>0.3</td><td>6</td></tr><tr><td>18</td><td>I</td><td>1</td><td>0.1</td><td>7</td></tr><tr><td>20</td><td>II</td><td>2</td><td>0.2</td><td>9</td></tr><tr><td>22</td><td>I</td><td>1</td><td>0.1</td><td>10</td></tr></table></div>
+   <div style="margin-top:16px"><div class="kicker">MCQs — Tables</div><div id="mcq-ch3"></div></div>
+  </div>
+ </section>
+
+ <!-- CHAPTER 4 -->
+ <section class="chapter" id="ch4" data-title="Describing Data with Graphs">
+  <div class="ch-header"><div><span class="chip">CHAPTER 04</span><h2>4. DESCRIBING DATA WITH GRAPHS — Visual Storytelling</h2><p>Histogram, Bar, Frequency Polygon, Stem-Leaf, Pie, Line, Scatter, Box Plot — when to use, when NOT to use, common mistakes.</p></div><div style="display:flex;gap:8px;align-items:center"><label class="chip"><input type="checkbox" class="doneCheck" data-ch="ch4"> Done</label><span class="chev">▼</span></div></div>
+  <div class="ch-body">
+   <div class="grid2">
+    <div class="cardx"><div class="kicker">Histogram</div><h4>For Continuous data, bars TOUCH each other</h4><p><b>Purpose:</b> Show distribution of marks. <b>Construction:</b> X = class interval, Y = frequency. No gap. <b>When NOT:</b> Don't use for categorical (use bar).</p><div class="svg-wrap" style="margin-top:8px"><svg viewBox="0 0 260 120" width="100%"><rect x="20" y="60" width="22" height="40" fill="#6366f1" rx="4"/><rect x="48" y="30" width="22" height="70" fill="#6366f1" rx="4"/><rect x="76" y="50" width="22" height="50" fill="#6366f1" rx="4"/><rect x="104" y="70" width="22" height="30" fill="#8b5cf6" rx="4"/><rect x="132" y="40" width="22" height="60" fill="#6366f1" rx="4"/><line x1="10" y1="100" x2="240" y2="100" stroke="#cbd5e1"/></svg></div></div>
+    <div class="cardx"><div class="kicker">Bar Graph</div><h4>For Categorical data, bars have GAP</h4><p><b>Example:</b> Number of students per department. Bars separated. <b>Advantage:</b> Easy to compare. <b>Common Mistake:</b> Students draw histogram for blood groups — wrong! Use bar.</p></div>
+    <div class="cardx"><div class="kicker">Frequency Polygon & Pie Chart</div><h4>Polygon = Line joining midpoints of histogram</h4><p>Shows trend. Pie = Circle divided into %. Use when parts of whole (market share). <b>Limit:</b> Don't use pie for >5 categories — becomes messy.</p><div class="svg-wrap"><svg viewBox="0 0 100 100" width="120"><circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" stroke-width="20" stroke-dasharray="60 188" stroke-dashoffset="0"/><circle cx="50" cy="50" r="40" fill="none" stroke="#6366f1" stroke-width="20" stroke-dasharray="40 188" stroke-dashoffset="-60"/><circle cx="50" cy="50" r="40" fill="none" stroke="#06b6d4" stroke-width="20" stroke-dasharray="88 188" stroke-dashoffset="-100"/></svg></div></div>
+    <div class="cardx"><div class="kicker">Box Plot & Scatter</div><h4>Box Plot = 5 number summary visual</h4><p>Shows Min, Q1, Median, Q3, Max + Outliers. Best for outlier detection. Scatter Plot = Shows relationship between 2 variables (Height vs Weight). If dots go up = Positive correlation.</p><div class="svg-wrap"><svg viewBox="0 0 260 60" width="100%"><line x1="30" y1="30" x2="220" y2="30" stroke="#94a3b8"/><rect x="70" y="15" width="80" height="30" fill="rgba(99,102,241,0.15)" stroke="#6366f1" rx="6"/><line x1="110" y1="15" x2="110" y2="45" stroke="#6366f1" stroke-width="2"/><line x1="30" y1="30" x2="70" y2="30" stroke="#6366f1"/><line x1="150" y1="30" x2="220" y2="30" stroke="#6366f1"/><circle cx="230" cy="30" r="5" fill="#ef4444"/></svg></div></div>
+   </div>
+   <div class="cardx" style="margin-top:16px"><div class="kicker">Comparison Table — Graphs</div><table class="table"><tr><th>Graph</th><th>Data Type</th><th>Best For</th><th>Don't Use When</th></tr><tr><td>Histogram</td><td>Continuous</td><td>Distribution</td><td>Categorical data</td></tr><tr><td>Bar</td><td>Categorical</td><td>Comparison</td><td>Continuous with many values</td></tr><tr><td>Pie</td><td>Categorical (≤5)</td><td>Share of whole</td><td>Many categories</td></tr><tr><td>Box Plot</td><td>Numerical</td><td>Outlier + Quartiles</td><td>Only 2-3 values</td></tr><tr><td>Scatter</td><td>2 Numerical</td><td>Correlation</td><td>Single variable</td></tr></table></div>
+   <div style="margin-top:16px"><div class="kicker">MCQs — Graphs</div><div id="mcq-ch4"></div></div>
+  </div>
+ </section>
+
+ <!-- CHAPTER 5 -->
+ <section class="chapter" id="ch5" data-title="Describing Data with Averages">
+  <div class="ch-header"><div><span class="chip">CHAPTER 05</span><h2>5. DESCRIBING DATA WITH AVERAGES — Mean, Median, Mode</h2><p>Central Tendency demystified from zero — formulas, step-by-step numericals, weighted mean, which average when?</p></div><div style="display:flex;gap:8px;align-items:center"><label class="chip"><input type="checkbox" class="doneCheck" data-ch="ch5"> Done</label><span class="chev">▼</span></div></div>
+  <div class="ch-body">
+   <div class="cardx imp"><div class="kicker">Simple English</div><p><b>Average = One number that represents whole group.</b> If 5 friends have pocket money 10,20,30,40,50 → Average 30 represents them. We have 3 averages:</p><ul><li><b>Mean:</b> Add all ÷ count (most common)</li><li><b>Median:</b> Middle value when sorted</li><li><b>Mode:</b> Most frequent value</li></ul></div>
+   <div class="grid3" style="margin-top:12px">
+    <div class="cardx"><div class="kicker">Mean — Formula</div><p><b>Population Mean:</b> μ = Σx / N<br><b>Sample Mean:</b> x̄ = Σx / n<br><b>Weighted Mean:</b> Σ(w·x)/Σw</p><p><b>Example:</b> 2,4,6 → Mean = (2+4+6)/3=4</p><p><b>When to use:</b> Data has no outlier, need precise center.</p><p><b>Limitation:</b> Outlier spoils mean (1,2,3,100 → mean 26.5 wrong, median 2.5 better)</p></div>
+    <div class="cardx"><div class="kicker">Median — Middle</div><p><b>Steps:</b> Sort → If odd n, middle. If even, average of 2 middles.</p><p>Ex: 5,2,9,1,7 → Sorted 1,2,5,7,9 → Median=5<br>Ex: 1,2,3,4 → (2+3)/2=2.5</p><p><b>Advantage:</b> Not affected by outlier. Best for salary data (few CEOs high salary).</p></div>
+    <div class="cardx"><div class="kicker">Mode — Most Frequent</div><p>Data: 2,3,3,4,5,3 → Mode=3 (appears 3 times). Can have 2 modes (bimodal). If all unique, no mode.</p><p><b>Use:</b> Categorical data — Most common blood group? Mode.</p></div>
+   </div>
+   <div class="cardx" style="margin-top:16px"><div class="kicker">Comparison Table — Mean vs Median vs Mode (Very Important)</div><table class="table"><tr><th>Feature</th><th>Mean</th><th>Median</th><th>Mode</th></tr><tr><td>Definition</td><td>Average</td><td>Middle</td><td>Most frequent</td></tr><tr><td>Outlier effect</td><td>Highly affected</td><td>Not affected</td><td>Not affected</td></tr><tr><td>Best for</td><td>Normal data, no outlier</td><td>Skewed data, salary</td><td>Categorical, most common</td></tr><tr><td>Formula</td><td>Σx/n</td><td>Middle position</td><td>Count frequency</td></tr><tr><td>Graph</td><td>Balances histogram</td><td>Divides area 50-50</td><td>Peak of histogram</td></tr></table></div>
+   <div class="cardx tip" style="margin-top:16px"><div class="kicker">🧠 Memory Trick & Exam Tip</div><p><b>Trick: “Mean = Mean fellow, affected by rich people (outliers). Median = Middle class, stable. Mode = Most popular in class.”</b><br><b>Exam:</b> If data is skewed (salary, house price), always recommend Median. If asked “Which central tendency for categorical?”, answer Mode.</p></div>
+   <div style="margin-top:16px"><div class="kicker">MCQs — Averages</div><div id="mcq-ch5"></div></div>
+  </div>
+ </section>
+
+ <!-- CHAPTER 6 -->
+ <section class="chapter" id="ch6" data-title="Describing Variability">
+  <div class="ch-header"><div><span class="chip">CHAPTER 06</span><h2>6. DESCRIBING VARIABILITY — How Spread is Data?</h2><p>Range, Variance, Standard Deviation, IQR, Degrees of Freedom, Sum of Squares — formulas in simple English with units and visuals.</p></div><div style="display:flex;gap:8px;align-items:center"><label class="chip"><input type="checkbox" class="doneCheck" data-ch="ch6"> Done</label><span class="chev">▼</span></div></div>
+  <div class="ch-body">
+   <div class="cardx"><div class="kicker">Why Variability? Story</div><p>Two classes both have mean 70 marks. Class A: 68,69,70,71,72 (all near mean — consistent). Class B: 20,40,70,90,130 (spread — inconsistent). Mean same, but performance very different! So we need spread measures.</p></div>
+   <div class="grid2" style="margin-top:16px">
+    <div class="cardx"><div class="kicker">Range</div><p><b>Simple:</b> Max - Min. Example: 10,20,30 → Range=20. <b>Advantage:</b> Easy. <b>Limitation:</b> Only uses 2 values, outlier spoils.</p></div>
+    <div class="cardx"><div class="kicker">Interquartile Range (IQR)</div><p><b>IQR = Q3 - Q1</b>. Middle 50% spread. Example: Q1=30, Q3=70 → IQR=40. Not affected by outlier. Used in Box Plot to find outliers: Outlier if < Q1-1.5*IQR or > Q3+1.5*IQR</p></div>
+    <div class="cardx imp"><div class="kicker">Variance — The Heart</div><p><b>Variance = Average of squared distances from mean.</b> Steps: 1) Find mean 2) Find (x - mean)² for each 3) Average them.</p><p><b>Population:</b> σ² = Σ(x-μ)² / N<br><b>Sample:</b> s² = Σ(x-x̄)² / (n-1)</p><p><b>Unit:</b> Square of original (if marks, variance unit = marks²). That's why we need SD.</p><p><b>Memory:</b> Variance = Variation + Dance? Actually how much data dances away from mean.</p></div>
+    <div class="cardx success"><div class="kicker">Standard Deviation — Star of Exam</div><p><b>SD = √Variance</b>. Brings unit back to original. Most important spread measure.</p><p><b>Interpretation:</b> If mean=50, SD=5 → most students 45-55. If SD=20 → marks spread 30-70 → high variability.</p><p><b>Formula:</b> σ = √(Σ(x-μ)² / N)</p><p><b>Industry:</b> Stock market — high SD = risky stock.</p></div>
+   </div>
+   <div class="cardx" style="margin-top:16px"><div class="kicker">Solved Example — Step-by-Step</div><p><b>Data:</b> 2,4,4,4,5,5,7,9 (n=8). Mean = 5</p><table class="table"><tr><th>x</th><th>x - mean</th><th>(x-mean)²</th></tr><tr><td>2</td><td>-3</td><td>9</td></tr><tr><td>4</td><td>-1</td><td>1</td></tr><tr><td>4</td><td>-1</td><td>1</td></tr><tr><td>4</td><td>-1</td><td>1</td></tr><tr><td>5</td><td>0</td><td>0</td></tr><tr><td>5</td><td>0</td><td>0</td></tr><tr><td>7</td><td>2</td><td>4</td></tr><tr><td>9</td><td>4</td><td>16</td></tr><tr><td colspan="2">Sum</td><td>32</td></tr></table><p style="margin-top:8px">Population Variance = 32/8=4, SD=2. Sample Variance=32/7≈4.57, SD≈2.14. <b>Degrees of Freedom:</b> n-1 =7 — because one value is fixed if mean known, remaining free.</p></div>
+   <div style="margin-top:16px"><div class="kicker">MCQs — Variability</div><div id="mcq-ch6"></div></div>
+  </div>
+ </section>
+
+ <!-- CHAPTER 7 -->
+ <section class="chapter" id="ch7" data-title="Normal Distribution">
+  <div class="ch-header"><div><span class="chip">CHAPTER 07</span><h2>7. NORMAL DISTRIBUTION — The Bell Curve of Nature</h2><p>Properties, Bell Curve, Mean=Median=Mode, Skewness, Applications in ML and Industry — animated SVG bell curve.</p></div><div style="display:flex;gap:8px;align-items:center"><label class="chip"><input type="checkbox" class="doneCheck" data-ch="ch7"> Done</label><span class="chev">▼</span></div></div>
+  <div class="ch-body">
+   <div class="cardx"><div class="kicker">What is Normal Distribution?</div><p><b>Simple:</b> When you plot height of 1000 students, you get a bell shape — most near average, few very tall, few very short. That's Normal Distribution. Nature loves this shape!</p>
+    <div class="svg-wrap" style="margin-top:12px"><svg viewBox="0 0 400 180" width="100%"><path d="M20 150 Q 80 140 120 90 T 200 40 T 280 90 T 380 150" fill="none" stroke="#6366f1" stroke-width="3"/><path d="M20 150 Q 80 140 120 90 T 200 40 T 280 90 T 380 150 L 380 150 L 20 150" fill="url(#g1)" opacity="0.15"/><line x1="200" y1="40" x2="200" y2="150" stroke="#ef4444" stroke-dasharray="6 6"/><text x="200" y="20" text-anchor="middle" font-size="12" fill="#ef4444">Mean=Median=Mode</text><text x="60" y="165" font-size="11" fill="#64748b">-3σ</text><text x="120" y="165" font-size="11" fill="#64748b">-2σ</text><text x="160" y="165" font-size="11">-1σ</text><text x="240" y="165" font-size="11">+1σ</text><text x="280" y="165" font-size="11">+2σ</text><text x="340" y="165" font-size="11" fill="#64748b">+3σ</text></svg></div>
+   </div>
+   <div class="grid2" style="margin-top:16px">
+    <div class="cardx imp"><div class="kicker">Properties (Must Memorize)</div><ul><li>Bell shaped, symmetric</li><li>Mean=Median=Mode same at center</li><li>68-95-99.7 Rule: 68% data within 1σ, 95% within 2σ, 99.7% within 3σ</li><li>Total area = 1 (100%)</li><li>Tails never touch zero — extends to infinity</li></ul><p><b>Memory Trick:</b> “68-95-99.7” — Remember phone number 68 95 99 — Normal is “normal phone”.</p></div>
+    <div class="cardx"><div class="kicker">Skewness</div><p><b>Skew = Tilt.</b> Normal = No skew (0).<br><b>Positive skew (Right):</b> Tail to right → Mean > Median. Example: Salary (few rich pull mean right).<br><b>Negative skew (Left):</b> Tail left → Mean < Median. Example: Age of retirement — few early retirement pull left.</p><div class="svg-wrap"><svg viewBox="0 0 260 80" width="100%"><path d="M10 60 Q 70 10 130 60 T 180 60" fill="none" stroke="#6366f1" stroke-width="2"/><text x="10" y="75" font-size="10">Positive Skew →</text><path d="M140 60 Q 200 60 240 10" fill="none" stroke="#ef4444" stroke-width="2"/></svg></div></div>
+   </div>
+   <div class="cardx success" style="margin-top:16px"><div class="kicker">🌍 Industry & ML Uses</div><p><b>Real Life:</b> Height, Weight, BP, IQ, Errors in measurement — all normal.<br><b>Industry:</b> Quality control — If product weight not normal, machine faulty.<br><b>Machine Learning:</b> Many algorithms assume data is normal (Linear Regression, Naive Bayes). So we check normality and transform if not normal. In AI, weight initialization uses normal distribution!</p></div>
+   <div style="margin-top:16px"><div class="kicker">MCQs — Normal Distribution</div><div id="mcq-ch7"></div></div>
+  </div>
+ </section>
+
+ <!-- CHAPTER 8 -->
+ <section class="chapter" id="ch8" data-title="Standard Z Scores">
+  <div class="ch-header"><div><span class="chip">CHAPTER 08</span><h2>8. STANDARD (Z) SCORES — The Universal Translator</h2><p>What is Z, why needed, formula, interpretation, Z-table, probability, finding original score — full worked examples.</p></div><div style="display:flex;gap:8px;align-items:center"><label class="chip"><input type="checkbox" class="doneCheck" data-ch="ch8"> Done</label><span class="chev">▼</span></div></div>
+  <div class="ch-body">
+   <div class="cardx"><div class="kicker">Simple Explanation — Daily Life Analogy</div><p>Two students: A scored 80 in Maths (class mean 70, SD 10). B scored 85 in English (mean 80, SD 5). Who performed better relative to class? Raw marks B higher, but let's convert to Z.</p><p><b>Z = (Your Score - Mean) / SD</b> = How many SDs away from mean.</p><p>A: (80-70)/10=1 → 1 SD above mean.<br>B: (85-80)/5=1 → Also 1 SD above! Both equal! Z makes different exams comparable.</p><p><b>Daily Analogy:</b> Like converting dollars and rupees to a common currency to compare wealth. Z is common currency for data.</p></div>
+   <div class="grid2" style="margin-top:16px">
+    <div class="cardx imp"><div class="kicker">Formula & Interpretation</div><p><b>Z = (X - μ) / σ</b></p><ul><li>Z=0 → Exactly at mean</li><li>Z=+2 → 2 SD above mean (excellent)</li><li>Z=-1.5 → 1.5 SD below mean</li><li>Z between -3 to +3 is normal</li></ul><p><b>Positive Z = Above mean, Negative = Below.</b></p></div>
+    <div class="cardx"><div class="kicker">Z-Table & Probability</div><p>Z-table tells area under curve. Example: Z=1 → Area 0.8413 → 84.13% scored below you, 15.87% above. Used for probability, cutoff, grading.</p><p><b>Finding Original Score:</b> X = μ + Z·σ. If Z=2, μ=50, σ=10 → X=70.</p></div>
+   </div>
+   <div class="cardx" style="margin-top:16px"><div class="kicker">Solved Example — Step-by-Step</div><p><b>Q: Mean=100, SD=15. Find Z for X=130. What % below?</b><br>Z=(130-100)/15=2. Table: 0.9772 → 97.72% below, top 2.28%.<br><br><b>Q: Top 10% cutoff? Find X such that 90% below.</b><br>Z for 0.90 ≈1.28. X=100+1.28*15=119.2. So 119+ is top 10%.</p></div>
+   <div class="cardx tip" style="margin-top:16px"><div class="kicker">🧠 Memory Trick</div><p>“Zee = Zero to Hero measure”. Z tells how hero you are from average. Formula: (You - Average)/Spread.</p><p><b>Exam Tip:</b> Always draw bell curve, mark mean, shade area asked. Half marks for diagram in Anna University!</p></div>
+   <div style="margin-top:16px"><div class="kicker">MCQs — Z-Scores</div><div id="mcq-ch8"></div></div>
+  </div>
+ </section>
+
+ <!-- PREMIUM SPECIAL SECTIONS -->
+ <section class="chapter open" id="premium" data-title="Premium Special Sections">
+  <div class="ch-header"><div><span class="chip">PREMIUM</span><h2>💎 Special Premium Sections — Placement + Viva + Revision</h2></div><span class="chev">▼</span></div>
+  <div class="ch-body">
+   <div class="grid3">
+    <div class="cardx"><div class="kicker">💡 Did You Know?</div><p>80% of data scientist time is spent describing data (Unit II). If you master this unit, you master 80% of job interviews' first round.</p></div>
+    <div class="cardx"><div class="kicker">🚀 Fun Facts</div><p>Florence Nightingale used pie charts and tables to convince British government to improve hospitals — first data visualization to save lives!</p></div>
+    <div class="cardx"><div class="kicker">🧠 Remember This</div><p>Mean is pulled by outlier, Median is resistant, Mode is for categories. If question says skewed, never recommend Mean.</p></div>
+    <div class="cardx warn"><div class="kicker">⚠ Common Exam Mistakes</div><ul><li>Using histogram for categorical — use bar</li><li>Forgetting n-1 for sample variance</li><li>Saying 0°C means no heat — wrong, interval has no true zero</li><li>Confusing discrete (count) vs continuous (measure)</li></ul></div>
+    <div class="cardx imp"><div class="kicker">🎯 Viva Questions (Top 10)</div><ol style="padding-left:18px;font-size:14px;color:var(--muted)"><li>What is difference between data and information?</li><li>Why is median better for skewed data?</li><li>Explain 68-95-99.7 rule.</li><li>What is Z-score? Why standardize?</li><li>Nominal vs Ratio with example.</li><li>How to detect outlier using IQR?</li><li>Population vs Sample SD difference?</li><li>When to use pie vs bar?</li><li>What is degrees of freedom?</li><li>Is age discrete or continuous?</li></ol></div>
+    <div class="cardx success"><div class="kicker">🏆 Placement Corner</div><p><b>Infosys asked:</b> You have customer ages and purchase amount — which graphs? <b>Ans:</b> Histogram for age distribution, scatter for age vs purchase, box plot for outlier customers.</p><p><b>TCS:</b> Explain normal distribution use in ML. <b>Ans:</b> Many models assume normality; we check via histogram/Q-Q plot, apply log transform if skewed.</p></div>
+    <div class="cardx"><div class="kicker">📖 Glossary</div><p><b>Data:</b> Raw facts<br><b>Variable:</b> Can change<br><b>Frequency:</b> Count<br><b>SD:</b> Spread around mean<br><b>Z:</b> Standardized distance</p></div>
+    <div class="cardx"><div class="kicker">📚 Formula Sheet</div><p style="font-family:JetBrains Mono;font-size:13px">Mean = Σx/n<br>Median = Middle sorted<br>Mode = Most frequent<br>Range = Max-Min<br>IQR = Q3-Q1<br>Variance Pop = Σ(x-μ)²/N<br>SD = √Var<br>Z = (X-μ)/σ<br>X = μ+Zσ</p></div>
+    <div class="cardx"><div class="kicker">📝 Last Minute Revision Sheet</div><p>Types: Qualitative=Quality, Quantitative=Quantity. Structured=Table, Unstructured=Video. NOIR: N=Name, O=Order, I=Gap no zero, R=Gap+true zero. Tables: f, cf, RF=f/N. Graphs: Histogram=Continuous touching, Bar=Gap categorical, Box=Outlier, Scatter=Relation. Avg: Mean outlier sensitive, Median resistant, Mode categorical. Spread: Range easy, IQR middle 50, SD best. Normal: Bell, Mean=Median=Mode, 68-95-99.7. Z: (X-μ)/σ, common currency.</p></div>
+   </div>
+
+   <div class="cardx" style="margin-top:16px"><div class="kicker">🤖 AI & ML Connection</div><p>Unit II is foundation for ML: Data types decide encoding (one-hot for nominal). Graphs decide if data needs transformation. Mean/median decide imputation for missing values. SD decides scaling (StandardScaler uses Z-score!). Normal distribution assumption drives many algorithms. Without describing data, you cannot build AI. This is why companies test this in interviews first.</p></div>
+
+   <div class="cardx" style="margin-top:16px"><div class="kicker">🎓 Semester Exam Tips — Anna University Pattern</div><ul><li><b>2 Marks:</b> Define with example + 1 line why important. Always give daily life example — gets full 2.</li><li><b>5 Marks:</b> Definition + Types + 2 examples + 1 comparison table + diagram.</li><li><b>10 Marks:</b> Full teaching sequence: Simple → Technical → Steps → Formula → Example → Advantages/Disadvantages → Applications → Diagram. End with memory trick — examiner loves it.</li><li>Always draw bell curve for normal, box plot for quartiles, histogram for frequency — diagram = 2 marks extra.</li></ul></div>
+  </div>
+ </section>
+
+  </main>
+</div>
+
+<div class="revision-panel" id="revisionPanel">
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h3 style="font-size:14px">📚 Quick Revision</h3><button class="btn" onclick="document.getElementById('revisionPanel').classList.remove('open')">✕</button></div>
+ <div id="revContent" style="font-size:13px;color:var(--muted)">Search to filter... Click a chapter to see key points.</div>
+</div>
+
+<script>
+// --- THEME ---
+const themeBtn=document.getElementById('themeBtn');
+let theme=localStorage.getItem('ds-theme')||'light';
+document.documentElement.setAttribute('data-theme',theme);
+themeBtn.textContent=theme==='dark'?'☀️ Light':'🌙 Dark';
+themeBtn.onclick=()=>{
+ theme=theme==='dark'?'light':'dark';
+ document.documentElement.setAttribute('data-theme',theme);
+ localStorage.setItem('ds-theme',theme);
+ themeBtn.textContent=theme==='dark'?'☀️ Light':'🌙 Dark';
+};
+
+// --- PROGRESS ---
+const rbar=document.getElementById('rbar');
+const ringFg=document.getElementById('ringFg');
+const ringPct=document.getElementById('ringPct');
+const overallPct=document.getElementById('overallPct');
+const sideBar=document.getElementById('sideBar');
+window.addEventListener('scroll',()=>{
+ const h=document.documentElement;
+ const scrolled=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
+ rbar.style.width=scrolled+'%';
+ const done=document.querySelectorAll('.doneCheck:checked').length;
+ const pct=Math.round((done/8)*100);
+ ringFg.style.strokeDashoffset=351-(351*pct/100);
+ ringPct.textContent=pct+'%';
+ overallPct.textContent=pct+'%';
+ sideBar.style.width=pct+'%';
+ document.getElementById('doneCount').textContent=done;
+ document.getElementById('bookCount').textContent=bookmarks.length;
+ localStorage.setItem('ds-done',JSON.stringify([...document.querySelectorAll('.doneCheck')].map(c=>c.checked)));
+});
+let bookmarks=JSON.parse(localStorage.getItem('ds-book')||'[]');
+
+// --- SIDEBAR NAV GENERATION ---
+const chapters=[...document.querySelectorAll('.chapter')];
+const sideNav=document.getElementById('sideNav');
+chapters.forEach(ch=>{
+ const a=document.createElement('div');
+ a.className='nav-item';
+ a.dataset.go=ch.id;
+ a.innerHTML=`<span class="dot"></span> ${ch.querySelector('h2').textContent.slice(0,34)}`;
+ sideNav.appendChild(a);
+});
+document.querySelectorAll('[data-go]').forEach(el=>{
+ el.addEventListener('click',()=>{
+  const id=el.getAttribute('data-go');
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+  if(!document.getElementById(id).classList.contains('open')) document.getElementById(id).classList.add('open');
+ });
+});
+// scroll spy
+const observer=new IntersectionObserver((entries)=>{
+ entries.forEach(e=>{
+  if(e.isIntersecting){
+   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+   document.querySelector(`.nav-item[data-go="${e.target.id}"]`)?.classList.add('active');
+  }
+ });
+},{rootMargin:'-40% 0px -50% 0px'});
+chapters.forEach(c=>observer.observe(c));
+
+// --- EXPAND/COLLAPSE ---
+document.querySelectorAll('.ch-header').forEach(h=>{
+ h.addEventListener('click',(e)=>{
+  if(e.target.tagName==='INPUT') return;
+  h.parentElement.classList.toggle('open');
+ });
+});
+document.getElementById('expandAll').onclick=()=>chapters.forEach(c=>c.classList.add('open'));
+document.getElementById('collapseAll').onclick=()=>chapters.forEach(c=>c.classList.remove('open'));
+
+// --- COMPLETION ---
+document.querySelectorAll('.doneCheck').forEach((c,i)=>{
+ const saved=JSON.parse(localStorage.getItem('ds-done')||'[]');
+ if(saved[i]) c.checked=true;
+ c.addEventListener('change',()=>{window.dispatchEvent(new Event('scroll')); document.querySelectorAll('.tl')[i]?.classList.toggle('done',c.checked)});
+ if(c.checked) document.querySelectorAll('.tl')[i]?.classList.add('done');
+});
+
+// --- SEARCH ---
+const search=document.getElementById('search');
+search.addEventListener('input',()=>{
+ const q=search.value.toLowerCase();
+ if(!q){chapters.forEach(ch=>ch.style.display='');return;}
+ chapters.forEach(ch=>{
+  const txt=ch.innerText.toLowerCase();
+  ch.style.display=txt.includes(q)?'':'none';
+  if(txt.includes(q) && !ch.classList.contains('open')) ch.classList.add('open');
+ });
+});
+window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();search.focus();}});
+
+// --- COUNTERS ---
+const counters=document.querySelectorAll('.counter');
+const counterObs=new IntersectionObserver((entries)=>{
+ entries.forEach(en=>{
+  if(en.isIntersecting){
+   const el=en.target; const target=+el.dataset.target; let cur=0;
+   const step=()=>{cur+=Math.ceil(target/30); if(cur>=target) cur=target; el.textContent=cur; if(cur<target) requestAnimationFrame(step);};
+   step(); counterObs.unobserve(el);
+  }
+ });
+},{threshold:0.6});
+counters.forEach(c=>counterObs.observe(c));
+
+// --- FADE IN ---
+document.querySelectorAll('.fade').forEach(el=>{
+ const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);}})},{threshold:0.1});
+ io.observe(el);
+});
+
+// --- REVISION PANEL ---
+document.getElementById('revBtn').onclick=()=>{
+ document.getElementById('revisionPanel').classList.toggle('open');
+ document.getElementById('revContent').innerHTML=chapters.map(ch=>`<div style="margin:8px 0;padding:8px;border:1px solid var(--line);border-radius:10px"><b>${ch.querySelector('h2').textContent}</b><br><span style="font-size:12px">${ch.querySelector('.ch-header p')?.textContent||''}</span></div>`).join('');
+};
+document.getElementById('bookBtn').onclick=()=>alert(`🔖 Bookmarked items: ${bookmarks.length}\nFeature saves your starred MCQs and cards. Star any card to bookmark!`);
+
+// --- MCQ ENGINE ---
+const mcqBank={
+ "ch1":[
+  ["What is data?","A) Cooked info","B) Raw facts you can record","C) Only numbers","D) Only text",1,"Data is raw facts. Info is processed data."],
+  ["Qualitative data means?","A) Numbers","B) Quality/categories","C) Always continuous","D) Table",1,"QUALitative = QUALity."],
+  ["Which is quantitative?","A) Blood group","B) Gender","C) Age 21","D) City",2,"Age is number → quantitative."],
+  ["Structured data example?","A) YouTube video","B) Excel table with rows/cols","C) Tweet text","D) Photo",1,"Rows & cols = structured."],
+  ["Unstructured data % in world?","A) 10%","B) 30%","C) 80-90%","D) 5%",2,"Most world data is unstructured."],
+  ["Semi-structured example?","A) JSON API response","B) SQL table","C) Video","D) None",0,"JSON has tags but not rigid table."],
+  ["Ranked data has?","A) No order","B) Order but unequal gaps","C) True zero","D) Only numbers",1,"1st,2nd rank — order yes, gap not equal."],
+  ["Why classify data?","A) Timepass","B) Different data needs different tools","C) No use","D) Only for exam",1,"You can't take mean of colors!"],
+  ["Which is NOT qualitative?","A) Color","B) Gender","C) Marks 85","D) City",2,"Marks is quantitative."],
+  ["Instagram comments are?","A) Structured","B) Unstructured","C) Both structured+unstructured","D) None",1,"Free text → unstructured."],
+  ["S.S.U. stands for?","A) Structured Semi Unstructured","B) Simple","C) None","D) System",0,"Siri Sends Uncles trick."],
+  ["Twitter data via API is?","A) Only structured","B) Semi-structured JSON + unstructured text","C) Only unstructured","D) Quantitative only",1,"API gives JSON (semi) + text (unstructured)."],
+  ["Which tool for structured?","A) SQL","B) Photoshop","C) Video editor","D) None",0,"SQL for tables."],
+  ["Can qualitative be converted to quantitative?","A) No","B) Yes via encoding","C) Never","D) Only sometimes",1,"Male=0 Female=1 encoding."],
+  ["Daily life structured data?","A) Attendance register table","B) Your selfie","C) Song","D) Dream",0,"Register = rows cols."]
+ ],
+ "ch2":[
+  ["Variable means?","A) Never changes","B) Can change","C) Always number","D) Fixed",1,"Variable changes, constant fixed."],
+  ["Independent variable is?","A) Effect","B) Cause you control","C) Hidden","D) Constant",1,"Independent = free, cause."],
+  ["Dependent variable is?","A) Cause","B) Effect/result","C) Constant","D) Error",1,"Depends on independent."],
+  ["Confounding variable is?","A) Main cause","B) Hidden mixing effect","C) Constant","D) Good",1,"Hidden villain mixing effect."],
+  ["Discrete example?","A) Height 172.5 cm","B) Number of students 40","C) Weight 60.2","D) Time",1,"Countable, no 40.5 students."],
+  ["Continuous example?","A) Number of books","B) Height can be 172.5","C) Roll number","D) Gender",1,"Measurable with decimals."],
+  ["Nominal scale?","A) Order yes","B) Only names, no order","C) True zero","D) Gap equal",1,"Nominal = name tags like city."],
+  ["Ordinal scale?","A) No order","B) Order but gap not equal","C) True zero","D) Only numbers",1,"Rating ★<★★<★★★."],
+  ["Interval has?","A) True zero","B) No true zero, gap equal","C) No order","D) None",1,"0°C not no heat."],
+  ["Ratio has true zero?","A) No","B) Yes + ratio meaningful","C) No order","D) Sometimes",1,"0 kg = nothing, 20kg twice 10kg."],
+  ["Age is?","A) Nominal","B) Ratio","C) Interval","D) Ordinal",1,"0 age = birth, true zero."],
+  ["Temperature °C is?","A) Ratio","B) Interval","C) Nominal","D) Ordinal",1,"0°C not no temperature."],
+  ["Gold, Silver, Bronze is?","A) Nominal","B) Ordinal","C) Ratio","D) Interval",1,"Order: Gold > Silver > Bronze."],
+  ["Blood group is?","A) Ratio","B) Nominal","C) Interval","D) Ordinal",1,"Only categories, no order."],
+  ["NOIR trick Noodles Ordered In Restaurant — I stands for?","A) Interval","B) Independent","C) Integer","D) None",0,"N-O-I-R."],
+ ],
+ "ch3":[
+  ["Frequency means?","A) How many times appears","B) Average","C) Total","D) None",0,"Frequency = count of occurrence."],
+  ["Grouped frequency used when?","A) Data small","B) Data large with ranges","C) Never","D) Always",1,"Large data grouped into classes."],
+  ["Relative frequency formula?","A) f/N","B) f+N","C) N/f","D) f*N",0,"RF = frequency / total."],
+  ["Cumulative frequency is?","A) Running total","B) Average","C) Difference","D) Product",0,"Add till that class."],
+  ["Q2 is also?","A) Mean","B) Median","C) Mode","D) Range",1,"Q2 = 50% = median."],
+  ["IQR = ?","A) Q3-Q1","B) Q1+Q3","C) Max-Min","D) Mean-Median",0,"Middle 50% spread."],
+  ["Outlier is?","A) Normal value","B) Very different value","C) Mean","D) Median",1,"Very different, spoils mean."],
+  ["90th percentile means?","A) Beat 90%","B) Beat 10%","C) Mean","D) Mode",0,"Beat 90% people."],
+  ["Ungrouped frequency example?","A) 0-10,10-20 classes","B) Each distinct value listed","C) None","D) Cumulative",1,"Small data, each value separate."],
+  ["Percentage frequency = ?","A) RF*100","B) RF/100","C) f+100","D) None",0,"RF*100 = %."],
+  ["Best to find median quickly?","A) Raw data","B) Cumulative frequency","C) Range","D) Mode",1,"Cf helps median."],
+  ["Quartiles divide into?","A) 2 parts","B) 4 equal parts","C) 3 parts","D) 10 parts",1,"Q1 25%, Q2 50%, Q3 75%."],
+  ["Outlier detection using IQR?","A) Q1-1.5*IQR and Q3+1.5*IQR","B) Mean+SD","C) Mode","D) Range",0,"Box plot rule."],
+  ["Frequency table construction first step?","A) Find range","B) Sort/t tally","C) Find mean","D) Draw graph",1,"Tally how many times."],
+  ["If data: 12 appears 3 times in 10 data, RF?","A) 0.3","B) 3","C) 10","D) 0.1",0,"3/10=0.3."],
+ ],
+ "ch4":[
+  ["Histogram used for?","A) Continuous data, touching bars","B) Categorical gap bars","C) Only pie","D) None",0,"Histogram = continuous, no gap."],
+  ["Bar graph gap?","A) Bars touch","B) Bars have gap","C) No bars","D) Circle",1,"Bar = categorical, gap."],
+  ["Pie chart best when?","A) ≤5 categories, share of whole","B) 20 categories","C) Continuous","D) Always",0,"Many slices messy."],
+  ["Frequency polygon is?","A) Line joining histogram midpoints","B) Circle","C) Box","D) Scatter",0,"Shows trend."],
+  ["Box plot shows?","A) Only mean","B) Min,Q1,Median,Q3,Max + outliers","C) Only mode","D) None",1,"5 number summary."],
+  ["Scatter plot shows?","A) Single variable","B) Relationship between 2 numerical","C) Categories","D) Frequency",1,"Height vs weight dots."],
+  ["When NOT to use pie?","A) Few categories","B) Many categories >5","C) Share of whole","D) Market share",1,"Becomes unreadable."],
+  ["Common mistake: histogram for blood groups?","A) Correct","B) Wrong, use bar","C) Use pie only","D) Use scatter",1,"Blood group = categorical."],
+  ["Box plot outlier shown as?","A) Dot outside whiskers","B) Inside box","C) Mean","D) Median",0,"Red dot outside."],
+  ["Histogram vs Bar difference?","A) Same","B) Histogram gap no, bar gap yes + data type diff","C) No diff","D) Both pie",1,"Imp exam diff."],
+  ["Line graph best for?","A) Time series trend","B) Categories","C) Outliers only","D) None",0,"Stock price over time."],
+  ["Stem and leaf keeps?","A) Loses original data","B) Keeps original values + distribution","C) Only mean","D) None",1,"Stem= tens, leaf= ones, retains data."],
+  ["Scatter dots going up means?","A) Positive correlation","B) Negative","C) No","D) Zero",0,"Up = positive."],
+  ["Which graph for outlier detection?","A) Box plot","B) Pie","C) Bar only","D) Table",0,"Box best."],
+  ["Frequency polygon advantage?","A) Compare two distributions easily","B) No use","C) Only for 1 data","D) Pie",0,"Overlay two polygons."],
+ ],
+ "ch5":[
+  ["Mean formula?","A) Sum/n","B) Middle","C) Most frequent","D) Max-Min",0,"Mean = Σx/n."],
+  ["Median of 1,2,3,4,5?","A) 2","B) 3","C) 4","D) 5",1,"Sorted middle 3."],
+  ["Median of 1,2,3,4?","A) 2","B) 2.5","C) 3","D) 4",1,"(2+3)/2."],
+  ["Mode of 2,3,3,4,5?","A) 2","B) 3","C) 4","D) 5",1,"Most frequent."],
+  ["Mean affected by outlier?","A) Highly yes","B) No","C) Slight","D) Never",0,"Rich person pulls mean."],
+  ["Best for skewed salary data?","A) Mean","B) Median","C) Mode","D) Range",1,"Median resistant."],
+  ["Best for categorical most common?","A) Mean","B) Median","C) Mode","D) SD",2,"Mode for categories."],
+  ["Weighted mean used when?","A) All values equal importance","B) Some values more important","C) Never","D) Only for 2 values",1,"Subjects with different credits."],
+  ["Population mean symbol?","A) x̄","B) μ (mu)","C) σ","D) s",1,"μ population, x̄ sample."],
+  ["If data skewed right, mean vs median?","A) Mean > Median","B) Mean < Median","C) Equal","D) No relation",0,"Right tail pulls mean right."],
+  ["Mean of 10,20,30,40,50?","A) 25","B) 30","C) 35","D) 40",1,"150/5=30."],
+  ["Mode can be?","A) No mode, 1 mode, 2 modes","B) Only 1","C) Always 0","D) Never",0,"Bimodal etc."],
+  ["When to use mean?","A) No outlier, need precise center","B) Skewed always","C) Categorical","D) Never",0,"Normal data no outlier."],
+  ["Median position formula odd n?","A) (n+1)/2 th value","B) n/2","C) n","D) n-1",0,"(n+1)/2."],
+  ["Mean = Median = Mode when?","A) Skewed","B) Normal symmetric","C) Never","D) Always",1,"Normal bell same center."],
+ ],
+ "ch6":[
+  ["Range = ?","A) Max-Min","B) Min+Max","C) Mean-Median","D) SD*2",0,"Range easy but outlier sensitive."],
+  ["IQR = ?","A) Q3-Q1","B) Q3+Q1","C) Max-Min","D) Mean-Median",0,"Middle 50%."],
+  ["Variance is?","A) Avg of squared distances from mean","B) Mean","C) Median","D) Mode",0,"Variance = average (x-mean)²."],
+  ["SD = ?","A) Variance","B) √Variance","C) Variance²","D) Variance/2",1,"SD = sqrt variance, brings unit back."],
+  ["Unit of variance if x is kg?","A) kg","B) kg²","C) No unit","D) %",1,"Squared unit."],
+  ["Unit of SD?","A) Same as data (kg)","B) kg²","C) No","D) %",0,"SD restores unit."],
+  ["Population variance divide by?","A) N","B) n-1","C) n+1","D) n+2",0,"Pop /N, Sample /n-1."],
+  ["Sample variance divide by?","A) N","B) n-1 (degrees freedom)","C) n","D) n+1",1,"Bessel correction."],
+  ["Degrees of freedom n=8?","A) 7","B) 8","C) 9","D) 6",0,"n-1=7."],
+  ["High SD means?","A) Data close to mean","B) Data spread far","C) No spread","D) Mean zero",1,"High SD = high risk/spread."],
+  ["Which resistant to outlier?","A) Range","B) IQR","C) Mean","D) Variance",1,"IQR uses middle 50, not extremes."],
+  ["Outlier rule using IQR?","A) <Q1-1.5*IQR or >Q3+1.5*IQR","B) Mean+SD","C) Mode","D) Median",0,"Box plot rule."],
+  ["If SD=0, data is?","A) All same value","B) Spread huge","C) Negative","D) None",0,"No spread, all equal."],
+  ["Sum of squares = ?","A) Σ(x-mean)²","B) Σx","C) Σx²","D) Mean",0,"SS is numerator of variance."],
+  ["Best spread for comparison across units?","A) SD","B) Variance","C) CV","D) Range",0,"SD best, CV for different units."],
+ ],
+ "ch7":[
+  ["Normal distribution shape?","A) Bell symmetric","B) Skewed","C) Uniform","D) Triangle",0,"Bell."],
+  ["In normal, mean=median=mode?","A) Yes same center","B) No","C) Sometimes","D) Never",0,"Property of normal."],
+  ["68-95-99.7 rule: % within 1σ?","A) 68%","B) 95%","C) 99.7%","D) 50%",0,"68 within 1SD."],
+  ["% within 2σ?","A) 68","B) 95","C) 99.7","D) 100",1,"95 within 2SD."],
+  ["% within 3σ?","A) 99.7","B) 68","C) 95","D) 50",0,"99.7 within 3SD."],
+  ["Total area under normal curve?","A) 0","B) 1 (100%)","C) 2","D) 0.5",1,"Area =1."],
+  ["Skewness of normal?","A) 0","B) 1","C) -1","D) 2",0,"Symmetric no skew."],
+  ["Positive skew means?","A) Tail right, mean>median","B) Tail left","C) Normal","D) Symmetric",0,"Rich pull mean right."],
+  ["Example of normal in real life?","A) Height of students","B) Gender","C) Blood group","D) City",0,"Height, IQ, BP normal."],
+  ["Normal used in ML because?","A) Many algorithms assume normality","B) No use","C) Only for graphs","D) None",0,"Linear Regression etc assume normal."],
+  ["If data not normal, we?","A) Transform (log)","B) Leave","C) Delete","D) Ignore",0,"Apply transformation."],
+  ["Normal tails?","A) Touch zero","B) Never touch, extend to infinity","C) End at 3σ","D) Finite",1,"Tails asymptotic."],
+  ["Standard normal mean and SD?","A) Mean 0 SD1","B) Mean 1 SD0","C) Mean 100 SD15","D) Mean 50 SD10",0,"Standard normal μ=0 σ=1."],
+  ["Negative skew tail?","A) Left","B) Right","C) Both","D) None",0,"Tail left, mean < median."],
+  ["Quality control uses normal to?","A) Detect faulty machine if not normal","B) No use","C) Only mean","D) None",0,"If weights not normal, machine faulty."],
+ ],
+ "ch8":[
+  ["Z formula?","A) (X-μ)/σ","B) (μ-X)/σ","C) X+μ/σ","D) μ/σ",0,"Z = (You - Mean)/SD."],
+  ["Z=0 means?","A) At mean","B) 1 SD above","C) Below mean","D) Outlier",0,"Exactly at mean."],
+  ["Z=+2 means?","A) 2 SD above mean","B) Below","C) At mean","D) Zero",0,"Excellent."],
+  ["Z=-1.5 means?","A) 1.5 SD below mean","B) Above","C) At mean","D) None",0,"Negative = below."],
+  ["Z makes different exams?","A) Comparable (common currency)","B) Not comparable","C) Worse","D) None",0,"Common currency analogy."],
+  ["Find X from Z: X = ?","A) μ+Zσ","B) μ-Zσ","C) Z/μ","D) μ*Z",0,"Reverse formula."],
+  ["If mean 100 SD15 Z=1, X=?","A) 115","B) 100","C) 85","D) 130",0,"100+15=115."],
+  ["Z=1 area below?","A) 84.13%","B) 50%","C) 97%","D) 68%",0,"Z-table 0.8413."],
+  ["Top 10% cutoff Z approx?","A) 1.28","B) 0","C) 2","D) 3",0,"90th percentile Z=1.28."],
+  ["Z between -3 to +3 covers?","A) 99.7% data","B) 50%","C) 10%","D) 0%",0,"99.7% within 3σ."],
+  ["Positive Z = ?","A) Above mean","B) Below","C) At mean","D) Zero",0,"Positive above."],
+  ["Z-score need?","A) No need","B) Compare different units/scales","C) Only for mean","D) Only for mode",1,"Universal translator."],
+  ["If X=70 mean 50 SD10 Z?","A) 2","B) 1","C) 0","D) -2",0,"(70-50)/10=2."],
+  ["Z-table shows?","A) Area under curve","B) Mean","C) Mode","D) Range",0,"Probability area."],
+  ["If mean 50 SD5 X=35 Z?","A) -3","B) 3","C) 0","D) 1",0,"(35-50)/5=-3."],
+ ],
+};
+
+function renderMCQs(){
+ Object.keys(mcqBank).forEach(chId=>{
+  const container=document.getElementById('mcq-'+chId);
+  if(!container) return;
+  container.innerHTML=mcqBank[chId].map((q,qi)=>{
+   const [qs, ...rest]=q;
+   const correct=rest[rest.length-2];
+   const expl=rest[rest.length-1];
+   const opts=rest.slice(0,4);
+   return `<div class="mcq" data-ch="${chId}" data-qi="${qi}"><div style="display:flex;justify-content:space-between"><b>Q${qi+1}. ${qs}</b><button class="chip bookmark-star" onclick="toggleBook(this)">☆</button></div><div class="opts">${opts.map((o,oi)=>`<div class="opt" onclick="checkMCQ(this,${oi},${correct},'${expl.replace(/'/g,"\\'")}')">${String.fromCharCode(65+oi)}. ${o}</div>`).join('')}</div><div class="explain" style="display:none;margin-top:8px;padding:10px;background:rgba(99,102,241,0.08);border-radius:10px;font-size:13px"></div></div>`;
+  }).join('');
+ });
+}
+function checkMCQ(el, chosen, correct, expl){
+ const parent=el.parentElement;
+ [...parent.children].forEach(c=>{c.classList.remove('correct','wrong'); c.style.pointerEvents='none';});
+ if(chosen===correct){el.classList.add('correct');} else {el.classList.add('wrong'); parent.children[correct].classList.add('correct');}
+ const exp=el.closest('.mcq').querySelector('.explain');
+ exp.style.display='block'; exp.innerHTML=`<b>${chosen===correct?'✅ Correct!':'❌ Wrong, correct is '+String.fromCharCode(65+correct)}</b> — ${expl}`;
+}
+function toggleBook(btn){
+ const mcq=btn.closest('.mcq');
+ const id=mcq.dataset.ch+'-'+mcq.dataset.qi;
+ if(bookmarks.includes(id)){bookmarks=bookmarks.filter(b=>b!==id); btn.textContent='☆';}
+ else{bookmarks.push(id); btn.textContent='★'; btn.classList.add('active');}
+ localStorage.setItem('ds-book',JSON.stringify(bookmarks));
+ document.getElementById('bookCount').textContent=bookmarks.length;
+}
+renderMCQs();
+
+// --- MOCK TEST ---
+document.getElementById('mockTestBtn').onclick=()=>{
+ const allQs=[]; Object.values(mcqBank).forEach(arr=>allQs.push(...arr));
+ const shuffled=[...allQs].sort(()=>0.5-Math.random()).slice(0,20);
+ let html=`<div class="chapter open"><div class="ch-header"><h2>🎯 Full Mock Test — 20 Random Qs</h2></div><div class="ch-body">`;
+ shuffled.forEach((q,i)=>{
+  const correct=q[q.length-2]; const opts=q.slice(1,5);
+  html+=`<div class="mcq"><b>Q${i+1}. ${q[0]}</b><div class="opts">${opts.map((o,oi)=>`<div class="opt" onclick="this.parentElement.querySelectorAll('.opt').forEach(c=>c.classList.remove('correct','wrong')); this.classList.add(${oi}===${correct}?'correct':'wrong'); if(${oi}!==${correct}) this.parentElement.children[${correct}].classList.add('correct')">${String.fromCharCode(65+oi)}. ${o}</div>`).join('')}</div></div>`;
+ });
+ html+=`</div></div>`;
+ document.getElementById('main').insertAdjacentHTML('afterbegin',html);
+ window.scrollTo({top:0,behavior:'smooth'});
+};
+
+window.dispatchEvent(new Event('scroll'));
+</script>
+</body>
+</html>

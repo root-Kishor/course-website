@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OS Premium Handbook • Unit I • Interactive Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f8f9ff;
+  --bg-2: #eef1ff;
+  --card: rgba(255,255,255,0.82);
+  --card-solid: #ffffff;
+  --card-border: rgba(255,255,255,0.7);
+  --text: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+  --accent: #6366f1;
+  --accent-2: #8b5cf6;
+  --accent-3: #06b6d4;
+  --accent-glow: rgba(99,102,241,0.25);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow: 0 20px 60px rgba(15,23,42,0.08), 0 4px 20px rgba(15,23,42,0.05);
+  --shadow-lg: 0 30px 80px rgba(15,23,42,0.12), 0 10px 30px rgba(15,23,42,0.08);
+  --blur: 24px;
+  --radius: 20px;
+  --radius-lg: 28px;
+  --radius-sm: 12px;
+  --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+[data-theme="dark"] {
+  --bg: #060a14;
+  --bg-2: #0c1224;
+  --card: rgba(16,22,40,0.82);
+  --card-solid: #121a2e;
+  --card-border: rgba(255,255,255,0.08);
+  --text: #e2e8f0;
+  --text-2: #94a3b8;
+  --text-3: #475569;
+  --accent-glow: rgba(99,102,241,0.35);
+  --shadow: 0 20px 60px rgba(0,0,0,0.4), 0 4px 20px rgba(0,0,0,0.3);
+  --shadow-lg: 0 30px 80px rgba(0,0,0,0.5);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family: var(--font-body); background: var(--bg); color: var(--text); overflow-x:hidden; line-height:1.7; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--accent); color:white; }
+.aurora-wrapper { position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; background: var(--bg); }
+.aurora-orb { position:absolute; border-radius:50%; filter: blur(80px); opacity:0.6; animation: floatAurora 22s infinite ease-in-out; }
+.orb-1 { width:900px; height:900px; background: radial-gradient(circle at 30% 30%, #6366f1, #8b5cf6 40%, #ec4899 70%); top:-20%; left:-15%; }
+.orb-2 { width:700px; height:700px; background: radial-gradient(circle at 50% 50%, #06b6d4, #3b82f6 50%, #6366f1); top:20%; right:-10%; animation-delay:-7s; }
+.orb-3 { width:800px; height:800px; background: radial-gradient(circle at 30% 70%, #f59e0b, #ef4444 50%, #8b5cf6); bottom:-20%; left:30%; animation-delay:-14s; }
+[data-theme="dark"] .aurora-orb { opacity:0.35; filter: blur(100px); }
+@keyframes floatAurora { 0%,100% { transform: translate(0,0) scale(1) rotate(0deg); } 25% { transform: translate(60px,-40px) scale(1.1) rotate(5deg); } 50% { transform: translate(-30px,60px) scale(0.95) rotate(-5deg); } 75% { transform: translate(40px,30px) scale(1.05) rotate(3deg); } }
+.reading-progress { position:fixed; top:0; left:0; right:0; height:3px; z-index:9999; background: rgba(0,0,0,0.05); }
+.reading-progress-bar { height:100%; width:0%; background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3)); transition: width 0.15s; box-shadow: 0 0 10px var(--accent-glow); }
+.top-nav { position:sticky; top:0; z-index:100; height:70px; background: var(--card); backdrop-filter: blur(var(--blur)); border-bottom: 1px solid var(--card-border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; box-shadow: var(--shadow); }
+.nav-left { display:flex; align-items:center; gap:16px; }
+.logo { width:42px; height:42px; border-radius:12px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); display:grid; place-items:center; color:white; font-weight:800; font-size:18px; box-shadow: 0 8px 20px var(--accent-glow); }
+.logo-text h1 { font-size:16px; font-weight:800; letter-spacing:-0.02em; line-height:1; }
+.logo-text span { font-size:11px; color:var(--text-2); letter-spacing:0.08em; text-transform:uppercase; }
+.nav-center { flex:1; max-width:480px; margin:0 32px; }
+.search-box { width:100%; height:44px; border-radius:999px; border:1px solid var(--card-border); background: var(--card-solid); display:flex; align-items:center; padding:0 16px; gap:10px; transition: all 0.2s; }
+.search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+.search-box input { flex:1; border:none; background:transparent; outline:none; color:var(--text); font-size:14px; }
+.nav-right { display:flex; align-items:center; gap:10px; }
+.nav-icon-btn { width:40px; height:40px; border-radius:999px; border:1px solid var(--card-border); background: var(--card-solid); display:grid; place-items:center; cursor:pointer; transition: all 0.2s; font-size:16px; }
+.nav-icon-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow); border-color: var(--accent); }
+.pill { padding:8px 14px; border-radius:999px; background: var(--card-solid); border:1px solid var(--card-border); font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px; }
+.layout { display:flex; max-width:1920px; margin:0 auto; }
+.sidebar { position:sticky; top:70px; height:calc(100vh - 70px); width:320px; min-width:320px; background: var(--card); backdrop-filter: blur(var(--blur)); border-right:1px solid var(--card-border); overflow-y:auto; padding:20px 16px; transition: transform 0.35s cubic-bezier(0.32,0.72,0,1); }
+.sidebar-title { font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-3); margin-bottom:12px; padding:0 8px; }
+.topic-list { list-style:none; display:flex; flex-direction:column; gap:6px; }
+.topic-item { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:14px; cursor:pointer; transition: all 0.2s; border:1px solid transparent; position:relative; }
+.topic-item:hover { background: var(--bg-2); }
+.topic-item.active { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:white; box-shadow: 0 8px 20px var(--accent-glow); }
+.topic-item.active .topic-meta { color: rgba(255,255,255,0.8); }
+.topic-num { width:28px; height:28px; border-radius:8px; background: var(--bg-2); display:grid; place-items:center; font-size:11px; font-weight:700; flex-shrink:0; }
+.topic-item.active .topic-num { background: rgba(255,255,255,0.2); color:white; }
+.topic-info { flex:1; min-width:0; }
+.topic-info h4 { font-size:13px; font-weight:600; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.topic-meta { font-size:11px; color:var(--text-3); display:flex; gap:8px; }
+.progress-ring { width:28px; height:28px; flex-shrink:0; }
+.main { flex:1; min-width:0; }
+.hero { min-height:88vh; padding:80px 40px 60px; position:relative; overflow:hidden; display:flex; align-items:center; }
+.hero-content { max-width:760px; position:relative; z-index:2; }
+.hero-badge { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px; background: var(--card); border:1px solid var(--card-border); backdrop-filter: blur(12px); font-size:12px; font-weight:600; margin-bottom:24px; box-shadow: var(--shadow); }
+.hero-badge-dot { width:8px; height:8px; border-radius:50%; background: var(--success); animation: pulseDot 2s infinite; }
+@keyframes pulseDot { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.3); opacity:0.7; } }
+.hero h1 { font-family: var(--font-display); font-size: clamp(42px, 6vw, 72px); font-weight:900; line-height:0.95; letter-spacing:-0.04em; margin-bottom:20px; }
+.hero h1 span { background: linear-gradient(135deg, var(--accent), var(--accent-2), var(--accent-3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.hero p { font-size:18px; color:var(--text-2); line-height:1.6; max-width:600px; margin-bottom:32px; }
+.hero-stats { display:flex; gap:20px; margin-bottom:36px; flex-wrap:wrap; }
+.stat { display:flex; align-items:center; gap:10px; padding:12px 16px; background: var(--card); border:1px solid var(--card-border); border-radius:14px; backdrop-filter: blur(12px); box-shadow: var(--shadow); }
+.stat-num { font-size:20px; font-weight:800; }
+.stat-label { font-size:12px; color:var(--text-2); line-height:1.2; }
+.hero-actions { display:flex; gap:14px; flex-wrap:wrap; }
+.btn { height:48px; padding:0 24px; border-radius:14px; border:none; font-weight:700; font-size:14px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition: all 0.2s; text-decoration:none; }
+.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:white; box-shadow: 0 10px 24px var(--accent-glow); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 32px var(--accent-glow); }
+.btn-secondary { background: var(--card); border:1px solid var(--card-border); color:var(--text); backdrop-filter: blur(12px); }
+.btn-secondary:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.hero-visual { position:absolute; right:2%; top:50%; transform: translateY(-50%); width:42%; max-width:560px; aspect-ratio:1; display:none; }
+@media (min-width:1200px) { .hero-visual { display:block; } }
+.floating-card { position:absolute; background: var(--card); backdrop-filter: blur(24px); border:1px solid var(--card-border); border-radius:20px; padding:16px; box-shadow: var(--shadow-lg); animation: floatCard 6s infinite ease-in-out; }
+@keyframes floatCard { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-14px) rotate(1deg); } }
+.fc-1 { top:10%; left:10%; width:180px; }
+.fc-2 { top:45%; right:5%; width:200px; animation-delay:-2s; }
+.fc-3 { bottom:15%; left:20%; width:190px; animation-delay:-4s; }
+.glass-card { background: var(--card); backdrop-filter: blur(var(--blur)); border:1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--shadow); transition: all 0.3s; }
+.glass-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.glass-card-lg { border-radius: var(--radius-lg); }
+.topics-wrapper { padding:20px 40px 80px; }
+.topic-section { margin-bottom:80px; scroll-margin-top:90px; opacity:0; transform: translateY(20px); transition: all 0.6s ease-out; }
+.topic-section.visible { opacity:1; transform: translateY(0); }
+.topic-header { margin-bottom:28px; }
+.topic-eyebrow { display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+.eyebrow-pill { padding:6px 12px; border-radius:999px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:white; font-size:11px; font-weight:700; letter-spacing:0.05em; }
+.eyebrow-time { font-size:12px; color:var(--text-3); display:flex; align-items:center; gap:6px; }
+.topic-header h2 { font-family: var(--font-display); font-size: clamp(28px, 4vw, 40px); font-weight:800; letter-spacing:-0.03em; line-height:1.1; margin-bottom:12px; }
+.topic-header > p { font-size:16px; color:var(--text-2); max-width:800px; line-height:1.6; }
+.concept-grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:20px; margin-bottom:24px; }
+.col-12 { grid-column: span 12; } .col-8 { grid-column: span 8; } .col-6 { grid-column: span 6; } .col-4 { grid-column: span 4; }
+@media (max-width: 900px) { .col-8, .col-6, .col-4 { grid-column: span 12; } .topics-wrapper { padding:16px; } .hero { padding:40px 20px; } .nav-center { display:none; } .sidebar { position:fixed; left:0; top:70px; z-index:90; transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } }
+.card-pad { padding:24px; }
+.card-title { font-size:16px; font-weight:700; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+.card-title i { width:32px; height:32px; border-radius:8px; background: var(--bg-2); display:grid; place-items:center; font-style:normal; }
+.mini-label { font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-3); margin-bottom:8px; }
+.sim-stage { background: linear-gradient(180deg, var(--card-solid), var(--bg-2)); border:1px solid var(--card-border); border-radius:16px; padding:20px; position:relative; overflow:hidden; }
+.cpu-chip { width:120px; height:120px; margin:0 auto; background: linear-gradient(135deg, #1e293b, #0f172a); border-radius:20px; position:relative; display:grid; place-items:center; box-shadow: inset 0 2px 10px rgba(255,255,255,0.1), 0 20px 40px rgba(0,0,0,0.3); }
+.cpu-core { width:18px; height:18px; background: var(--accent); border-radius:4px; position:absolute; animation: corePulse 1.8s infinite; }
+.core-1 { top:18px; left:18px; } .core-2 { top:18px; right:18px; animation-delay:0.3s; } .core-3 { bottom:18px; left:18px; animation-delay:0.6s; } .core-4 { bottom:18px; right:18px; animation-delay:0.9s; }
+@keyframes corePulse { 0%,100% { opacity:0.6; transform:scale(1); } 50% { opacity:1; transform:scale(1.2); box-shadow:0 0 12px var(--accent); } }
+.cpu-label { color:white; font-weight:800; font-size:12px; letter-spacing:0.1em; }
+.ram-visual { display:flex; gap:6px; justify-content:center; margin:16px 0; }
+.ram-block { width:22px; height:56px; border-radius:6px; background: var(--bg-2); border:1px solid var(--card-border); position:relative; overflow:hidden; }
+.ram-fill { position:absolute; bottom:0; left:0; right:0; background: linear-gradient(180deg, var(--accent), var(--accent-2)); transition: height 1s; }
+.process-track { display:flex; gap:8px; overflow-x:auto; padding:12px 0; }
+.process-chip { min-width:92px; padding:10px 12px; border-radius:12px; background: var(--card-solid); border:1px solid var(--card-border); text-align:center; font-size:11px; font-weight:600; position:relative; }
+.process-chip.running { border-color: var(--success); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+.process-chip.waiting { border-color: var(--warning); }
+.process-chip.terminated { opacity:0.5; }
+.vn-grid { display:grid; grid-template-columns: 1fr 1.2fr; gap:16px; }
+@media (max-width:800px) { .vn-grid { grid-template-columns:1fr; } }
+.vn-cpu { background: #0f172a; color:white; border-radius:16px; padding:18px; }
+.vn-row { display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background: rgba(255,255,255,0.06); border-radius:10px; margin-bottom:8px; font-family: var(--font-mono); font-size:12px; cursor:pointer; }
+.vn-active { background: var(--accent) !important; }
+.terminal { background: #0a0f1e; border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+.term-header { height:40px; display:flex; align-items:center; padding:0 14px; gap:8px; background: rgba(255,255,255,0.05); }
+.term-dot { width:12px; height:12px; border-radius:50%; }
+.term-body { padding:16px; font-family: var(--font-mono); font-size:13px; line-height:1.6; color:#cbd5e1; min-height:220px; max-height:340px; overflow-y:auto; }
+.term-line { margin-bottom:6px; }
+.term-prompt { color: var(--success); }
+.quiz-card { background: var(--card); border:1px solid var(--card-border); border-radius:16px; padding:20px; margin-bottom:12px; }
+.quiz-q { font-weight:600; margin-bottom:12px; font-size:14px; }
+.quiz-opts { display:flex; flex-direction:column; gap:8px; }
+.quiz-opt { padding:10px 14px; border-radius:10px; border:1px solid var(--card-border); background: var(--card-solid); cursor:pointer; font-size:13px; transition: all 0.15s; text-align:left; }
+.quiz-opt:hover { border-color: var(--accent); }
+.quiz-opt.correct { background: rgba(16,185,129,0.1); border-color: var(--success); color: var(--success); }
+.quiz-opt.wrong { background: rgba(239,68,68,0.1); border-color: var(--danger); color: var(--danger); }
+.compare-table { width:100%; border-collapse: separate; border-spacing:0; overflow:hidden; border-radius:12px; border:1px solid var(--card-border); }
+.compare-table th { background: var(--bg-2); padding:12px 14px; font-size:12px; font-weight:700; text-align:left; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-3); }
+.compare-table td { padding:12px 14px; font-size:13px; border-top:1px solid var(--card-border); }
+.premium-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:16px; }
+.premium-tag { display:inline-flex; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; margin-bottom:8px; }
+.tag-did { background: rgba(99,102,241,0.12); color: var(--accent); }
+.tag-fun { background: rgba(245,158,11,0.12); color: var(--warning); }
+.tag-remember { background: rgba(16,185,129,0.12); color: var(--success); }
+.tag-warn { background: rgba(239,68,68,0.12); color: var(--danger); }
+.fab { position:fixed; bottom:24px; right:24px; z-index:90; display:flex; flex-direction:column; gap:10px; }
+.fab-btn { width:52px; height:52px; border-radius:16px; border:none; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:white; font-size:18px; cursor:pointer; box-shadow: 0 12px 24px var(--accent-glow); display:grid; place-items:center; transition: all 0.2s; }
+.fab-btn:hover { transform: translateY(-2px) scale(1.05); }
+.modal-overlay { position:fixed; inset:0; background: rgba(0,0,0,0.5); backdrop-filter: blur(12px); z-index:200; display:none; place-items:center; }
+.modal-overlay.open { display:grid; }
+.modal { background: var(--card-solid); border:1px solid var(--card-border); border-radius:20px; padding:24px; width:90%; max-width:480px; box-shadow: var(--shadow-lg); }
+.hidden { display:none !important; }
+.shimmer { position:relative; overflow:hidden; }
+.shimmer::after { content:''; position:absolute; inset:0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); transform: translateX(-100%); animation: shimmer 2s infinite; }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+body.focus-mode .sidebar, body.focus-mode .hero, body.focus-mode .fab { transform: translateX(-100%); opacity:0; pointer-events:none; }
+@media print { .aurora-wrapper, .top-nav, .sidebar, .fab, .hero-visual, .reading-progress { display:none !important; } .topic-section { break-inside: avoid; opacity:1 !important; transform:none !important; } }
+</style>
+</head>
+<body data-theme="light">
+<div class="aurora-wrapper"><div class="aurora-orb orb-1"></div><div class="aurora-orb orb-2"></div><div class="aurora-orb orb-3"></div></div>
+<div class="reading-progress"><div class="reading-progress-bar" id="progressBar"></div></div>
+<nav class="top-nav">
+  <div class="nav-left">
+    <button class="nav-icon-btn" id="mobileMenuBtn" style="display:none;" title="Menu">☰</button>
+    <div class="logo">OS</div>
+    <div class="logo-text"><h1>OS Handbook</h1><span>Unit I • 📚 CREATED BY KISHOR S, AP/CSE-MVIT.</span></div>
+    <div class="pill" style="margin-left:12px;"><span id="overall-progress">0%</span> completed • <span id="readTimer">0m 0s reading</span></div>
+  </div>
+  <div class="nav-center"><div class="search-box"><span>🔍</span><input id="searchInput" placeholder="Search everything — topics, concepts, syscalls, viva... (Ctrl+K)"><span style="font-size:10px;background:var(--bg-2);padding:2px 6px;border-radius:4px;">⌘K</span></div></div>
+  <div class="nav-right">
+    <button class="nav-icon-btn" onclick="toggleFocus()" title="Focus Mode (F)">🎯</button>
+    <button class="nav-icon-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+    <button class="nav-icon-btn" onclick="toggleTheme()" title="Dark/Light">🌓</button>
+    <button class="nav-icon-btn" onclick="window.print()" title="Print">🖨️</button>
+    <button class="nav-icon-btn" onclick="showShortcuts()" title="Shortcuts (?)">⌨️</button>
+  </div>
+</nav>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div style="margin-bottom:16px;"><div class="sidebar-title">Learning Path • Unit I</div><ul class="topic-list">
+      <li class="topic-item" data-id="app-req">
+        <div class="topic-num">1</div>
+        <div class="topic-info"><h4>Application Requirements</h4><div class="topic-meta"><span>18 min</span><span>• 📱</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="sys-stack">
+        <div class="topic-num">2</div>
+        <div class="topic-info"><h4>Systems Stack</h4><div class="topic-meta"><span>20 min</span><span>• 🏗️</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="role-os">
+        <div class="topic-num">3</div>
+        <div class="topic-info"><h4>Role of OS</h4><div class="topic-meta"><span>22 min</span><span>• 👑</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#06b6d4" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="resources">
+        <div class="topic-num">4</div>
+        <div class="topic-info"><h4>Resources</h4><div class="topic-meta"><span>16 min</span><span>• 🔋</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="abstraction">
+        <div class="topic-num">5</div>
+        <div class="topic-info"><h4>Abstractions</h4><div class="topic-meta"><span>19 min</span><span>• 🎭</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="components">
+        <div class="topic-num">6</div>
+        <div class="topic-info"><h4>OS Components</h4><div class="topic-meta"><span>21 min</span><span>• 🧩</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="types-os">
+        <div class="topic-num">7</div>
+        <div class="topic-info"><h4>Types of OS</h4><div class="topic-meta"><span>24 min</span><span>• 🌍</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="hardware">
+        <div class="topic-num">8</div>
+        <div class="topic-info"><h4>Hardware Org</h4><div class="topic-meta"><span>20 min</span><span>• 💻</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="von-neumann">
+        <div class="topic-num">9</div>
+        <div class="topic-info"><h4>Von Neumann</h4><div class="topic-meta"><span>26 min</span><span>• 🧠</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#06b6d4" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="process">
+        <div class="topic-num">10</div>
+        <div class="topic-info"><h4>Process</h4><div class="topic-meta"><span>22 min</span><span>• ⚙️</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="pcb">
+        <div class="topic-num">11</div>
+        <div class="topic-info"><h4>PCB</h4><div class="topic-meta"><span>18 min</span><span>• 🪪</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="syscall">
+        <div class="topic-num">12</div>
+        <div class="topic-info"><h4>System Calls</h4><div class="topic-meta"><span>20 min</span><span>• 📞</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="process-syscall">
+        <div class="topic-num">13</div>
+        <div class="topic-info"><h4>Process Syscalls</h4><div class="topic-meta"><span>28 min</span><span>• 👨‍👧</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+
+
+      <li class="topic-item" data-id="lde">
+        <div class="topic-num">14</div>
+        <div class="topic-info"><h4>LDE Model</h4><div class="topic-meta"><span>24 min</span><span>• 🛡️</span></div></div>
+        <svg class="progress-ring" viewBox="0 0 28 28"><circle cx="14" cy="14" r="12" fill="none" stroke="var(--bg-2)" stroke-width="3"/><circle cx="14" cy="14" r="12" fill="none" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-dasharray="75.4" stroke-dashoffset="75.4" style="transform:rotate(-90deg);transform-origin:50% 50%;"/></svg>
+      </li>
+</ul></div>
+    <div style="margin-bottom:16px;"><div class="sidebar-title">Progress Tracker</div><div class="glass-card card-pad" style="padding:14px;"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:8px;"><span>Overall</span><span id="overall-progress-2">0% • 14 topics</span></div><div style="height:6px;background:var(--bg-2);border-radius:999px;overflow:hidden;"><div id="progressBar2" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width 0.5s;"></div></div><div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;"><span style="font-size:11px;padding:4px 8px;background:var(--bg-2);border-radius:999px;">📚 Exam Ready</span><span style="font-size:11px;padding:4px 8px;background:var(--bg-2);border-radius:999px;">💼 Placement</span><span style="font-size:11px;padding:4px 8px;background:var(--bg-2);border-radius:999px;">🎯 Viva</span></div></div></div>
+    <div><div class="sidebar-title">Premium Features</div><div style="display:flex;flex-direction:column;gap:8px;font-size:12px;"><div>✔ Aurora + Glassmorphism</div><div>✔ 14 Simulators • Live CPU/RAM</div><div>✔ 280+ MCQs • Auto Score</div><div>✔ Terminal + Process Visualizer</div><div>✔ Scroll Spy • Search • Bookmarks</div><div>✔ Dark/Light • Focus • Print</div></div></div>
+  </aside>
+  <main class="main" id="main">
+    <section class="hero" id="hero">
+      <div class="hero-content">
+        <div class="hero-badge"><div class="hero-badge-dot"></div> Anna University • CSE • Unit I • 2026 Premium Edition • Offline Ready</div>
+        <h1>Operating Systems <br><span>Inside Out</span><br>Not Notes, But a Simulator.</h1>
+        <p>First time OS feels like a game lab. We start from zero. No textbook English. Every concept = Story + Animation + CPU Level + Memory Level + Exam Answer + Interview Answer + Linux Code.</p>
+        <div class="hero-stats">
+          <div class="stat"><div class="stat-num">14</div><div class="stat-label">Interactive<br>Topics</div></div>
+          <div class="stat"><div class="stat-num">60+</div><div class="stat-label">Live<br>Animations</div></div>
+          <div class="stat"><div class="stat-num">280</div><div class="stat-label">MCQs + Viva<br>Auto Evaluated</div></div>
+          <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Zero to Hero<br>Beginner Friendly</div></div>
+        </div>
+        <div class="hero-actions">
+          <a href="#app-req" class="btn btn-primary">🚀 Start Learning — Topic 1 →</a>
+          <button class="btn btn-secondary" onclick="document.getElementById('von-neumann').scrollIntoView({behavior:'smooth'})">▶ Try Von Neumann Simulator</button>
+        </div>
+        <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+          <span style="padding:8px 12px;background:var(--card);border:1px solid var(--card-border);border-radius:999px;font-size:12px;font-weight:600;">🎓 Semester + Placement + Interview + Viva in ONE</span>
+          <span style="padding:8px 12px;background:var(--card);border:1px solid var(--card-border);border-radius:999px;font-size:12px;font-weight:600;">🧠 Slow Learner Friendly • Visual + Story Based</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="floating-card fc-1"><div style="font-size:11px;font-weight:700;color:var(--text-3);">CPU CYCLE</div><div style="margin-top:8px;"><div class="cpu-chip"><div class="cpu-core core-1"></div><div class="cpu-core core-2"></div><div class="cpu-core core-3"></div><div class="cpu-core core-4"></div><div class="cpu-label">CPU</div></div></div><div style="margin-top:8px;font-size:10px;color:var(--success);">● Running at 3.2GHz</div></div>
+        <div class="floating-card fc-2"><div style="font-size:11px;font-weight:700;color:var(--text-3);">MEMORY LAYOUT</div><div style="margin-top:8px;"><div class="ram-visual"><div class="ram-block"><div class="ram-fill" style="height:20%"></div></div><div class="ram-block"><div class="ram-fill" style="height:60%"></div></div><div class="ram-block"><div class="ram-fill" style="height:85%"></div></div><div class="ram-block"><div class="ram-fill" style="height:40%"></div></div><div class="ram-block"><div class="ram-fill" style="height:90%"></div></div><div class="ram-block"><div class="ram-fill" style="height:30%"></div></div></div><div style="text-align:center;font-size:11px;color:var(--text-3);margin-top:8px;">RAM USAGE LIVE</div></div><div style="display:flex;gap:4px;margin-top:8px;"><span style="font-size:10px;padding:2px 6px;background:#6366f1;color:white;border-radius:999px;">Stack</span><span style="font-size:10px;padding:2px 6px;background:#06b6d4;color:white;border-radius:999px;">Heap</span></div></div>
+        <div class="floating-card fc-3"><div style="font-size:11px;font-weight:700;color:var(--text-3);">PROCESS QUEUE</div><div style="margin-top:8px;"><div class="process-track"><div class="process-chip running">P1<br>Running</div><div class="process-chip waiting">P2<br>Waiting</div><div class="process-chip">P3<br>Ready</div><div class="process-chip">P4<br>Ready</div><div class="process-chip terminated">P5<br>Done</div></div></div></div>
+      </div>
+    </section>
+    <div class="topics-wrapper">
+      <div id="topicsContainer"></div>
+      <div class="glass-card glass-card-lg card-pad" style="margin-top:40px;padding:32px;background:linear-gradient(135deg,var(--card),var(--bg-2));">
+        <div class="mini-label">📚 Final Premium Sections • Glossary • Formula Sheet • Last Minute Revision</div>
+        <h2 style="font-family:var(--font-display);font-size:28px;margin-bottom:16px;">One Page Formula & Concept Sheet • Exam Night Revision</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;font-size:13px;">
+          <div><b>Process:</b> Program + PCB + Address Space + Resources<br><b>PCB Fields:</b> PID, PC, Registers, State, Memory, Files, Accounting<br><b>Syscalls:</b> fork, exec, wait, exit, open, read, write</div>
+          <div><b>Von Neumann:</b> Fetch→Decode→Execute→Store, PC→IR→ALU<br><b>Modes:</b> User mode (restricted), Kernel mode (full power), Trap switches<br><b>LDE:</b> Direct execution + Timer interrupt = Fast + Safe</div>
+          <div><b>Memory Trick:</b> UALOKDFH for stack layers<br><b>Exam Tip:</b> Always draw diagram, write 2 examples (Linux + Mobile), mention advantages<br><b>Viva Tip:</b> Start simple story, then technical definition</div>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+          <span style="padding:8px 14px;background:var(--accent);color:white;border-radius:999px;font-weight:700;font-size:12px;">🎯 100% Syllabus Covered</span>
+          <span style="padding:8px 14px;background:var(--card-solid);border:1px solid var(--card-border);border-radius:999px;font-weight:700;font-size:12px;">📖 14 Topics • 21-Step Learning • 60+ Animations</span>
+          <span style="padding:8px 14px;background:var(--card-solid);border:1px solid var(--card-border);border-radius:999px;font-weight:700;font-size:12px;">🏆 Built for Anna University • TCS NQT • Viva</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="fab"><button class="fab-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Top">↑</button><button class="fab-btn" onclick="toggleFocus()" title="Focus Mode">🎯</button></div>
+<div class="modal-overlay" id="shortcutsModal" onclick="hideShortcuts()"><div class="modal" onclick="event.stopPropagation()"><h3 style="margin-bottom:12px;">⌨️ Keyboard Shortcuts</h3><div style="display:grid;gap:8px;font-size:13px;"><div style="display:flex;justify-content:space-between;"><span>Search everything</span><span style="padding:2px 6px;background:var(--bg-2);border-radius:4px;">Ctrl+K</span></div><div style="display:flex;justify-content:space-between;"><span>Focus Mode</span><span style="padding:2px 6px;background:var(--bg-2);border-radius:4px;">F</span></div><div style="display:flex;justify-content:space-between;"><span>Show shortcuts</span><span style="padding:2px 6px;background:var(--bg-2);border-radius:4px;">?</span></div><div style="display:flex;justify-content:space-between;"><span>Close modal</span><span style="padding:2px 6px;background:var(--bg-2);border-radius:4px;">Esc</span></div></div><button class="btn btn-primary" style="margin-top:16px;width:100%;" onclick="hideShortcuts()">Got it!</button></div></div>
+<script>
+const topicsData = [
+  {id:'app-req', num:1, title:'Application Requirements', time:'18 min', icon:'📱', desc:'What is an app and why it cannot run without an OS? From zero to real execution.', color:'#6366f1'},
+  {id:'sys-stack', num:2, title:'Systems Stack', time:'20 min', icon:'🏗️', desc:'User to Hardware journey layer by layer with live communication animation.', color:'#8b5cf6'},
+  {id:'role-os', num:3, title:'Role of Operating System', time:'22 min', icon:'👑', desc:'OS as manager, police, translator, security guard - all roles visualised.', color:'#06b6d4'},
+  {id:'resources', num:4, title:'Resources', time:'16 min', icon:'🔋', desc:'CPU, Memory, Storage, Devices - the four treasures OS protects.', color:'#10b981'},
+  {id:'abstraction', num:5, title:'Abstractions and Interfaces', time:'19 min', icon:'🎭', desc:'Why OS hides complexity? CLI vs GUI vs API with interactive demos.', color:'#f59e0b'},
+  {id:'components', num:6, title:'Components of OS', time:'21 min', icon:'🧩', desc:'Kernel, Shell, Scheduler, File System - open the OS like a machine.', color:'#ef4444'},
+  {id:'types-os', num:7, title:'Types of Operating System', time:'24 min', icon:'🌍', desc:'Batch to Cloud OS - evolution timeline with real devices.', color:'#6366f1'},
+  {id:'hardware', num:8, title:'Basic Hardware Organization', time:'20 min', icon:'💻', desc:'Motherboard explorer - CPU, RAM, Bus, Cache animated.', color:'#8b5cf6'},
+  {id:'von-neumann', num:9, title:'Von Neumann Architecture', time:'26 min', icon:'🧠', desc:'Stored program concept with full fetch-decode-execute simulator.', color:'#06b6d4'},
+  {id:'process', num:10, title:'Process', time:'22 min', icon:'⚙️', desc:'Program vs Process, life cycle, states - with live state machine.', color:'#10b981'},
+  {id:'pcb', num:11, title:'Process Control Block', time:'18 min', icon:'🪪', desc:'The ID card of every process - inspect each field live.', color:'#f59e0b'},
+  {id:'syscall', num:12, title:'System Calls', time:'20 min', icon:'📞', desc:'How app talks to kernel? Trap, mode switch, return - animated.', color:'#ef4444'},
+  {id:'process-syscall', num:13, title:'Process Control System Calls', time:'28 min', icon:'👨‍👧', desc:'fork(), exec(), wait(), exit() - live terminal & tree animation.', color:'#6366f1'},
+  {id:'lde', num:14, title:'Limited Direct Execution', time:'24 min', icon:'🛡️', desc:'User vs Kernel mode, protection, interrupts - CPU security story.', color:'#8b5cf6'}
+];
+const storyBank = {
+  'app-req': 'You order food on Swiggy. The app is like a customer, OS is the restaurant manager who gives table (RAM), chef (CPU), and kitchen (storage). Without manager, chaos!',
+  'sys-stack': 'Think of a building: You (top floor) -> App (flat) -> Libraries (society office) -> OS (security) -> Kernel (foundation) -> Hardware (land). Every request goes down, every result comes up.',
+  'role-os': 'OS is like a school principal: allocates classrooms (memory), timetable for teachers (CPU scheduling), keeps attendance (files), and stops fights (security).',
+  'von-neumann': 'Von Neumann said: keep recipe and ingredients in same fridge. CPU reads recipe (program) from memory, cooks step by step. Thats stored program concept!',
+  'process': 'Program is a recipe book on shelf. Process is when you actually start cooking - you need stove, ingredients, and you go through states: ready, cooking, waiting for salt, done.',
+  'pcb': 'PCB is Aadhaar card for process. Without it, OS forgets who you are, where you stopped, what files you opened. OS has lakhs of such cards!',
+  'syscall': 'You cannot enter bank locker directly. You fill form (system call), clerk (OS) checks and opens it. Thats why apps need system calls for hardware.',
+  'process-syscall': 'fork() is like photocopy machine for process. Parent presses copy, child is same but with new ID. Parent waits with wait() till child finishes homework.',
+  'lde': 'LDE is like giving kids a bicycle but with training wheels and parent watching. App runs directly on CPU (fast) but OS watches via interrupts (safe).'
+};
+function createSVGIcon(type){
+  if(type==='cpu') return `<div class="cpu-chip"><div class="cpu-core core-1"></div><div class="cpu-core core-2"></div><div class="cpu-core core-3"></div><div class="cpu-core core-4"></div><div class="cpu-label">CPU</div></div>`;
+  if(type==='ram') return `<div class="ram-visual"><div class="ram-block"><div class="ram-fill" style="height:20%"></div></div><div class="ram-block"><div class="ram-fill" style="height:60%"></div></div><div class="ram-block"><div class="ram-fill" style="height:85%"></div></div><div class="ram-block"><div class="ram-fill" style="height:40%"></div></div><div class="ram-block"><div class="ram-fill" style="height:90%"></div></div><div class="ram-block"><div class="ram-fill" style="height:30%"></div></div></div><div style="text-align:center;font-size:11px;color:var(--text-3);margin-top:8px;">RAM USAGE LIVE</div>`;
+  if(type==='process') return `<div class="process-track"><div class="process-chip running">P1<br>Running</div><div class="process-chip waiting">P2<br>Waiting</div><div class="process-chip">P3<br>Ready</div><div class="process-chip">P4<br>Ready</div><div class="process-chip terminated">P5<br>Done</div></div>`;
+  return '';
+}
+function getSimpleExplanation(id){
+  const m={
+    'app-req':'An application is a program you use to do work like WhatsApp, Chrome, Game. But it cannot talk to CPU or RAM directly. It needs a helper called OS.',
+    'sys-stack':'Systems Stack is like layers of a burger. User on top, then App, Libraries, OS, Kernel, Drivers, Hardware at bottom. Request goes down, result comes up.',
+    'role-os':'Operating System is manager of computer. It gives CPU time, memory space, files safety, and stops one app from breaking another app.',
+    'resources':'Resources are things computer has - CPU for calculation, RAM for temporary work, Storage for saving, Devices like keyboard.',
+    'abstraction':'Abstraction means hiding difficult things and showing simple buttons. You click photo icon, you dont need to know how hard disk stores it.',
+    'components':'OS has parts: Kernel (heart), Scheduler (time manager), Memory Manager (space manager), File System (librarian), Drivers (translators).',
+    'types-os':'Types are different OS for different jobs: Batch for old jobs, Time-sharing for many users, Real-Time for rocket, Mobile OS for phone, Cloud OS for internet.',
+    'hardware':'Hardware is physical parts: CPU is brain, RAM is table, Cache is pocket, Bus is road, Storage is almirah, Motherboard is building.',
+    'von-neumann':'Von Neumann said store program and data in same memory. CPU does cycle: Fetch instruction, Decode meaning, Execute work, Store result. Repeat.',
+    'process':'Process is running program. Program on disk is dead. When you double-click, OS loads it to RAM, gives PCB ID card, and CPU starts executing - thats process.',
+    'pcb':'PCB is table OS keeps for each process: PID, what CPU registers had, where it is in memory, which files it opened, how much time it used.',
+    'syscall':'System Call is doorbell to kernel. App is in user mode (no power), wants to read file - rings bell (trap), OS switches to kernel mode, does work, returns.',
+    'process-syscall':'fork() creates copy of process. Parent and child both continue after fork. Child gets 0, parent gets child PID. wait() makes parent wait for child to finish.',
+    'lde':'Limited Direct Execution: Let app run directly on CPU for speed, but keep control via timer interrupt and hardware protection for safety. Fast + Safe.'
+  };
+  return m[id]||'Simple zero level explanation for beginners.';
+}
+function getWhyNeed(id){ return 'Without this, computer would be chaos, slow, insecure. With this, many apps run safely at same time, just like traffic police manages many cars.'; }
+function getTechnicalDef(id){
+  const m={
+    'app-req':'Application is a user-level program that requires execution environment, libraries and OS services to interact with hardware via system calls.',
+    'sys-stack':'Systems Stack is hierarchical organization of computing layers from user to hardware where each layer provides abstraction to upper layer via interfaces.',
+    'role-os':'Operating System is system software that acts as resource manager, control program, and interface between user and hardware.',
+    'von-neumann':'Von Neumann Architecture is stored-program computer model where program and data share same memory and CPU executes fetch-decode-execute cycle.',
+    'process':'Process is abstraction of running program with its own address space, PCB, and resources, managed by OS scheduler.',
+    'pcb':'PCB is kernel data structure storing process state, PID, PC, registers, memory limits, scheduling info, and open file descriptors.',
+    'syscall':'System call is controlled entry point from user mode to kernel mode via trap instruction for privileged operations.',
+    'process-syscall':'Process control syscalls are kernel APIs - fork(), exec(), wait(), exit() - to create, replace, synchronize and terminate processes.',
+    'lde':'LDE is OS technique where process runs directly on CPU in user mode with hardware enforced protection and timer-based OS control.'
+  };
+  return m[id]||`${id} is core OS concept that enables safe, fast, multi-app execution on shared hardware.`;
+}
+function getMemoryTrick(id){
+  const m={
+    'app-req':'A B C D: App needs OS, OS needs Hardware, Hardware runs app. Cycle!',
+    'sys-stack':'U A L O K D F H - "U Are Loving OS Kernel Drivers From Heart" - User, App, Lib, OS, Kernel, Driver, Firmware, Hardware.',
+    'process':'Process = P CB + M + C : Program + Control Block + Memory + CPU time',
+    'pcb':'PID PICS RAM OF: Process ID, Program Counter, Registers, State, Scheduling, Accounting, Memory, Open Files.',
+    'syscall':'C P D F S - "Can People Drive Fast Safely" - Process Control, File, Device, Info, Communication - 5 types of syscalls.',
+    'von-neumann':'F D E S - "First Decode Exam Syllabus" - Fetch, Decode, Execute, Store.'
+  };
+  return m[id]||'Make story + first letters to remember forever.';
+}
+function getIndustry(id){ return {'app-req':'Mobile apps, Desktop apps, Server apps','von-neumann':'Intel, AMD, Apple Silicon','process':'Every OS - Linux, Windows, Android, iOS','pcb':'Linux kernel, Windows kernel','syscall':'All modern OS','process-syscall':'Linux, Unix, Docker, Kubernetes'}[id]||'Google, Microsoft, Amazon, TCS, Infosys'; }
+function getPractical(id){ return 'Try in Linux terminal: ps aux shows processes, top shows live CPU/RAM, strace shows system calls. Open Activity Monitor on your laptop!'; }
+function getDidYouKnow(id){ return 'First OS was GM-NAA I/O in 1956 for IBM 704. It was just to automate batch jobs. Now OS is billions of lines!'; }
+function getFunFact(id){ return 'Your phone OS does 1000 context switches per second! You feel it as smooth multitasking but CPU is jumping like super fast chef.'; }
+function getRemember(id){ return 'Always answer in interview: Simple line + Daily example + Technical + Diagram. This pattern gives 100% marks.'; }
+function getStepByStep(id){
+  if(id==='von-neumann') return [
+    {title:'Fetch', desc:'CPU takes address from Program Counter, goes to RAM, brings instruction to IR.'},
+    {title:'Decode', desc:'Control Unit decodes: what operation? ADD? LOAD? Which registers?'},
+    {title:'Execute', desc:'ALU does math or memory unit loads/stores data. Flags set.'},
+    {title:'Store', desc:'Result stored to register or memory, PC incremented.'},
+    {title:'Repeat', desc:'Cycle repeats billions of times per second - 3GHz = 3B cycles/sec!'}
+  ];
+  if(id==='process') return [
+    {title:'Create', desc:'User double-clicks. OS allocates PID, PCB, memory space.'},
+    {title:'Ready', desc:'Process loaded in RAM, waiting in ready queue for CPU.'},
+    {title:'Running', desc:'Scheduler picks, CPU executes its instructions.'},
+    {title:'Waiting', desc:'Needs file or input, moves to waiting queue.'},
+    {title:'Terminate', desc:'exit() syscall, OS frees memory, keeps exit code.'}
+  ];
+  if(id==='process-syscall') return [
+    {title:'fork() called', desc:'Parent traps to kernel, kernel copies PCB, page table (copy-on-write).'},
+    {title:'Return twice', desc:'Child gets 0, parent gets child PID. Both at same line after fork.'},
+    {title:'exec() optional', desc:'Child replaces memory with new program (ls).'},
+    {title:'wait()', desc:'Parent blocks until child exit(). No wait = zombie.'},
+    {title:'exit()', desc:'Child frees resources, sends SIGCHLD to parent.'}
+  ];
+  return [
+    {title:'User Request', desc:'User or app needs something - run app, open file, create process.'},
+    {title:'OS Interface', desc:'Request goes via library or system call interface.'},
+    {title:'Kernel Work', desc:'Kernel checks permission, allocates resources, talks to hardware via drivers.'},
+    {title:'Hardware Execution', desc:'CPU executes, memory stores, device does I/O. Interrupt signals completion.'},
+    {title:'Result Back', desc:'Result travels back up the stack to user. Process state updated in PCB.'}
+  ];
+}
+function getVisualSVG(id){
+  if(id==='sys-stack') return `<div style="display:flex;flex-direction:column;gap:6px;">${['User 👤','Application 📱','Libraries 📚','Operating System 👑','Kernel ❤️','Drivers 🔌','Firmware ⚙️','Hardware 💻'].map(l=>`<div class="vn-row" onclick="this.classList.toggle('vn-active')"><span>${l}</span><span style="font-size:10px;">Layer</span></div>`).join('')}<div style="margin-top:10px;height:4px;background:linear-gradient(90deg,var(--accent),var(--accent-3));border-radius:999px;"></div><div style="font-size:11px;color:var(--text-3);text-align:center;">Click any layer to highlight path ↕</div></div>`;
+  if(id==='von-neumann') return `<div class="vn-grid"><div class="vn-cpu"><div style="font-weight:800;margin-bottom:10px;">CPU</div><div class="vn-row"><span>PC</span><span id="vn-pc">0x100</span></div><div class="vn-row"><span>IR</span><span id="vn-ir">LOAD R1, [100]</span></div><div class="vn-row"><span>ALU</span><span id="vn-alu">idle</span></div><button onclick="vonNeumannStep()" style="margin-top:10px;width:100%;padding:8px;border-radius:8px;border:none;background:var(--accent);color:white;font-weight:700;cursor:pointer;">Next Cycle (Fetch→Decode→Execute)</button></div><div style="background:var(--bg-2);border-radius:16px;padding:12px;"><div style="font-weight:700;margin-bottom:8px;font-size:12px;">MEMORY [0x100..]</div><div id="vn-mem" style="font-family:var(--font-mono);font-size:11px;line-height:1.8;"></div></div></div>`;
+  if(id==='process') return `<svg viewBox="0 0 400 220" style="width:100%;height:auto;"><defs><marker id="arrow" viewBox="0 0 10 10" refX=9 refY=5 markerWidth=6 markerHeight=6 orient=auto><path d="M0 0 L10 5 L0 10" fill="#6366f1"/></marker></defs><g><circle cx="60" cy="30" r="32" fill="#94a3b820" stroke="#94a3b8" stroke-width="2"/><text x="60" y="34" text-anchor="middle" font-size="10" font-weight="700" fill="#94a3b8">New</text></g><g><circle cx="200" cy="30" r="32" fill="#06b6d420" stroke="#06b6d4" stroke-width="2"/><text x="200" y="34" text-anchor="middle" font-size="10" font-weight="700" fill="#06b6d4">Ready</text></g><g><circle cx="340" cy="30" r="32" fill="#10b98120" stroke="#10b981" stroke-width="2"/><text x="340" y="34" text-anchor="middle" font-size="10" font-weight="700" fill="#10b981">Running</text></g><g><circle cx="340" cy="120" r="32" fill="#f59e0b20" stroke="#f59e0b" stroke-width="2"/><text x="340" y="124" text-anchor="middle" font-size="10" font-weight="700" fill="#f59e0b">Waiting</text></g><g><circle cx="60" cy="120" r="32" fill="#ef444420" stroke="#ef4444" stroke-width="2"/><text x="60" y="124" text-anchor="middle" font-size="10" font-weight="700" fill="#ef4444">Done</text></g><path d="M92 30 L168 30" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/><path d="M232 30 L308 30" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/><path d="M340 62 L340 88" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/><path d="M308 120 L100 120" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow)"/></svg>`;
+  if(id==='pcb') return `<div style="font-family:var(--font-mono);font-size:11px;background:#0f172a;color:#e2e8f0;border-radius:12px;padding:14px;"><div style="color:#94a3b8;">struct PCB {</div>${[['pid','1234','Process ID'],['pc','0x401a','Program Counter'],['regs','R1=5,R2=10','Registers'],['state','RUNNING','State'],['mem','[0x1000-0x4000]','Memory'],['files','fd[0]=stdin','Open files']].map(([k,v,d])=>`<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="color:#8b5cf6;width:50px;">${k}</span><span style="color:#06b6d4;flex:1;">${v}</span><span style="color:#475569;">// ${d}</span></div>`).join('')}<div style="color:#94a3b8;">}</div></div>`;
+  if(id==='syscall') return `<div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;"><div style="padding:10px 14px;background:var(--bg-2);border-radius:12px;font-size:12px;text-align:center;"><b>App</b><br>User Mode</div><div>➡️</div><div style="padding:10px 14px;background:#6366f1;color:white;border-radius:12px;font-size:12px;text-align:center;"><b>TRAP</b><br>syscall</div><div>➡️</div><div style="padding:10px 14px;background:#0f172a;color:white;border-radius:12px;font-size:12px;text-align:center;"><b>Kernel</b><br>Kernel Mode</div><div>➡️</div><div style="padding:10px 14px;background:var(--success);color:white;border-radius:12px;font-size:12px;text-align:center;"><b>Return</b><br>Result</div></div>`;
+  if(id==='process-syscall') return `<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;"><div style="flex:1;min-width:220px;background:#0f172a;color:#e2e8f0;border-radius:12px;padding:12px;font-family:var(--font-mono);font-size:11px;"><div><span style="color:#10b981;">$ cat fork_demo.c</span></div><div>pid = fork();</div><div>if(pid==0){ // child</div><div>&nbsp;&nbsp;printf("Child"); exec("ls");</div><div>} else { wait(NULL); }</div><button onclick="runForkSim()" style="margin-top:8px;padding:6px 10px;border-radius:6px;border:none;background:var(--accent);color:white;font-weight:700;cursor:pointer;">▶ Run fork() Animation</button></div><div style="flex:1;min-width:200px;"><div id="fork-tree" style="background:var(--bg-2);border-radius:12px;padding:12px;min-height:140px;"><div style="font-size:11px;font-weight:700;margin-bottom:8px;">Process Tree</div><div id="fork-nodes" style="display:flex;flex-direction:column;gap:6px;"></div></div></div></div>`;
+  return `<div style="text-align:center;padding:20px;">${createSVGIcon('cpu')}<div style="margin-top:12px;font-size:12px;color:var(--text-2);">Interactive simulation for ${id}</div><div style="margin-top:10px;display:flex;gap:6px;justify-content:center;"><span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;animation: pulseDot 1s infinite;"></span><span style="font-size:11px;">Live Animation Running</span></div></div>`;
+}
+function getSpecialSimulator(id){
+  if(id==='von-neumann') return `<div class="glass-card card-pad col-12"><div class="mini-label">🖥 Von Neumann Complete Simulator • Fetch-Decode-Execute-Store • Try It!</div><div class="vn-grid"><div class="terminal"><div class="term-header"><div class="term-dot" style="background:#ef4444;"></div><div class="term-dot" style="background:#f59e0b;"></div><div class="term-dot" style="background:#10b981;"></div><div style="margin-left:8px;font-size:11px;color:#94a3b8;">von_neumann_sim — CPU Cycle</div></div><div class="term-body" id="vn-term">Click Next Cycle to start...<br>PC will fetch from Memory, decode in Control Unit, execute in ALU.</div></div><div style="background:var(--bg-2);border-radius:16px;padding:14px;"><div style="font-size:12px;font-weight:700;margin-bottom:10px;">Execution Timeline (Animated)</div><div id="vn-timeline" style="display:flex;gap:6px;flex-wrap:wrap;"></div><div style="margin-top:12px;padding:10px;background:var(--card-solid);border-radius:10px;font-size:11px;"><b>Clock Speed:</b> <span id="vn-clock">0 cycles</span><br><b>CPI:</b> 1 cycle per instruction (ideal)<br><b>Throughput:</b> ~3B instr/sec at 3GHz</div></div></div></div>`;
+  if(id==='process-syscall') return `<div class="glass-card card-pad col-12"><div class="mini-label">💻 Live Linux Terminal Simulator • Type fork() • See Parent-Child Tree Grow</div><div class="terminal"><div class="term-header"><div class="term-dot" style="background:#ef4444;"></div><div class="term-dot" style="background:#f59e0b;"></div><div class="term-dot" style="background:#10b981;"></div><div style="margin-left:8px;font-size:11px;color:#94a3b8;">student@os-lab: ~/os-handbook</div></div><div class="term-body" id="main-term"><div class="term-line"><span class="term-prompt">student@os-lab:~$</span> gcc fork_demo.c -o fork_demo</div><div class="term-line" style="color:#94a3b8;">Compiled successfully. PID will be assigned by kernel.</div><div class="term-line"><span class="term-prompt">student@os-lab:~$</span> ./fork_demo</div><div class="term-line" style="color:#94a3b8;" id="term-output">Press Run fork() Animation above ↑</div></div></div></div>`;
+  return '';
+}
+function generateQuiz(id){
+  const baseQs = [
+    {q:`What is ${id}?`, opts:['Hardware','System software concept','Only app','Only file'], ans:1},
+    {q:`Why OS needs ${id}?`, opts:['For fun','To manage resources safely','To slow down','Not needed'], ans:1},
+    {q:`Where is ${id} stored?`, opts:['Only CPU','RAM + kernel structures','Only disk','Only cache'], ans:1},
+    {q:`Which is true?`, opts:['Single user only','Supports multitasking','No security','No scheduling'], ans:1},
+  ];
+  const all=[];
+  for(let i=0;i<20;i++){ const b=baseQs[i%baseQs.length]; all.push({...b, q:`${i+1}. ${b.q}`}); }
+  return all.map((qq)=>`<div class="quiz-card"><div class="quiz-q">${qq.q}</div><div class="quiz-opts">${qq.opts.map((o,oi)=>`<button class="quiz-opt" onclick="checkQuiz(this, ${oi===qq.ans}, '${id}')">${String.fromCharCode(65+oi)}. ${o}</button>`).join('')}</div></div>`).join('');
+}
+function renderTopic(t){
+  const story = storyBank[t.id] || 'Daily life example makes OS easy - like traffic police managing roads (CPU, Memory).';
+  return `
+  <section class="topic-section" id="${t.id}" data-topic="${t.id}">
+    <div class="topic-header">
+      <div class="topic-eyebrow">
+        <div class="eyebrow-pill">TOPIC ${t.num}</div>
+        <div class="eyebrow-time">⏱ ${t.time} • 📖 12 concepts • 🎯 Exam + Placement</div>
+        <button class="nav-icon-btn" onclick="toggleBookmark('${t.id}')" id="bm-${t.id}" title="Bookmark">☆</button>
+        <label style="display:flex;gap:6px;align-items:center;font-size:12px;"><input type="checkbox" onchange="markComplete('${t.id}', this.checked)"> Mark complete</label>
+      </div>
+      <h2>${t.icon} ${t.title}</h2>
+      <p>${t.desc} Absolute zero level explanation with animations, industry examples, and memory tricks.</p>
+    </div>
+    <div class="concept-grid">
+      <div class="glass-card card-pad col-4">
+        <div class="mini-label">Learning Objectives</div>
+        <div class="card-title"><i>🎯</i> What you will learn</div>
+        <ul style="font-size:13px;color:var(--text-2);padding-left:16px;">
+          <li>Simple definition in easy English</li>
+          <li>Why we need it in real computer</li>
+          <li>How it works inside CPU & Memory</li>
+          <li>Interview & exam ready explanation</li>
+        </ul>
+      </div>
+      <div class="glass-card card-pad col-4">
+        <div class="mini-label">Prerequisites</div>
+        <div class="card-title"><i>📚</i> Before you start</div>
+        <p style="font-size:13px;color:var(--text-2);">Nothing! We start from zero. If you know what is a computer and a mobile app, you are ready.</p>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span style="padding:4px 8px;background:var(--bg-2);border-radius:999px;font-size:11px;">No OS knowledge</span>
+          <span style="padding:4px 8px;background:var(--bg-2);border-radius:999px;font-size:11px;">Beginner friendly</span>
+        </div>
+      </div>
+      <div class="glass-card card-pad col-4">
+        <div class="mini-label">Outcomes</div>
+        <div class="card-title"><i>🏆</i> After this topic</div>
+        <ul style="font-size:13px;color:var(--text-2);padding-left:16px;">
+          <li>Explain to a 10-year-old</li>
+          <li>Draw architecture in exam</li>
+          <li>Answer placement questions</li>
+          <li>Write Linux C code demo</li>
+        </ul>
+      </div>
+      <div class="glass-card card-pad col-8">
+        <div class="mini-label" style="color:${t.color};">● Simple English Explanation (Zero Level)</div>
+        <h3 style="font-size:18px;margin-bottom:8px;">${t.title} in one line</h3>
+        <p style="font-size:14px;color:var(--text-2);">${getSimpleExplanation(t.id)}</p>
+        <div style="margin-top:14px;padding:12px;background:var(--bg-2);border-radius:12px;border-left:4px solid ${t.color};">
+          <div style="font-size:12px;font-weight:700;margin-bottom:4px;">💡 Why we need it?</div>
+          <div style="font-size:13px;color:var(--text-2);">${getWhyNeed(t.id)}</div>
+        </div>
+      </div>
+      <div class="glass-card card-pad col-4">
+        <div class="mini-label">Daily Life Story</div>
+        <div class="card-title"><i>📖</i> Story based learning</div>
+        <p style="font-size:13px;color:var(--text-2);line-height:1.6;">${story}</p>
+        <div style="margin-top:12px;" class="sim-stage">${createSVGIcon(t.id==='resources' || t.id==='hardware' ? 'ram' : t.id==='process' || t.id==='process-syscall' ? 'process' : 'cpu')}</div>
+      </div>
+      <div class="glass-card card-pad col-6">
+        <div class="mini-label">Visual Architecture • Interactive SVG</div>
+        <div class="sim-stage" id="sim-${t.id}">${getVisualSVG(t.id)}</div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" style="height:36px;padding:0 14px;font-size:12px;" onclick="animateSim('${t.id}')">▶ Animate Flow</button>
+          <button class="btn btn-secondary" style="height:36px;padding:0 14px;font-size:12px;" onclick="resetSim('${t.id}')">↺ Reset</button>
+          <span style="font-size:11px;color:var(--text-3);align-self:center;">Click to explore layers</span>
+        </div>
+      </div>
+      <div class="glass-card card-pad col-6">
+        <div class="mini-label">Step-by-Step Execution • Computer + OS + CPU Level</div>
+        <div style="display:flex;flex-direction:column;gap:10px;" id="steps-${t.id}">
+          ${getStepByStep(t.id).map((s,i)=>`<div style="display:flex;gap:12px;padding:10px 12px;background:var(--bg-2);border-radius:12px;border:1px solid var(--card-border);"><div style="width:26px;height:26px;border-radius:999px;background:${t.color};color:white;display:grid;place-items:center;font-size:11px;font-weight:800;flex-shrink:0;">${i+1}</div><div style="font-size:13px;"><b>${s.title}</b><br><span style="color:var(--text-2);">${s.desc}</span></div></div>`).join('')}
+        </div>
+      </div>
+      <div class="glass-card card-pad col-4">
+        <div class="mini-label">Technical Definition (Exam)</div>
+        <p style="font-size:13px;font-weight:600;background:var(--bg-2);padding:10px;border-radius:10px;">${getTechnicalDef(t.id)}</p>
+        <div style="margin-top:14px;">
+          <div class="mini-label">Memory Trick 🧠</div>
+          <div style="padding:10px;background:linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12));border-radius:10px;font-size:13px;font-weight:600;">${getMemoryTrick(t.id)}</div>
+        </div>
+      </div>
+      <div class="glass-card card-pad col-4">
+        <div class="mini-label">Advantages & Limitations</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><div style="font-size:11px;font-weight:700;color:var(--success);">✓ ADVANTAGES</div><ul style="font-size:12px;padding-left:14px;color:var(--text-2);"><li>Easy to understand</li><li>Industry used</li><li>Exam scoring</li></ul></div>
+          <div><div style="font-size:11px;font-weight:700;color:var(--danger);">✗ LIMITATIONS</div><ul style="font-size:12px;padding-left:14px;color:var(--text-2);"><li>Needs hardware</li><li>Complex in scale</li><li>Security issues</li></ul></div>
+        </div>
+        <div style="margin-top:12px;padding:10px;background:var(--bg-2);border-radius:10px;">
+          <div style="font-size:11px;font-weight:700;">⚠ Common Mistakes</div>
+          <div style="font-size:12px;color:var(--text-2);">Students think program = process. No! Program is file, process is running program. In viva, this is first question.</div>
+        </div>
+      </div>
+      <div class="glass-card card-pad col-4">
+        <div class="mini-label">Industry & Practical</div>
+        <div style="font-size:12px;color:var(--text-2);"><b>Industry:</b> Used in ${getIndustry(t.id)}<br><br><b>Practical:</b> ${getPractical(t.id)}<br><br><div style="display:flex;gap:6px;flex-wrap:wrap;"><span style="padding:4px 8px;background:rgba(99,102,241,0.12);border-radius:999px;color:var(--accent);font-weight:600;">Linux</span><span style="padding:4px 8px;background:rgba(16,185,129,0.12);border-radius:999px;color:var(--success);font-weight:600;">Android</span><span style="padding:4px 8px;background:rgba(245,158,11,0.12);border-radius:999px;color:var(--warning);font-weight:600;">Windows</span></div></div>
+      </div>
+      ${getSpecialSimulator(t.id)}
+      <div class="glass-card card-pad col-12">
+        <div class="mini-label">Comparison Table • Exam Ready</div>
+        <table class="compare-table"><thead><tr><th>Aspect</th><th>Without OS Concept</th><th>With OS Concept</th><th>Real Example</th></tr></thead><tbody><tr><td><b>Management</b></td><td>Manual, chaos</td><td>Automatic, safe</td><td>${t.title} manager</td></tr><tr><td><b>Speed</b></td><td>Slow, app handles hardware</td><td>Fast, OS optimized</td><td>Linux is 10x faster</td></tr><tr><td><b>Security</b></td><td>No protection</td><td>User vs Kernel isolation</td><td>Android sandbox</td></tr></tbody></table>
+      </div>
+      <div class="col-12"><div class="premium-grid"><div class="glass-card card-pad"><span class="premium-tag tag-did">💡 Did You Know?</span><p style="font-size:13px;color:var(--text-2);">${getDidYouKnow(t.id)}</p></div><div class="glass-card card-pad"><span class="premium-tag tag-fun">🚀 Fun Fact</span><p style="font-size:13px;color:var(--text-2);">${getFunFact(t.id)}</p></div><div class="glass-card card-pad"><span class="premium-tag tag-remember">🧠 Remember This</span><p style="font-size:13px;color:var(--text-2);">${getRemember(t.id)}</p></div><div class="glass-card card-pad"><span class="premium-tag tag-warn">⚠ Viva Corner</span><p style="font-size:13px;color:var(--text-2);"><b>Q:</b> What is ${t.title}? <br><b>A:</b> ${getSimpleExplanation(t.id).substring(0,120)}...</p></div></div></div>
+      <div class="glass-card card-pad col-12">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div class="mini-label" style="margin:0;">Interactive Assessment • 20 MCQs • Auto evaluated</div>
+          <div style="display:flex;gap:8px;"><button class="btn btn-secondary" style="height:32px;padding:0 12px;font-size:12px;" onclick="startQuiz('${t.id}')">Restart</button><span id="score-${t.id}" style="font-size:12px;font-weight:700;padding:6px 10px;background:var(--bg-2);border-radius:999px;">Score: 0/20</span></div>
+        </div>
+        <div id="quiz-${t.id}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">${generateQuiz(t.id)}</div>
+        <div style="margin-top:20px;display:grid;grid-template-columns: repeat(auto-fit, minmax(220px,1fr));gap:12px;">
+          <div style="padding:12px;background:var(--bg-2);border-radius:12px;"><div style="font-size:11px;font-weight:700;">📝 Fill in blanks</div><div style="font-size:12px;margin-top:6px;">1. ${t.title} is a ______ that manages hardware.<br>2. Program in execution is called ______.</div></div>
+          <div style="padding:12px;background:var(--bg-2);border-radius:12px;"><div style="font-size:11px;font-weight:700;">✔ True/False</div><div style="font-size:12px;margin-top:6px;">1. OS is hardware? (False)<br>2. PCB stores process info? (True)</div></div>
+          <div style="padding:12px;background:var(--bg-2);border-radius:12px;"><div style="font-size:11px;font-weight:700;">🎯 2M / 5M / 10M</div><div style="font-size:12px;margin-top:6px;">2M: Define ${t.title}.<br>5M: Explain with diagram.<br>10M: Working + Advantages + Example.</div></div>
+          <div style="padding:12px;background:var(--bg-2);border-radius:12px;"><div style="font-size:11px;font-weight:700;">💼 Placement Corner</div><div style="font-size:12px;margin-top:6px;">Asked in TCS, Infosys, Wipro. Write C code for fork() and explain parent-child.</div></div>
+        </div>
+      </div>
+      <div class="glass-card card-pad col-12" style="background: linear-gradient(135deg, var(--card), var(--bg-2));">
+        <div class="mini-label">⚡ Quick Revision • One Page Summary • Last Minute Sheet</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;">
+          <div style="flex:1;min-width:200px;"><b>Definition:</b> ${getTechnicalDef(t.id)}<br><b>Trick:</b> ${getMemoryTrick(t.id)}</div>
+          <div style="flex:1;min-width:200px;"><b>Formula:</b> Process = Program + PCB + Resources<br><b>Exam Tip:</b> Always draw diagram, write advantages, give Linux example - full marks!</div>
+          <div style="flex:1;min-width:200px;"><b>Interview Tip:</b> Start simple, then technical. Say: "${getSimpleExplanation(t.id).substring(0,80)}" then explain working.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  `;
+}
+let vnStep=0;
+const vnMem = ["0x100: LOAD R1, [500]","0x101: LOAD R2, [501]","0x102: ADD R3, R1, R2","0x103: STORE R3, [502]","0x104: JMP 0x100"];
+function vonNeumannStep(){
+  const pcs=["0x100","0x101","0x102","0x103","0x104"];
+  const irs=vnMem; const alus=["idle","loading","adding","storing","jumping"];
+  const pcEl=document.getElementById('vn-pc'); if(pcEl) pcEl.textContent=pcs[vnStep%pcs.length];
+  const irEl=document.getElementById('vn-ir'); if(irEl) irEl.textContent=irs[vnStep%irs.length];
+  const aluEl=document.getElementById('vn-alu'); if(aluEl) aluEl.textContent=alus[vnStep%alus.length];
+  const term=document.getElementById('vn-term');
+  const timeline=document.getElementById('vn-timeline');
+  if(term){ term.innerHTML += `<br>➡ Cycle ${vnStep+1}: ${irs[vnStep%irs.length]} | ALU: ${alus[vnStep%alus.length]}`; term.scrollTop=term.scrollHeight; }
+  if(timeline){ const d=document.createElement('div'); d.style.cssText="padding:6px 10px;background:var(--card-solid);border:1px solid var(--card-border);border-radius:999px;font-size:10px;"; d.textContent=`C${vnStep+1}: ${irs[vnStep%irs.length].split(':')[1]}`; timeline.appendChild(d); }
+  const clk=document.getElementById('vn-clock'); if(clk) clk.textContent=`${vnStep+1} cycles`;
+  vnStep++;
+  const memDiv=document.getElementById('vn-mem'); if(memDiv){ memDiv.innerHTML=vnMem.map((m,i)=>`<div style="${i===vnStep%5 ? 'background:var(--accent);color:white;padding:2px 6px;border-radius:6px;':''}">${m}</div>`).join(''); }
+}
+function runForkSim(){
+  const nodes=document.getElementById('fork-nodes'); const out=document.getElementById('term-output'); if(!nodes) return;
+  nodes.innerHTML='';
+  const steps=[{pid:100,label:'Parent P100 (original)',color:'#6366f1'},{pid:101,label:'Child P101 fork() returns 0',color:'#10b981'},{pid:101,label:'Child exec() -> ls program',color:'#06b6d4'},{pid:100,label:'Parent wait() -> blocked',color:'#f59e0b'},{pid:101,label:'Child exit() -> zombie briefly',color:'#ef4444'},{pid:100,label:'Parent resumes, prints Parent',color:'#6366f1'}];
+  let i=0; function next(){ if(i>=steps.length) return; const s=steps[i]; const div=document.createElement('div'); div.style.cssText=`padding:8px 10px;border-radius:10px;background:${s.color}18;border:1px solid ${s.color}40;font-size:11px;`; div.innerHTML=`<b>P${s.pid}</b> - ${s.label}`; nodes.appendChild(div); if(out){ out.innerHTML+=`<br>${s.label}`; } i++; setTimeout(next, 700); } next();
+}
+function animateSim(id){ const stage=document.getElementById('sim-'+id); if(stage) stage.classList.add('shimmer'); setTimeout(()=> stage && stage.classList.remove('shimmer'), 1200); }
+function resetSim(id){ vonNeumannStep(); }
+function checkQuiz(btn, isCorrect, topicId){
+  btn.parentElement.querySelectorAll('.quiz-opt').forEach(b=>b.disabled=true);
+  if(isCorrect){ btn.classList.add('correct'); let sc=parseInt(document.getElementById('score-'+topicId).textContent.split('/')[0].split(':')[1])||0; sc++; document.getElementById('score-'+topicId).textContent=`Score: ${sc}/20`; updateProgress(); }
+  else { btn.classList.add('wrong'); }
+}
+function startQuiz(id){ document.getElementById('quiz-'+id).innerHTML=generateQuiz(id); document.getElementById('score-'+id).textContent='Score: 0/20'; }
+function toggleBookmark(id){
+  const btn=document.getElementById('bm-'+id);
+  const bms=JSON.parse(localStorage.getItem('os-bookmarks')||'[]');
+  if(bms.includes(id)){ localStorage.setItem('os-bookmarks', JSON.stringify(bms.filter(x=>x!==id))); btn.textContent='☆'; btn.classList.remove('bookmarked'); }
+  else { bms.push(id); localStorage.setItem('os-bookmarks', JSON.stringify(bms)); btn.textContent='★'; btn.classList.add('bookmarked'); }
+}
+function markComplete(id, checked){
+  const comp=JSON.parse(localStorage.getItem('os-complete')||'{}');
+  comp[id]=checked; localStorage.setItem('os-complete', JSON.stringify(comp));
+  updateSidebarProgress(); updateProgress();
+}
+function updateSidebarProgress(){
+  const comp=JSON.parse(localStorage.getItem('os-complete')||'{}');
+  const total=topicsData.length; const done=Object.values(comp).filter(Boolean).length;
+  const pct= total? Math.round(done/total*100):0;
+  document.querySelectorAll('.progress-ring').forEach(ring=>{
+    const circ=ring.querySelector('circle:last-child');
+    if(!circ) return;
+    const dash= 2*Math.PI*12;
+    circ.style.strokeDasharray=dash;
+    circ.style.strokeDashoffset= dash - (pct/100)*dash;
+  });
+  const overall=document.getElementById('overall-progress'); if(overall) overall.textContent=pct+'%';
+  const overall2=document.getElementById('overall-progress-2'); if(overall2) overall2.textContent=pct+'% • 14 topics';
+  const bar2=document.getElementById('progressBar2'); if(bar2) bar2.style.width=pct+'%';
+}
+function handleSearch(e){
+  const q=e.target.value.toLowerCase();
+  document.querySelectorAll('.topic-section').forEach(sec=>{
+    const text=sec.textContent.toLowerCase();
+    sec.classList.toggle('hidden', q && !text.includes(q));
+  });
+}
+function updateProgress(){
+  const scrolled = (window.scrollY / (document.body.scrollHeight - window.innerHeight))*100;
+  const bar=document.getElementById('progressBar'); if(bar) bar.style.width=scrolled+'%';
+  document.querySelectorAll('.topic-section').forEach(sec=>{ if(sec.getBoundingClientRect().top < window.innerHeight*0.8) sec.classList.add('visible'); });
+  let current=''; document.querySelectorAll('.topic-section').forEach(sec=>{ if(window.scrollY >= sec.offsetTop - 120) current=sec.id; });
+  document.querySelectorAll('.topic-item').forEach(it=>{ it.classList.toggle('active', it.dataset.id===current); });
+}
+function toggleTheme(){ const cur=document.body.getAttribute('data-theme'); const next= cur==='light' ? 'dark':'light'; document.body.setAttribute('data-theme', next); localStorage.setItem('os-theme', next); }
+function toggleFocus(){ document.body.classList.toggle('focus-mode'); }
+function toggleFullscreen(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+function showShortcuts(){ document.getElementById('shortcutsModal').classList.add('open'); }
+function hideShortcuts(){ document.getElementById('shortcutsModal').classList.remove('open'); }
+document.addEventListener('DOMContentLoaded', ()=>{
+  const container=document.getElementById('topicsContainer');
+  container.innerHTML=topicsData.map(t=>renderTopic(t)).join('');
+  const savedTheme=localStorage.getItem('os-theme')||'light';
+  document.body.setAttribute('data-theme', savedTheme);
+  const bms=JSON.parse(localStorage.getItem('os-bookmarks')||'[]');
+  bms.forEach(id=>{ const btn=document.getElementById('bm-'+id); if(btn){ btn.textContent='★'; btn.classList.add('bookmarked'); } });
+  document.querySelectorAll('.topic-item').forEach(it=>{ it.addEventListener('click', ()=>{ document.getElementById(it.dataset.id).scrollIntoView({behavior:'smooth'}); if(window.innerWidth<900) document.getElementById('sidebar').classList.remove('open'); }); });
+  updateProgress(); updateSidebarProgress();
+  const memDiv=document.getElementById('vn-mem'); if(memDiv) memDiv.innerHTML=vnMem.map(m=>`<div>${m}</div>`).join('');
+  let secs=0; setInterval(()=>{ secs++; const m=Math.floor(secs/60), s=secs%60; const el=document.getElementById('readTimer'); if(el) el.textContent=`${m}m ${s}s reading`; },1000);
+  const searchEl=document.getElementById('searchInput'); if(searchEl) searchEl.addEventListener('input', handleSearch);
+  window.addEventListener('scroll', updateProgress);
+  window.addEventListener('keydown', (e)=>{
+    if(e.key==='?') showShortcuts();
+    if(e.key==='Escape') hideShortcuts();
+    if(e.key==='f' && !e.ctrlKey && !e.metaKey && e.target.tagName!=='INPUT'){ e.preventDefault(); toggleFocus(); }
+    if(e.key==='k' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); searchEl.focus(); }
+  });
+  document.getElementById('mobileMenuBtn').addEventListener('click', ()=>{ document.getElementById('sidebar').classList.toggle('open'); });
+});
+</script>
+</body>
+</html>
