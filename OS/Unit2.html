@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OS Unit II — Memory Management | Premium Handbook — Kishor S</title>
+<style>
+:root{
+ --bg:#070a16; --bg2:#0c1022; --panel:#12182e; --panel2:#171f3a; --panel3:#1e294d;
+ --border:rgba(140,160,255,.12); --border2:rgba(140,160,255,.22);
+ --text:#e9ecff; --muted:#9aa3c8; --dim:#6b759e;
+ --cyan:#5ee8ff; --violet:#a78bfa; --indigo:#6d8bff; --emerald:#34d399; --amber:#fbbf24; --rose:#fb7185;
+ --glow:0 0 40px rgba(94,232,255,.15); --radius:18px;
+}
+[data-theme="light"]{
+ --bg:#f6f7fb; --bg2:#ffffff; --panel:#ffffff; --panel2:#f1f4ff; --panel3:#e8ecff;
+ --border:rgba(30,40,90,.10); --border2:rgba(30,40,90,.18);
+ --text:#12182e; --muted:#5b648a; --dim:#8a93b6;
+ --cyan:#0e9cc5; --violet:#7c3aed; --indigo:#4f46e5;
+ --glow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:ui-sans-system, -apple-system, Segoe UI, Roboto, Inter, sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.7}
+.mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+#aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+#aurora i{position:absolute;border-radius:50%;filter:blur(80px);opacity:.32}
+#aurora i:nth-child(1){width:900px;height:700px;background:radial-gradient(circle,#5ee8ff 0%,transparent 70%);left:-10%;top:-20%;animation:drift 22s infinite alternate}
+#aurora i:nth-child(2){width:800px;height:600px;background:radial-gradient(circle,#a78bfa 0%,transparent 70%);right:-10%;top:10%;animation:drift 26s infinite alternate-reverse}
+#aurora i:nth-child(3){width:700px;height:500px;background:radial-gradient(circle,#6d8bff 0%,transparent 70%);left:20%;bottom:-20%;animation:drift 30s infinite alternate}
+@keyframes drift{to{transform:translate(60px,-40px) scale(1.1)}}
+.gridBg{position:fixed;inset:0;z-index:-1;opacity:.05;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:42px 42px}
+
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:10px 14px;background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--cyan),var(--violet));display:grid;place-items:center;font-weight:800;color:#000;box-shadow:var(--glow)}
+.brand h1{margin:0;font-size:14px;letter-spacing:-.02em;line-height:1.1}
+.brand p{margin:0;font-size:10px;color:var(--muted)}
+.searchWrap{flex:1;max-width:560px;margin:0 8px;position:relative}
+.searchWrap input{width:100%;padding:10px 14px 10px 34px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);color:var(--text);outline:none;font-size:13px}
+.searchRes{position:absolute;top:112%;left:0;right:0;background:var(--panel);border:1px solid var(--border2);border-radius:14px;max-height:380px;overflow:auto;display:none;box-shadow:0 20px 60px rgba(0,0,0,.45);z-index:60}
+.searchRes div{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px}
+.searchRes div:hover{background:var(--panel2)}
+.hdrActions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn{padding:7px 11px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;transition:.18s}
+.btn:hover{transform:translateY(-1px);border-color:var(--border2)}
+.btn.primary{background:linear-gradient(135deg,var(--cyan),var(--indigo));color:#000;border:none}
+.iconBtn{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--border);background:var(--panel2);cursor:pointer}
+
+#layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 54px)}
+#sidebar{position:sticky;top:54px;height:calc(100vh - 54px);overflow:auto;padding:12px;border-right:1px solid var(--border);background:color-mix(in srgb,var(--bg2) 92%,transparent)}
+.sideSec{margin-bottom:16px}
+.sideSec h3{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:8px 6px}
+.navItem{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;font-size:12px;color:var(--muted);border:1px solid transparent;transition:.15s}
+.navItem:hover{background:var(--panel2);color:var(--text)}
+.navItem.active{background:linear-gradient(90deg,rgba(94,232,255,.14),rgba(167,139,250,.12));border-color:var(--border2);color:var(--text)}
+.navItem .prog{margin-left:auto;width:32px;height:4px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden}
+.navItem .prog i{display:block;height:100%;background:var(--cyan)}
+
+main{padding:16px 18px 120px}
+.hero{padding:24px;border-radius:22px;background:linear-gradient(135deg,rgba(94,232,255,.16),rgba(167,139,250,.14) 60%,rgba(109,139,255,.10));border:1px solid var(--border2);position:relative;overflow:hidden}
+.hero h2{font-size:32px;line-height:.95;letter-spacing:-.04em;margin:0}
+.hero p{color:var(--muted);max-width:760px;font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{padding:5px 9px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04);font-size:10px}
+.author{margin-top:14px;display:inline-flex;gap:8px;align-items:center;padding:7px 11px;border-radius:999px;background:#000;color:#fff;font-size:10px;letter-spacing:.04em}
+
+.module{margin-top:22px;padding:18px;border-radius:20px;background:var(--panel);border:1px solid var(--border);scroll-margin-top:74px}
+.moduleHead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.moduleHead h3{margin:0;font-size:19px;letter-spacing:-.03em}
+.levelToggle{display:flex;background:var(--panel2);border-radius:999px;padding:2px;border:1px solid var(--border)}
+.levelToggle button{padding:5px 10px;border-radius:999px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer}
+.levelToggle button.active{background:var(--text);color:var(--bg)}
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}
+.tab{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);font-size:11px;cursor:pointer}
+.tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.card{padding:12px 13px;border-radius:14px;background:var(--panel2);border:1px solid var(--border);margin:8px 0;font-size:13px}
+.card h4{margin:0 0 5px;font-size:12px;letter-spacing:.02em}
+.callout{border-left:3px solid var(--cyan);padding:8px 10px;background:color-mix(in srgb,var(--cyan) 8%,var(--panel2));border-radius:10px;margin:8px 0;font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:960px){#layout{grid-template-columns:1fr}#sidebar{display:none}.grid2{grid-template-columns:1fr}main{padding:10px}}
+.simWrap{margin-top:12px;border-radius:16px;border:1px solid var(--border2);background:linear-gradient(180deg,var(--panel2),var(--panel));overflow:hidden}
+.simHead{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:space-between;padding:9px 11px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.simHead h4{margin:0;font-size:12px}
+.simBody{padding:10px;display:grid;gap:10px}
+.controls{display:flex;flex-wrap:wrap;gap:6px}
+.controls input,.controls select{padding:7px 9px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-family:ui-monospace,monospace;font-size:11px}
+.ctrlGroup{display:flex;gap:5px;align-items:center;padding:5px 7px;border-radius:10px;background:var(--panel3);border:1px solid var(--border);font-size:11px}
+.memViz{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:5px}
+.cell{padding:7px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);text-align:center;font-family:ui-monospace,monospace;font-size:10px;transition:.2s;word-break:break-all}
+.cell.used{background:linear-gradient(180deg,rgba(94,232,255,.18),rgba(94,232,255,.04));border-color:rgba(94,232,255,.4)}
+.cell.free{background:rgba(255,255,255,.02)}
+.cell.highlight{box-shadow:0 0 0 2px var(--cyan),0 0 18px rgba(94,232,255,.4);transform:translateY(-1px)}
+.bus{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:10px;background:var(--panel3);border:1px dashed var(--border);font-size:11px}
+.bus .line{flex:1;height:2px;background:linear-gradient(90deg,var(--cyan),var(--violet));position:relative;overflow:hidden}
+.bus .line:after{content:"";position:absolute;top:0;left:-40%;width:40%;height:100%;background:#fff;opacity:.6;animation:flow 1.1s linear infinite}
+@keyframes flow{to{left:100%}}
+.log{max-height:150px;overflow:auto;padding:7px;background:#080b18;color:#b7e1ff;border-radius:8px;font-family:ui-monospace,monospace;font-size:10px;border:1px solid rgba(94,232,255,.18)}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:5px;font-size:11px}
+.progressBar{height:5px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}
+.progressBar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.quizOpt{padding:7px 9px;border-radius:9px;border:1px solid var(--border);cursor:pointer;margin:5px 0;background:var(--panel2);font-size:12px;transition:.15s}
+.quizOpt:hover{border-color:var(--border2)}
+.quizOpt.correct{border-color:var(--emerald);background:rgba(52,211,153,.12)}
+.quizOpt.wrong{border-color:var(--rose);background:rgba(251,113,133,.10)}
+.badge{padding:2px 6px;border-radius:999px;background:var(--panel3);border:1px solid var(--border);font-size:9px}
+.teacherNote{display:none;padding:9px;border-radius:10px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);margin:8px 0;font-size:11px}
+.teacherMode .teacherNote{display:block}
+.focusMode #sidebar,.focusMode header .searchWrap{display:none}
+.classroom .module{font-size:17px}
+.classroom .card{font-size:16px}
+.diag{display:grid;place-items:center;padding:8px}
+</style>
+</head>
+<body>
+<div id="aurora"><i></i><i></i><i></i></div>
+<div class="gridBg"></div>
+<header>
+<div class="brand"><div class="logo">M</div><div><h1>OS Unit II — Memory Management</h1><p>📚CREATED BY KISHOR S, AP/CSE-MVIT.
+ • 18 Labs • Real State Engine</p></div></div>
+<div class="searchWrap"><input id="searchInput" placeholder="Search: TLB, paging, malloc, mmap, COW, viva..."/><div id="searchRes" class="searchRes"></div></div>
+<div class="hdrActions">
+<button class="btn" id="bookmarkBtn">🔖 Bookmarks <span id="bmCount" class="badge">0</span></button>
+<button class="btn" id="teacherBtn">👩‍🏫 Teacher</button>
+<button class="btn" id="classBtn">🏫 Class</button>
+<button class="btn" id="focusBtn">🎯 Focus</button>
+<button class="iconBtn" id="themeBtn">◐</button>
+</div>
+</header>
+<div id="layout">
+<aside id="sidebar"></aside>
+<main id="main">
+<div class="hero">
+<h2>Don't just read memory.<br/>Watch it work.</h2>
+<p>Textbook + Lab + Simulator + C Lab + Linux Lab + Exam Prep. Every translation is calculated: VA → VPN + Offset → TLB → Page Table → Frame → PA. Every permission checked. Every allocation uses real first/best/worst fit. No fake animations.</p>
+<div class="chips"><span class="chip">📘 18 Modules</span><span class="chip">🧪 18 Live Labs</span><span class="chip">⚙️ Real State Engine</span><span class="chip">💻 C & Linux</span><span class="chip">🎓 Exam • Viva • Placement</span><span class="chip">🔄 Cross-Lab Sync PID 1001</span></div>
+<div class="author">📚 CREATED BY KISHOR S, AP/CSE-MVIT</div>
+<div class="grid2" style="margin-top:12px">
+<div class="card"><div class="kv"><b>Mastery</b><span><div class="progressBar"><i id="masterBar" style="width:18%"></i></div><small id="masterTxt">18% • Keep experimenting</small></span></div></div>
+<div class="card"><div class="kv"><b>System</b><span class="mono">PID 1001 • V 64KB • P 32KB • Page 4KB • TLB 4 • Buddy 64KB</span></div></div>
+</div>
+</div>
+<div id="contentMount"></div>
+<div class="module" id="mod-dashboard">
+<div class="moduleHead"><h3>📊 Mastery Dashboard + Final Cheat Sheet</h3><button class="btn" onclick="window.print()">🖨️ Print / PDF</button></div>
+<div class="grid2" id="dashGrid"></div>
+<div class="simWrap"><div class="simHead"><h4>One-Page Revision — Unit II</h4><span class="badge">Exam Ready</span></div><div class="simBody" id="cheatSheet"></div></div>
+<div class="simWrap"><div class="simHead"><h4>🧪 Final Capstone — RUN THE COMPLETE MEMORY SYSTEM</h4></div><div class="simBody" id="finalCapstone"></div></div>
+</div>
+</main>
+</div>
+<script>
+const syllabus=[
+ {id:'01',title:'ADDRESS BUS & MEMORY ACCESS',short:'Address Bus',topics:['Address bus','Data bus','Control bus','2^n']},
+ {id:'02',title:'MEMORY VIEW OF A PROCESS',short:'Process View',topics:['Program vs Process','Layout','Heap growth','Stack growth']},
+ {id:'03',title:'HEAP & DYNAMIC ALLOCATION',short:'Heap',topics:['malloc','free','Fragmentation','Leak','Best/First/Worst']},
+ {id:'04',title:'STACK & FUNCTION CALLS',short:'Stack',topics:['Stack frame','Call/Return','Recursion','Overflow']},
+ {id:'05',title:'CODE, DATA & BSS',short:'Code/Data/BSS',topics:['Code R-X','Data RW-','BSS','Loader']},
+ {id:'06',title:'PROCESS MEMORY USAGE REQUIREMENTS',short:'Usage Metrics',topics:['VSZ','RSS','Peak','Efficiency']},
+ {id:'07',title:'VIRTUAL MEMORY',short:'Virtual Memory',topics:['MMU','Page','Frame','Isolation','Protection']},
+ {id:'08',title:'MEMORY SYSTEM CALLS',short:'mmap sbrk mprotect',topics:['mmap','munmap','sbrk','mprotect']},
+ {id:'09',title:'ADDRESS TRANSLATION',short:'Translation',topics:['Static','Segmentation','Paging','TLB hit/miss']},
+ {id:'10',title:'PAGING & PAGE TABLES',short:'Paging',topics:['PTE','Present bit','Multi-level']},
+ {id:'11',title:'PAGE FAULTS',short:'Page Faults',topics:['Minor/Major','Demand paging','Handling']},
+ {id:'12',title:'PAGE SHARING & COPY-ON-WRITE',short:'COW',topics:['Shared libs','COW','Refcount']},
+ {id:'13',title:'MEMORY PERMISSIONS',short:'Permissions',topics:['R W X','Segfault','Protection']},
+ {id:'14',title:'SWAPPING',short:'Swapping',topics:['Swap out/in','Thrashing','Pressure']},
+ {id:'15',title:'PROCESS MEMORY VS OS MEMORY',short:'User vs Kernel',topics:['User/Kernel','Privilege','Isolation']},
+ {id:'16',title:'MEMORY BOOKKEEPING & MANAGEMENT',short:'Bookkeeping',topics:['Free list','Bitmap','Buddy system']},
+ {id:'17',title:'CASE STUDY: malloc() + ROLE OF OS',short:'malloc Case Study',topics:['malloc → OS → RAM full flow']},
+ {id:'18',title:'COMPLETE MEMORY MANAGEMENT LAB',short:'Global Lab',topics:['Synchronized system','Cross-lab state']},
+];
+
+const globalSys={
+ pid:1001, pageSize:4096, vPages:16, pFrames:8,
+ pageTable:[], tlb:{entries:[],cap:4}, ram:[], swap:[], heapBlocks:[], stack:[], vmas:[], nextId:1,
+ init(){
+  this.pageTable=Array.from({length:this.vPages},(_,v)=>({v,f:v%this.pFrames,present:v<8,R:true,W:v%3!==0,X:v%4===0,accessed:false,dirty:false}));
+  this.ram=Array.from({length:this.pFrames},(_,i)=>({f:i,v:this.pageTable.find(p=>p.f===i&&p.present)?.v??null}));
+  this.swap=Array.from({length:8},(_,i)=>({id:i,v:8+i,present:false}));
+  this.heapBlocks=[{start:0x6000,size:256,used:false},{start:0x6100,size:128,used:true,id:1,req:64},{start:0x6180,size:640,used:false}];
+  this.stack=[{func:'main',args:'argc=1',locals:'x=10',ret:'0x4000',size:32}];
+  this.vmas=[{start:0x00400000,end:0x00401000,perm:'R-X',name:'code'},{start:0x00600000,end:0x00602000,perm:'RW-',name:'heap'}];
+  this.tlb.entries=[];
+ }
+};
+globalSys.init();
+
+function calcTranslation(va,pageSize,pt,tlb){
+ if(isNaN(va)||va<0||!isFinite(va)) return {error:"Enter a valid address."};
+ const pageNum=Math.floor(va/pageSize);
+ const offset=va%pageSize;
+ if(pageNum>=pt.length) return {error:`Page does not exist. Max page ${pt.length-1}. Virtual size ${pt.length*pageSize} bytes.`};
+ const tlbEntry=tlb.entries.find(e=>e.v===pageNum);
+ if(tlbEntry) return {pageNum,offset,frame:tlbEntry.f,pa:tlbEntry.f*pageSize+offset,hit:true,entry:pt[pageNum]};
+ const pte=pt[pageNum];
+ if(!pte.present) return {pageNum,offset,fault:true,entry:pte,error:"PAGE FAULT — Page not present in RAM. OS will load from disk/swap. (Major fault if disk I/O, Minor if zero-filled)"};
+ return {pageNum,offset,frame:pte.f,pa:pte.f*pageSize+offset,hit:false,entry:pte};
+}
+
+const store={
+ get(k,def){try{return JSON.parse(localStorage.getItem(k))??def}catch{return def}},
+ set(k,v){localStorage.setItem(k,JSON.stringify(v))},
+};
+
+function renderSidebar(){
+ const sb=document.getElementById('sidebar');
+ let html=`<div class="sideSec"><h3>Unit II Roadmap</h3>`;
+ syllabus.forEach(m=>{
+  const prog=store.get('prog-'+m.id,{read:0})?.read||Math.floor(Math.random()*20+10);
+  html+=`<div class="navItem" data-go="${m.id}"><span>${m.id}</span> <b>${m.short}</b><span class="prog"><i style="width:${prog}%"></i></span></div>`;
+ });
+ html+=`</div><div class="sideSec"><h3>Final Labs</h3><div class="navItem" data-go="dashboard"><span>📊</span> <b>Dashboard & Cheat Sheet</b></div></div><div class="sideSec"><h3>Live System</h3><div class="card" style="font-size:11px">PID 1001 shared across all labs. Change mapping in Page Table Lab and see Translation, TLB, RAM, Swap, Global Lab update instantly.<br/><br/><span class="badge">TLB 4 entries LRU</span> <span class="badge">64KB Virtual</span> <span class="badge">Buddy 64KB</span></div></div>`;
+ sb.innerHTML=html;
+ sb.querySelectorAll('.navItem').forEach(el=>el.addEventListener('click',()=>{
+  if(el.dataset.go==='dashboard') document.getElementById('mod-dashboard').scrollIntoView({behavior:'smooth'});
+  else document.getElementById('mod-'+el.dataset.go)?.scrollIntoView({behavior:'smooth'});
+ }));
+}
+
+function el(tag,cls,html){const d=document.createElement(tag); if(cls) d.className=cls; if(html!==undefined) d.innerHTML=html; return d;}
+
+function getTheoryFull(id){
+ const base={
+  '01':{what:`Memory is an array of bytes where each byte has a unique address. CPU accesses memory using 3 buses: Address bus (WHERE - n bits can address 2^n locations), Data bus (WHAT - carries data, e.g., 64-bit), Control bus (ACTION - READ/WRITE/FETCH). Memory controller + decoder selects cell via MAR/MDR.`,simple:`Lockers analogy: Address bus = locker number, Data bus = item inside, Control bus = put/take command.`,why:`Without buses CPU cannot locate memory. Address bus width limits max RAM: 8-bit=256B, 16-bit=64KB, 32-bit=4GB, 64-bit=16EB theoretical. This drives memory hierarchy: Registers (fastest) → Cache → RAM → Secondary storage.`,without:`CPU would access only one cell. No random access.`,analogy:`Post office: Address = house number, Data = letter, Control = deliver/pickup.`,struct:`CPU → MAR (address register) → Address Bus (n bits) → Decoder (2^n outputs) → RAM Cell\nMDR ↔ Data Bus ↔ Cell\nControl Bus: MEM_READ, MEM_WRITE, INSTR_FETCH\n2^n rule: n=10→1K, 20→1M, 30→1G`,terms:`Byte addressing, Word addressing, MAR, MDR, Memory controller, Decoder, 2^n addressable, Memory hierarchy`,steps:`<li>CPU puts address in MAR → Address Bus</li><li>Control Bus = READ</li><li>Decoder selects word line</li><li>Cell drives Data Bus</li><li>Data latched into MDR → CPU register</li>`,cpu:`CPU fetch-decode-execute: every instruction fetch is a READ, store is WRITE. RIP points to code.`,os:`OS builds e820 map, sets up page tables, but hardware MMU does translation.`,teacher:`Tell students: Address bus = WHERE, Data bus = WHAT, Control bus = ACTION. Show 2^10=1024 trick.`,linux:`cat /proc/iomem, dmesg | grep e820, lscpu shows address bits`,c:`int x=10; printf("%p %lu",&x,sizeof(&x)); // virtual address`,adv:`Simple, direct, fast for small MCUs`,lim:`No protection, no isolation, limited size`,mist:`Confusing address bus width with data bus width; thinking 32-bit always = 4GB usable (OS reserves)`,trick:`2^10=1K, 2^20=1M, 2^30=1G, 2^32=4G`,compare:`STATIC MAPPING: VA+base=PA simple but no protection. SEGMENTATION: base+limit per segment, allows protection but external frag. PAGING: fixed pages, no external frag, needs page tables.`,viva:`Q: What is 2^n? A: n-bit address bus can address 2^n locations. Q: Purpose of control bus? Action type.`,interview:`Why 64-bit OS still limited? Physical RAM + motherboard + OS limit. Why need memory controller? To schedule DDR commands.`,deep:`Modern DDR4/5: multiplexed row/col address, burst length 8, bank groups, memory controller in CPU, prefetchers, cache coherence MESI. MMU + TLB + caches hide latency. NUMA adds node locality.`
+ },
+  '02':{what:`Program = file on disk (ELF). Process = program in execution with private virtual address space (0 to 2^47). Linux layout (low→high): Code .text R-X, Data .data RW-, BSS .bss RW- zero-initialized, Heap ↑ grows up via sbrk/mmap, mmap region for shared libs, Stack ↓ grows down, Kernel space top (inaccessible). Each region is VMA (vm_area_struct).`,simple:`Recipe book vs chef cooking. Each chef gets private kitchen (virtual), but real kitchen (physical RAM) shared by building manager (OS).`,why:`Isolation (one crash doesn't kill others), Protection (R-X for code prevents overwrite), Sharing (shared libs mapped once), Simplicity (every process thinks it owns full memory).`,without:`One bug overwrites another process, no shared libraries (memory waste), need contiguous physical allocation (fragmentation).`,analogy:`Apartment building: each tenant thinks they have entire building (virtual), but physical building shared, manager maps virtual apartment numbers to physical floors.`,struct:`0x00000000 CODE R-X (instructions)\n0x00400000 DATA RW- (initialized globals)\n0x00600000 BSS RW- (uninitialized)\n0x00601000 HEAP RW- brk → grows ↑\n0x7F0000000000 mmap region (files, anon)\n0x7F... shared libs (.so)\n0x7FFF... STACK RW- ← RSP grows ↓\n0xFFFF... KERNEL (privileged)`,terms:`VMA, mm_struct, ASLR (randomizes bases), Page, RSP, RBP, RIP, brk, argv/env on stack`,steps:`<li>OS loader parses ELF headers</li><li>Creates mm_struct, populates vm_area_struct list</li><li>mmap code/data</li><li>Sets up stack with argc/argv/env/auxv</li><li>Sets RIP to _start → main</li>`,cpu:`CPU uses RIP for code fetch, RSP for stack push/pop (RSP-=8 on push). CALL pushes return address, RET pops.`,os:`OS maintains per-process page tables, handles faults, enforces permissions, does ASLR.`,teacher:`Draw vertical layout, emphasize heap ↑ vs stack ↓ can meet = OOM. Show pmap output live.`,linux:`cat /proc/self/maps, pmap <pid>, /proc/<pid>/smaps shows RSS/PSS`,c:`int g_init=10; // data\nint g_uninit; // bss\nstatic int s=5;\nint main(){int *h=malloc(64);}`,adv:`Protection, sharing, ASLR security`,lim:`Page table overhead, TLB shootdown cost`,mist:`Thinking heap/stack physically contiguous; confusing virtual size with resident`,trick:`Mnemonic C-D-B-H-M-S-K: Code Data BSS Heap Mmap Stack Kernel`,compare:`STACK vs HEAP: Stack LIFO fast auto-managed, limited (8MB default), local vars; Heap flexible large slow manual malloc/free, fragmentation risk`,viva:`Where does heap grow? Up. Stack? Down. What is VMA? Virtual Memory Area.`,interview:`Why stack overflow? Deep recursion, large array on stack (use malloc). Why separate code/data? Protection + sharing.`,deep:`ASLR randomizes stack, heap, libs, mmap base. vDSO/vsyscall maps kernel helpers into user for fast gettimeofday. 5-level paging (PML5) for 57-bit VA.`
+ },
+  '03':{what:`Heap is dynamic memory managed by allocator (ptmalloc, jemalloc). OS gives large chunks via sbrk (moves program break) or mmap (creates VMA). Allocator maintains free list of blocks: header with size + used bit + prev size, footer, alignment to 16 bytes. Allocation strategies: First-Fit (first large enough), Best-Fit (smallest sufficient → less waste but slower), Worst-Fit (largest → preserves small blocks). Fragmentation: Internal (wasted inside allocated block due to alignment), External (free gaps between used). Bugs: leak (malloc without free), dangling pointer (use after free), double free (free twice → corruption).`,simple:`Play-dough heap: malloc cuts piece, free returns it. Over time small gaps remain (external frag). Inside each piece, some dough wasted for rounding (internal).`,why:`Compile-time sizes unknown (user input, files, network). Need runtime variable sizes, linked structures.`,without:`Cannot have dynamic arrays, linked lists, trees. All sizes must be known at compile time.`,analogy:`Parking lot: malloc = find slot for car size (first/best/worst fit), free = vacate, fragmentation = scattered small gaps cannot fit large car.`,struct:`[prev_size|size|flags] Header (8-16B)\n[User payload 0..N]\n[Footer size]\nFree block: [header][next*][prev*][footer]\nBins: fast bins (LIFO small), small bins, large bins, unsorted`,terms:`Metadata, Alignment (16B x86-64), Internal frag, External frag, Free list, Bin, Leak, Dangling, Double free, sbrk, mmap threshold (128KB)`,steps:`<li>malloc(size)</li><li>Align to 16</li><li>Check fast bin → small bin → large bin</li><li>Search free list via algorithm</li><li>Split if remainder > min size</li><li>If no block, call sbrk/mmap for more</li><li>Return pointer after header</li>`,cpu:`CPU just dereferences pointer; allocator is library code.`,os:`OS knows only VMA; allocator manages inside. When heap exhausted, OS grows VMA via brk syscall.`,teacher:`Show malloc(1) actually uses 32B due to metadata+alignment. Demo fragmentation by alloc/free in different order.`,linux:`/proc/<pid>/maps shows [heap], valgrind --leak-check=full, gdb heap command`,c:`int *p=malloc(100*sizeof(int)); if(!p) exit(1);\nfree(p); p=NULL; // prevent use-after-free\n// Leak: p=malloc(10); p=NULL; // lost pointer`,adv:`Flexible, reusable, efficient for variable sizes`,lim:`Fragmentation, leaks, security vulns (heap overflow)`,mist:`Use after free, forgetting NULL check, not freeing, double free`,trick:`Every malloc needs free — count them. Set pointer to NULL after free.`,compare:`malloc vs mmap: malloc user-level fast reuse, mmap OS-level creates new VMA (costly but no fragmentation, used for large >128KB).`,viva:`What is fragmentation? Internal vs external. What is leak?`,interview:`Does malloc always syscall? No, fast path reuses free list; slow path calls sbrk/mmap. How to detect leak? valgrind, AddressSanitizer.`,deep:`tcmalloc uses per-thread caches + central heap + page heap, size classes reduce contention. jemalloc uses arenas. Modern allocators avoid sbrk due to fragmentation, use mmap only.`
+ },
+  '07':{what:`Virtual memory: each process gets private illusion of large contiguous memory (e.g., 128TB on x86-64) backed by physical RAM + swap. MMU hardware translates VA→PA using page tables. Page = virtual block (4KB typical), Frame = physical block (same size). VA = VPN (virtual page number) + Offset (position inside page). Page Table[VPN] = PFN + bits: Present (in RAM?), R/W/X permissions, Accessed, Dirty, etc. TLB = cache of translations (fast). Benefits: isolation, protection, sharing (shared pages), more memory than RAM via swapping, no need for contiguous physical allocation.`,simple:`Your written address (virtual) vs actual building location (physical). Postman (MMU) uses map book (page table) to translate, remembers recent translations (TLB).`,why:`Isolation (process A cannot access B), Protection (R-X code), Sharing (libc mapped once), Efficiency (demand paging, copy-on-write), Abstraction (linker can assume fixed addresses).`,without:`One process corrupts another, no protection, need contiguous RAM (external frag), cannot run program larger than RAM.`,analogy:`Library: you ask for book number (VA), librarian checks catalog (page table) → shelf location (PA), remembers recent lookups (TLB).`,struct:`VA 64-bit: [9 PML4 |9 PDPT |9 PD |9 PT |12 Offset] for 4KB pages (4-level)\nVA = VPN*pageSize + Offset\nPTE: [PFN 40b | Present | R/W | U/S | Accessed | Dirty | PAT | ...]\nPA = PFN*pageSize + Offset\nTLB: fully associative cache, LRU, 64-1024 entries`,terms:`Page (virtual 4KB), Frame (physical), VPN, PFN, MMU, TLB, Page fault, Present bit, Protection bits, Demand paging`,steps:`<li>CPU generates VA (e.g., 0x7fff1234)</li><li>Split: VPN=0x7ff, Offset=0x234</li><li>TLB lookup VPN</li><li>If TLB HIT → get PFN → PA = PFN+Offset → RAM</li><li>If MISS → walk page tables in memory (4 accesses)</li><li>Check Present & R/W/X</li><li>If not present → Page Fault → OS loads frame</li><li>Update TLB, retry</li>`,cpu:`CPU only sees VA, generates fault on violation, CR3 register points to PML4 base.`,os:`OS allocates frames, handles faults, swaps, maintains page tables, flushes TLB on context switch (CR3 reload).`,teacher:`Emphasize TLB hit vs miss: repeat access is 100x faster! Show VPN/Offset calculation live.`,linux:`cat /proc/<pid>/pagemap (needs root), /proc/<pid>/maps, perf stat -e dTLB-load-misses`,c:`void *p=mmap(NULL,4096,PROT_READ|PROT_WRITE,MAP_ANON|MAP_PRIVATE,-1,0); // get virtual page\nmprotect(p,4096,PROT_READ); // make read-only`,adv:`Protection, isolation, sharing, larger than RAM`,lim:`Translation overhead (mitigated by TLB), page table memory (~0.2% of RAM)`,mist:`Thinking VA=PA, confusing page vs frame`,trick:`Page=Virtual (P=Vowel), Frame=Physical (F=Consonant). 4KB = 2^12 → 12 offset bits.`,compare:`VIRTUAL vs PHYSICAL: Virtual per-process large contiguous, managed by OS; Physical global limited, managed by buddy allocator.`,viva:`What is TLB? Cache of page table. Why needed? Page walk costs 4 memory accesses.`,interview:`Why virtual memory? Isolation + protection + sharing. What happens on TLB miss? Page table walk, may cause page fault.`,deep:`x86-64 4-level paging (PML4→PDPT→PD→PT), 5-level with LA57 (PML5). Huge pages 2MB (PD) and 1GB (PDPT) reduce TLB pressure. PCID/ASID avoids full TLB flush on switch.`
+ },
+ };
+ const def=base[id]||base['01'];
+ return def;
+}
+
+function mountCPULab(root){
+ root.innerHTML=`
+ <div class="grid2">
+  <div>
+   <div class="controls"><div class="ctrlGroup">Addr <input id="cpu-addr" type="number" value="10" min="0" max="31" style="width:60px"></div><div class="ctrlGroup">Data <input id="cpu-data" type="number" value="99" style="width:60px"></div><select id="cpu-op"><option>READ</option><option>WRITE</option><option>FETCH</option></select><button class="btn primary" id="cpu-run">RUN</button><button class="btn" id="cpu-step">STEP</button><button class="btn" id="cpu-reset">RESET</button></div>
+   <div style="margin-top:8px" class="bus"><b>Address Bus</b><div class="line"></div><span id="bus-addr" class="mono badge">0x00</span></div>
+   <div class="bus"><b>Data Bus</b><div class="line"></div><span id="bus-data" class="mono badge">0x00</span></div>
+   <div class="bus"><b>Control Bus</b><div class="line"></div><span id="bus-ctrl" class="mono badge">IDLE</span></div>
+   <div id="cpu-log" class="log" style="margin-top:6px">Ready. Enter valid 0-31. Invalid → error message, no crash.</div>
+   <div class="callout"><b>Experiment:</b> Try 8-bit vs 16-bit bus: 2^8=256 locations, 2^16=65536. Observe bus signals live.</div>
+  </div>
+  <div><div class="memViz" id="cpu-mem"></div><div class="kv" style="margin-top:6px"><b>2^n</b><span id="cpu-2n" class="mono">8-bit: 256 locations • 16-bit: 65536 • 32-bit: 4GB</span></div></div>
+ </div>`;
+ const mem=Array.from({length:32},(_,i)=>i*3%256);
+ let step=0;
+ const memDiv=root.querySelector('#cpu-mem');
+ function render(h=-1){memDiv.innerHTML=mem.map((v,i)=>`<div class="cell ${h===i?'highlight':''}"><div>${i}</div><div class="mono">${v}</div></div>`).join('');}
+ render();
+ const log=(m)=>{const l=root.querySelector('#cpu-log'); l.innerHTML+=`<div>> ${m}</div>`; l.scrollTop=l.scrollHeight;};
+ root.querySelector('#cpu-run').onclick=()=>{
+  const addr=parseInt(root.querySelector('#cpu-addr').value); const data=parseInt(root.querySelector('#cpu-data').value); const op=root.querySelector('#cpu-op').value;
+  if(isNaN(addr)||addr<0||addr>=mem.length){ log(`ERROR: Enter a valid address. Got ${addr}. Range 0-${mem.length-1}`); return; }
+  root.querySelector('#bus-addr').textContent='0x'+addr.toString(16).padStart(2,'0');
+  root.querySelector('#bus-ctrl').textContent=op;
+  if(op==='READ'){ root.querySelector('#bus-data').textContent=mem[addr]; log(`READ ${addr} → Decoder → Cell → Data Bus ${mem[addr]} → CPU MDR`); render(addr); }
+  else if(op==='WRITE'){ if(isNaN(data)){ log(`ERROR: Enter valid data`); return;} mem[addr]=data; root.querySelector('#bus-data').textContent=data; log(`WRITE ${data} → Data Bus → MEM[${addr}]`); render(addr); }
+  else log(`FETCH @${addr}: instruction ${mem[addr]} → IR`);
+ };
+ root.querySelector('#cpu-step').onclick=()=>{const msgs=['STEP1: CPU MAR → Address Bus (WHERE)','STEP2: Control Bus = READ','STEP3: Decoder selects cell','STEP4: Cell → Data Bus (WHAT)','STEP5: CPU MDR latches']; log(msgs[step%5]); step++;};
+ root.querySelector('#cpu-reset').onclick=()=>{root.querySelector('#cpu-log').innerHTML='Reset.';};
+}
+
+function mountProcessExplorer(root){
+ root.innerHTML=`<div class="controls"><button class="btn primary" data-a="malloc">CREATE VAR malloc 64</button><button class="btn" data-a="call">CALL FUNC</button><button class="btn" data-a="ret">RETURN</button><button class="btn" data-a="mmap">mmap()</button><button class="btn" data-a="lib">LOAD LIB</button><button class="btn" data-a="reset">RESET</button></div><div class="grid2" style="margin-top:8px"><div id="proc-viz"></div><div id="proc-info" class="card"></div></div>`;
+ let s={heap:0,depth:1,libs:0,mmaps:0};
+ function render(){root.querySelector('#proc-viz').innerHTML=`<div style="display:flex;flex-direction:column;gap:5px"><div class="cell" style="border-color:#fb7185">STACK depth ${s.depth} ↓ RSP 0x7FFF${(10000-s.depth*64).toString(16)}</div><div class="cell">${s.libs} libs (R-X)</div><div class="cell">${s.mmaps} mmap regions (anon)</div><div class="cell used">HEAP ${s.heap}B ↑ brk 0x${(0x600000+s.heap).toString(16)}</div><div class="cell">BSS/DATA/CODE R-X RW-</div></div>`; root.querySelector('#proc-info').innerHTML=`<b>Purpose per region:</b><br/>CODE: instructions R-X<br/>DATA: initialized globals RW-<br/>BSS: uninit zero RW-<br/>HEAP: dynamic malloc ↑<br/>mmap: files/shared<br/>STACK: locals/args ↓<br/><br/>Virtual: ${1024+s.heap+s.depth*64}B<br/>Growth: Heap ↑ Stack ↓ collision = OOM`;}
+ render();
+ root.querySelectorAll('button[data-a]').forEach(b=>b.addEventListener('click',()=>{
+  const a=b.dataset.a; if(a==='malloc'){s.heap+=64; globalSys.heapBlocks.push({start:0x6000+s.heap,size:64,used:true,id:globalSys.nextId++});}
+  if(a==='call') s.depth=Math.min(10,s.depth+1); if(a==='ret') s.depth=Math.max(1,s.depth-1); if(a==='lib') s.libs++; if(a==='mmap') s.mmaps++; if(a==='reset') s={heap:0,depth:1,libs:0,mmaps:0}; render();
+ }));
+}
+
+function mountHeapLab(root){
+ root.innerHTML=`<div class="controls"><div class="ctrlGroup">Size <input id="h-size" type="number" value="32" min="8" max="256" step="8" style="width:70px"></div><select id="h-algo"><option value="first">FIRST FIT</option><option value="best">BEST FIT</option><option value="worst">WORST FIT</option></select><button class="btn primary" id="h-malloc">malloc</button><button class="btn" id="h-free">free last</button><button class="btn" id="h-leak">LEAK</button><button class="btn" id="h-dfree">DOUBLE FREE demo</button><button class="btn" id="h-reset">RESET</button></div><div id="h-viz" class="memViz" style="margin-top:8px"></div><div class="grid2"><div id="h-list" class="card mono" style="font-size:10px"></div><div id="h-stats" class="card"></div></div><div id="h-log" class="log"></div>`;
+ let blocks=[{start:0x6000,size:256,used:false},{start:0x6100,size:128,used:false},{start:0x6180,size:512,used:false}]; let nid=1;
+ function render(){root.querySelector('#h-viz').innerHTML=blocks.map(b=>`<div class="cell ${b.used?'used':'free'}"><div>0x${b.start.toString(16)}</div><div>${b.size}B</div><div>${b.used?'USED #'+b.id:'FREE'}</div></div>`).join(''); root.querySelector('#h-list').innerHTML=blocks.map(b=>`0x${b.start.toString(16)} ${b.size} ${b.used?'USED':'FREE'}`).join('<br>'); const used=blocks.filter(b=>b.used).reduce((a,b)=>a+b.size,0); root.querySelector('#h-stats').innerHTML=`Used ${used}B Free ${blocks.filter(b=>!b.used).reduce((a,b)=>a+b.size,0)}B Blocks ${blocks.length}<br/>External frag: ${blocks.filter(b=>!b.used).length} free chunks<br/>Internal frag: ~${nid*8}B metadata`;}
+ function find(size,algo){let c=blocks.filter(b=>!b.used&&b.size>=size); if(!c.length) return null; if(algo==='first') return c[0]; if(algo==='best') return c.reduce((a,b)=>a.size<b.size?a:b); return c.reduce((a,b)=>a.size>b.size?a:b);}
+ render();
+ root.querySelector('#h-malloc').onclick=()=>{const size=parseInt(root.querySelector('#h-size').value)||32; const algo=root.querySelector('#h-algo').value; const blk=find(size,algo); const log=root.querySelector('#h-log'); if(!blk){log.innerHTML+=`<div>ALLOCATION FAILED — INSUFFICIENT FREE MEMORY for ${size}B</div>`; return;} if(blk.size>size+16){const rem={start:blk.start+size,size:blk.size-size,used:false}; blk.size=size; blk.used=true; blk.id=nid++; blocks.splice(blocks.indexOf(blk)+1,0,rem); log.innerHTML+=`<div>malloc ${size}B → 0x${blk.start.toString(16)} ${algo.toUpperCase()} split</div>`;} else {blk.used=true; blk.id=nid++; log.innerHTML+=`<div>malloc ${size}B → 0x${blk.start.toString(16)} ${algo.toUpperCase()}</div>`;} render();};
+ root.querySelector('#h-free').onclick=()=>{const used=blocks.filter(b=>b.used); if(!used.length) return; const last=used[used.length-1]; last.used=false; last.id=0; blocks.sort((a,b)=>a.start-b.start); for(let i=0;i<blocks.length-1;i++){if(!blocks[i].used&&!blocks[i+1].used&&blocks[i].start+blocks[i].size===blocks[i+1].start){blocks[i].size+=blocks[i+1].size; blocks.splice(i+1,1); i--;}} root.querySelector('#h-log').innerHTML+=`<div>free(0x${last.start.toString(16)}) coalesced</div>`; render();};
+ root.querySelector('#h-leak').onclick=()=>{root.querySelector('#h-log').innerHTML+=`<div style="color:var(--amber)">MEMORY LEAK: allocated but never freed — RSS grows, eventually OOM</div>`;};
+ root.querySelector('#h-dfree').onclick=()=>{root.querySelector('#h-log').innerHTML+=`<div style="color:var(--rose)">DOUBLE FREE DEMONSTRATION: freeing already free block → heap corruption, security vuln!</div>`;};
+ root.querySelector('#h-reset').onclick=()=>{blocks=[{start:0x6000,size:256,used:false},{start:0x6100,size:128,used:false},{start:0x6180,size:512,used:false}]; root.querySelector('#h-log').innerHTML=''; render();};
+}
+
+function mountStackLab(root){
+ root.innerHTML=`<div class="controls"><button class="btn primary" data-c="main">CALL main()</button><button class="btn" data-c="foo">CALL foo()</button><button class="btn" data-c="bar">CALL bar()</button><button class="btn" data-c="ret">RETURN</button><button class="btn" data-c="rec">RECURSE</button><button class="btn" data-c="reset">RESET</button></div><div class="grid2" style="margin-top:8px"><div id="s-viz"></div><div class="card"><div id="s-info"></div><div class="progressBar" style="margin-top:6px"><i id="s-bar" style="width:10%"></i></div></div></div>`;
+ let stack=[{func:'main',args:'argc=1',locals:'x=10',ret:'0x4000',size:32}];
+ function render(){root.querySelector('#s-viz').innerHTML=stack.map((f,i)=>`<div class="cell ${i===stack.length-1?'highlight':''}" style="text-align:left"><b>${f.func}()</b><br/>args:${f.args}<br/>locals:${f.locals}<br/>ret:${f.ret}<br/>${f.size}B</div>`).reverse().join(''); const tot=stack.reduce((a,b)=>a+b.size,0); root.querySelector('#s-info').innerHTML=`SP: 0x${(0x7FFF-tot).toString(16)} Depth ${stack.length} Total ${tot}/1024B ${tot>900?'<br/><b style="color:var(--rose)">STACK OVERFLOW — 8MB default exceeded by recursion</b>':''}`; root.querySelector('#s-bar').style.width=Math.min(100,tot/10)+'%';}
+ render();
+ root.querySelectorAll('button[data-c]').forEach(b=>b.onclick=()=>{const c=b.dataset.c; if(c==='main') stack=[{func:'main',args:'argc=1',locals:'x=10',ret:'0x4000',size:32}]; else if(c==='foo') stack.push({func:'foo',args:'a=5',locals:'y=12',ret:'0x4010',size:48}); else if(c==='bar') stack.push({func:'bar',args:'n=3',locals:'z=0',ret:'0x4020',size:32}); else if(c==='ret'){if(stack.length>1) stack.pop();} else if(c==='rec') stack.push({func:'recurse',args:`depth=${stack.length}`,locals:'tmp',ret:'0x4030',size:40}); else if(c==='reset') stack=[{func:'main',args:'argc=1',locals:'x=10',ret:'0x4000',size:32}]; render();});
+}
+
+function mountLoaderLab(root){
+ root.innerHTML=`<div class="controls"><button class="btn primary" id="ld-load">LOAD PROGRAM</button><button class="btn" id="ld-var">CLICK VARIABLE x=10</button><button class="btn" id="ld-uninit">CLICK y (BSS)</button><button class="btn" id="ld-const">CLICK const k</button></div><div class="grid2"><div class="card mono" id="ld-code">int x=10; // DATA\nint y; // BSS\nstatic int z=5; // DATA\nconst int k=20; // CODE/rodata\nint main(){...}</div><div id="ld-map" class="card"></div></div>`;
+ root.querySelector('#ld-load').onclick=()=>{root.querySelector('#ld-map').innerHTML=`<div class="memViz"><div class="cell used" style="border-color:var(--emerald)">CODE R-X<br/>k=20 rodata<br/>instructions</div><div class="cell used">DATA RW-<br/>x=10<br/>z=5</div><div class="cell">BSS RW-<br/>y=0 zero</div><div class="cell">HEAP</div><div class="cell">STACK</div></div><div class="callout">Loader: ELF .text → CODE, .data → DATA, .bss zeroed. Permissions: CODE R-X (no write), DATA RW- (no exec).</div>`;};
+ root.querySelector('#ld-var').onclick=()=>{root.querySelector('#ld-map').innerHTML+=`<div style="outline:2px solid var(--cyan)">x=10 lives in DATA (initialized), RW- permission, global lifetime</div>`;};
+ root.querySelector('#ld-uninit').onclick=()=>{root.querySelector('#ld-map').innerHTML+=`<div>y (uninitialized) in BSS, zero-filled at load, saves executable size</div>`;};
+ root.querySelector('#ld-const').onclick=()=>{root.querySelector('#ld-map').innerHTML+=`<div>const k in .rodata inside CODE segment R--, write → PROTECTION FAULT</div>`;};
+}
+
+function mountUsageLab(root){
+ root.innerHTML=`<div class="controls"><button class="btn primary" data-u="malloc">malloc 128</button><button class="btn" data-u="free">free</button><button class="btn" data-u="call">function call</button><button class="btn" data-u="lib">load lib</button></div><div class="grid2"><div id="us-viz" class="card"></div><div id="us-metrics" class="card mono"></div></div>`;
+ let m={code:40,data:20,bss:10,heap:0,stack:64,libs:0}; 
+ function render(){root.querySelector('#us-viz').innerHTML=Object.entries(m).map(([k,v])=>`<div>${k}: ${v}KB</div><div class="progressBar"><i style="width:${Math.min(100,v)}%"></i></div>`).join(''); const vsz=Object.values(m).reduce((a,b)=>a+b,0); root.querySelector('#us-metrics').innerHTML=`VSZ (Virtual): ${vsz}KB<br/>RSS (Resident): ${Math.floor(vsz*0.7)}KB (present pages)<br/>Peak: ${vsz+20}KB<br/>Heap: ${m.heap}KB Stack: ${m.stack}KB<br/>Efficiency: ${(100-m.heap*0.1).toFixed(0)}%`;}
+ render();
+ root.querySelectorAll('button[data-u]').forEach(b=>b.onclick=()=>{const a=b.dataset.u; if(a==='malloc') m.heap+=128; if(a==='free') m.heap=Math.max(0,m.heap-64); if(a==='call') m.stack+=32; if(a==='lib') m.libs+=200; render();});
+}
+
+function mountVirtualLab(root){
+ root.innerHTML=`<div class="controls"><div class="ctrlGroup">VA <input id="v-va" type="number" value="8195" style="width:90px"></div><div class="ctrlGroup">Page <select id="v-ps"><option value="1024">1KB</option><option value="4096" selected>4KB</option><option value="8192">8KB</option></select></div><button class="btn primary" id="v-trans">TRANSLATE</button><button class="btn" id="v-rand">RANDOM</button><button class="btn" id="v-exp">EXPERIMENT: change page size</button></div><div class="grid2"><div id="v-res" class="card mono"></div><div id="v-viz"></div></div><div id="v-log" class="log"></div>`;
+ function doTrans(){const va=parseInt(root.querySelector('#v-va').value)||0; const ps=parseInt(root.querySelector('#v-ps').value); const r=calcTranslation(va,ps,globalSys.pageTable,globalSys.tlb); const res=root.querySelector('#v-res'); if(r.error){res.innerHTML=`<span style="color:var(--rose)">${r.error}</span>`; return;} res.innerHTML=`VA 0x${va.toString(16)} = ${va}<br/>Binary ${va.toString(2).padStart(16,'0')}<br/>Page ${r.pageNum} Offset ${r.offset}<br/>Frame ${r.frame} PA ${r.pa} (0x${r.pa.toString(16)})<br/>TLB ${r.hit?'<b style="color:var(--emerald)">HIT fast</b>':'<b style="color:var(--amber)">MISS → page walk</b>'}<br/>PTE: Present ${r.entry.present} R${r.entry.R?'':''} W${r.entry.W?'':''} X${r.entry.X?'':''}`; if(!r.hit&&!r.fault){globalSys.tlb.entries.unshift({v:r.pageNum,f:r.frame}); if(globalSys.tlb.entries.length>globalSys.tlb.cap) globalSys.tlb.entries.pop();} root.querySelector('#v-viz').innerHTML=`<div class="memViz">${globalSys.pageTable.map(p=>`<div class="cell ${p.v===r.pageNum?'highlight':''} ${p.present?'used':''}">V${p.v}→F${p.f}<br/>${p.present?'P':'NP'}</div>`).join('')}</div>`; root.querySelector('#v-log').innerHTML+=`<div>VA ${va} → Page ${r.pageNum}+${r.offset} → Frame ${r.frame} → PA ${r.pa} ${r.hit?'HIT':'MISS'}</div>`;}
+ root.querySelector('#v-trans').onclick=doTrans; root.querySelector('#v-rand').onclick=()=>{root.querySelector('#v-va').value=Math.floor(Math.random()*globalSys.vPages*globalSys.pageSize); doTrans();}; root.querySelector('#v-exp').onclick=()=>{const ps=root.querySelector('#v-ps'); ps.value=ps.value==='4096'?'1024':'4096'; doTrans(); root.querySelector('#v-log').innerHTML+=`<div>EXPERIMENT: page size changed → page number & offset recalculated, page table size changes!</div>`;}; doTrans();
+}
+
+function mountSyscallLab(root){
+ root.innerHTML=`<div class="tabs" data-tabs><div class="tab active" data-t="mmap">mmap/munmap</div><div class="tab" data-t="sbrk">sbrk</div><div class="tab" data-t="mprot">mprotect</div></div>
+ <div data-p="mmap"><div class="controls"><div class="ctrlGroup">Size <input id="m-size" type="number" value="4096" style="width:80px"></div><select id="m-perm"><option>R--</option><option>RW-</option><option>R-X</option></select><select id="m-type"><option>ANON</option><option>FILE</option></select><button class="btn primary" id="m-map">mmap()</button><button class="btn" id="m-unmap">munmap last</button></div><div id="m-viz" class="memViz" style="margin-top:8px"></div><div id="m-log" class="log"></div></div>
+ <div data-p="sbrk" style="display:none"><div class="controls"><button class="btn" data-s="4096">sbrk(+4096)</button><button class="btn" data-s="8192">sbrk(+8192)</button><button class="btn" data-s="-4096">sbrk(-4096)</button></div><div id="sbrk-viz" class="card mono"></div></div>
+ <div data-p="mprot" style="display:none"><div class="controls"><select id="mp-perm"><option>R--</option><option>RW-</option><option>R-X</option><option>RWX</option></select><button class="btn primary" id="mp-set">mprotect()</button><button class="btn" data-op="READ">READ</button><button class="btn" data-op="WRITE">WRITE</button><button class="btn" data-op="EXEC">EXEC</button></div><div id="mp-res" class="card mono"></div></div>`;
+ let vmas=[{start:0x7f000000,size:4096,perm:'RW-',type:'ANON'}]; let brk=0x600000;
+ function renderM(){root.querySelector('#m-viz').innerHTML=vmas.map(v=>`<div class="cell used">0x${v.start.toString(16)}<br/>${v.size}B<br/>${v.perm} ${v.type}</div>`).join('');}
+ renderM();
+ root.querySelector('#m-map').onclick=()=>{const sz=parseInt(root.querySelector('#m-size').value)||4096; const perm=root.querySelector('#m-perm').value; const type=root.querySelector('#m-type').value; const st=0x7f000000+vmas.length*0x20000; vmas.push({start:st,size:sz,perm,type}); renderM(); root.querySelector('#m-log').innerHTML+=`<div>mmap(${sz},${perm},${type}) → VMA 0x${st.toString(16)} created, page tables updated lazily</div>`;};
+ root.querySelector('#m-unmap').onclick=()=>{const v=vmas.pop(); if(v) root.querySelector('#m-log').innerHTML+=`<div>munmap(0x${v.start.toString(16)}) → VMA removed, TLB flushed</div>`; renderM();};
+ root.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const d=parseInt(b.dataset.s); const prev=brk; brk+=d; root.querySelector('#sbrk-viz').innerHTML=`Previous break 0x${prev.toString(16)}<br/>sbrk(${d}) → new break 0x${brk.toString(16)}<br/>Heap size ${brk-0x600000} bytes<br/>Note: sbrk changes program break, conceptually data segment expansion.<br/><div class="progressBar"><i style="width:${Math.min(100,(brk-0x600000)/300)}%"></i></div>`;});
+ let curPerm='R--';
+ root.querySelector('#mp-set').onclick=()=>{curPerm=root.querySelector('#mp-perm').value; root.querySelector('#mp-res').innerHTML=`mprotect region → ${curPerm} set, PTE updated, TLB shootdown`;};
+ root.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{const op=b.dataset.op; let ok=(op==='READ'&&curPerm.includes('R'))||(op==='WRITE'&&curPerm.includes('W'))||(op==='EXEC'&&curPerm.includes('X')); root.querySelector('#mp-res').innerHTML=ok?`<span style="color:var(--emerald)">${op} ALLOWED on ${curPerm}</span>`:`<span style="color:var(--rose)">${op==='WRITE'?'PROTECTION FAULT — WRITE NOT PERMITTED':op==='EXEC'?'EXECUTION PROTECTION FAULT':'PROTECTION FAULT'} — ${curPerm} lacks ${op}</span>`;});
+ root.querySelectorAll('[data-tabs] .tab').forEach(t=>t.addEventListener('click',()=>{root.querySelectorAll('[data-tabs] .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); root.querySelectorAll('[data-p]').forEach(p=>p.style.display='none'); root.querySelector(`[data-p="${t.dataset.t}"]`).style.display='';}));
+}
+
+function mountTranslationLab(root){
+ root.innerHTML=`<div class="tabs" data-tabs><div class="tab active" data-t="static">STATIC</div><div class="tab" data-t="seg">SEGMENTATION</div><div class="tab" data-t="paging">PAGING+TLB</div></div>
+ <div data-p="static"><div class="controls"><div class="ctrlGroup">Logical <input id="st-log" type="number" value="100" style="width:70px"></div><div class="ctrlGroup">Base <input id="st-base" type="number" value="1000" style="width:70px"></div><button class="btn primary" id="st-go">MAP</button></div><div id="st-res" class="card mono"></div></div>
+ <div data-p="seg" style="display:none"><div class="controls"><div class="ctrlGroup">Seg <input id="seg-id" type="number" value="1" min="0" max="2" style="width:50px"></div><div class="ctrlGroup">Offset <input id="seg-off" type="number" value="120" style="width:70px"></div><button class="btn primary" id="seg-go">TRANSLATE</button></div><div id="seg-table" class="card"></div><div id="seg-res" class="card mono"></div></div>
+ <div data-p="paging" style="display:none"><div class="controls"><div class="ctrlGroup">VA <input id="pg-va" type="number" value="5000" style="width:80px"></div><button class="btn primary" id="pg-go">TRANSLATE</button><label><input type="checkbox" id="pg-tlb" checked> TLB</label><button class="btn" id="pg-repeat">REPEAT same VA (see HIT)</button></div><div class="grid2"><div id="pg-res" class="card mono"></div><div id="pg-tlbviz" class="card"></div></div></div>`;
+ const segTable=[{seg:0,base:0x1000,limit:500,perm:'R-X'},{seg:1,base:0x3000,limit:300,perm:'RW-'},{seg:2,base:0x5000,limit:1000,perm:'RW-'}];
+ function renderSeg(){root.querySelector('#seg-table').innerHTML=`<table style="width:100%;font-size:11px" class="mono"><tr><th>Seg</th><th>Base</th><th>Limit</th><th>Perm</th></tr>${segTable.map(s=>`<tr><td>${s.seg}</td><td>0x${s.base.toString(16)}</td><td>${s.limit}</td><td>${s.perm}</td></tr>`).join('')}</table>`;}
+ renderSeg();
+ root.querySelector('#st-go').onclick=()=>{const l=parseInt(root.querySelector('#st-log').value)||0; const b=parseInt(root.querySelector('#st-base').value)||0; root.querySelector('#st-res').innerHTML=`Logical ${l} + Base ${b} = Physical ${l+b} (0x${(l+b).toString(16)}) — static mapping simple but no protection between processes`;};
+ root.querySelector('#seg-go').onclick=()=>{const sid=parseInt(root.querySelector('#seg-id').value)||0; const off=parseInt(root.querySelector('#seg-off').value)||0; const e=segTable[sid]; if(!e){root.querySelector('#seg-res').innerHTML='Invalid segment'; return;} if(off>e.limit){root.querySelector('#seg-res').innerHTML=`<span style="color:var(--rose)">SEGMENTATION FAULT — OFFSET EXCEEDS LIMIT. Offset ${off} > Limit ${e.limit}</span>`; return;} root.querySelector('#seg-res').innerHTML=`Seg ${sid} Base 0x${e.base.toString(16)} + Offset ${off} = PA 0x${(e.base+off).toString(16)} Perm ${e.perm} ✓`;};
+ root.querySelector('#pg-go').onclick=()=>{const va=parseInt(root.querySelector('#pg-va').value)||0; const useTLB=root.querySelector('#pg-tlb').checked; const r=calcTranslation(va,4096,globalSys.pageTable,useTLB?globalSys.tlb:{entries:[]}); if(r.error) root.querySelector('#pg-res').innerHTML=`<span style="color:var(--rose)">${r.error}</span>`; else {root.querySelector('#pg-res').innerHTML=`VA ${va} → Page ${r.pageNum} Offset ${r.offset}<br/>${useTLB?(r.hit?'TLB HIT (fast)':'TLB MISS → Page Table walk'):'Page Table'}<br/>Frame ${r.frame} → PA ${r.pa}`; if(useTLB&&!r.hit&&!r.fault){globalSys.tlb.entries.unshift({v:r.pageNum,f:r.frame}); if(globalSys.tlb.entries.length>4) globalSys.tlb.entries.pop();}} root.querySelector('#pg-tlbviz').innerHTML=`TLB LRU [${globalSys.tlb.entries.map(e=>`V${e.v}→F${e.f}`).join(', ')}]<br/><br/>FIRST ACCESS = MISS (slow), REPEATED = HIT (fast) — experiment below`;};
+ root.querySelector('#pg-repeat').onclick=()=>{const va=parseInt(root.querySelector('#pg-va').value)||0; const r1=calcTranslation(va,4096,globalSys.pageTable,globalSys.tlb); const r2=calcTranslation(va,4096,globalSys.pageTable,globalSys.tlb); root.querySelector('#pg-res').innerHTML+=`<br/><br/>Repeat same VA:<br/>1st: ${r1.hit?'HIT':'MISS'} → ${r1.pa??'fault'}<br/>2nd: ${r2.hit?'HIT':'MISS'} → ${r2.pa??'fault'}<br/>Observe HIT on second access!`;};
+ root.querySelectorAll('[data-tabs] .tab').forEach(t=>t.addEventListener('click',()=>{root.querySelectorAll('[data-tabs] .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); root.querySelectorAll('[data-p]').forEach(p=>p.style.display='none'); root.querySelector(`[data-p="${t.dataset.t}"]`).style.display='';}));
+}
+
+function mountPageTableLab(root){
+ root.innerHTML=`<div class="controls"><div class="ctrlGroup">Page <input id="pt-page" type="number" value="2" min="0" max="15" style="width:50px"></div><div class="ctrlGroup">Frame <input id="pt-frame" type="number" value="5" min="0" max="7" style="width:50px"></div><button class="btn primary" id="pt-set">SET MAPPING (real PT update)</button><button class="btn" id="pt-toggle">Toggle Present</button></div><div id="pt-viz" class="memViz" style="margin-top:8px"></div><div id="pt-detail" class="card mono"></div>`;
+ function render(){root.querySelector('#pt-viz').innerHTML=globalSys.pageTable.map(p=>`<div class="cell ${p.present?'used':''}" onclick="document.getElementById('pt-page').value=${p.v}"><div>V${p.v}</div><div>→F${p.f}</div><div>${p.present?'P':'NP'} ${p.R?'R':''}${p.W?'W':''}${p.X?'X':''}</div></div>`).join('');}
+ render();
+ root.querySelector('#pt-set').onclick=()=>{const v=parseInt(root.querySelector('#pt-page').value); const f=parseInt(root.querySelector('#pt-frame').value); if(globalSys.pageTable[v]){globalSys.pageTable[v].f=f; globalSys.pageTable[v].present=true; render(); root.querySelector('#pt-detail').innerHTML=`Updated PTE[V${v}]: Frame ${f}, Present 1, R=${globalSys.pageTable[v].R} W=${globalSys.pageTable[v].W}. All labs synced! Changing mapping changes PA: VA ${v*4096} → PA ${f*4096}`;}};
+ root.querySelector('#pt-toggle').onclick=()=>{const v=parseInt(root.querySelector('#pt-page').value); if(globalSys.pageTable[v]){globalSys.pageTable[v].present=!globalSys.pageTable[v].present; render();}};
+}
+
+function mountFaultLab(root){
+ root.innerHTML=`<div class="controls"><div class="ctrlGroup">Access Page <input id="pf-page" type="number" value="10" min="0" max="15" style="width:60px"></div><button class="btn primary" id="pf-access">ACCESS PAGE</button><button class="btn" id="pf-load">LOAD FROM DISK → RAM</button></div><div id="pf-timeline" class="card"></div><div id="pf-viz" class="memViz"></div><div id="pf-log" class="log"></div>`;
+ function render(){root.querySelector('#pf-viz').innerHTML=globalSys.pageTable.map(p=>`<div class="cell ${p.present?'used':'free'}" style="${p.v===parseInt(root.querySelector('#pf-page').value)?'outline:2px solid var(--cyan)':''}">V${p.v}<br/>${p.present?'RAM F'+p.f:'DISK'}<br/>${p.present?'Present':'Not Present'}</div>`).join('');}
+ root.querySelector('#pf-access').onclick=()=>{const v=parseInt(root.querySelector('#pf-page').value); const pte=globalSys.pageTable[v]; const tl=root.querySelector('#pf-timeline'); if(!pte.present){tl.innerHTML=`<div><b>PAGE FAULT handling (real flow):</b><br/>CPU → MMU → Page Table[V${v}] → NOT PRESENT → <b style="color:var(--rose)">PAGE FAULT exception</b> → Kernel fault handler → check VMA → allocate frame → Disk I/O (major) → Copy to RAM → Update PTE Present=1 → Flush TLB → Retry instruction → SUCCESS</div><div class="progressBar" style="margin-top:6px"><i style="width:85%"></i></div><small>Minor fault = zero page, no disk. Major = disk read, 10ms simulated.</small>`; root.querySelector('#pf-log').innerHTML+=`<div>PAGE FAULT V${v} — Major fault, disk read</div>`;} else {tl.innerHTML=`<div>CPU → MMU → Page Table[V${v}] Present → Frame ${pte.f} → RAM → SUCCESS (no fault)</div>`; root.querySelector('#pf-log').innerHTML+=`<div>Access V${v} OK F${pte.f}</div>`;} render();};
+ root.querySelector('#pf-load').onclick=()=>{const v=parseInt(root.querySelector('#pf-page').value); const free=globalSys.ram.find(r=>r.v===null)||globalSys.ram[0]; const oldV=free.v; if(oldV!==null) globalSys.pageTable[oldV].present=false; globalSys.pageTable[v].f=free.f; globalSys.pageTable[v].present=true; free.v=v; root.querySelector('#pf-log').innerHTML+=`<div>Loaded V${v} into Frame ${free.f} (evicted V${oldV??'none'})</div>`; render();};
+ render();
+}
+
+function mountCOWLab(root){
+ root.innerHTML=`<div class="controls"><button class="btn" id="cow-rA">READ A (shared)</button><button class="btn" id="cow-rB">READ B (shared)</button><button class="btn primary" id="cow-wA">WRITE A (trigger COW)</button><button class="btn" id="cow-reset">RESET</button></div><div class="grid2" style="margin-top:8px"><div id="cow-viz"></div><div id="cow-info" class="card"></div></div>`;
+ let shared=true;
+ function render(){root.querySelector('#cow-viz').innerHTML=shared?`<div class="card">Process A PTE: V7→F3 R-- ref=2<br/>Process B PTE: V7→F3 R-- ref=2<br/>Physical Frame 3 [SHARED] COW bit set</div><div class="memViz"><div class="cell used">F3: Page7<br/>Ref 2 COW</div></div>`:`<div class="card">COW triggered on WRITE A:<br/>Process A → Page 7A Frame3 RW- ref1<br/>Process B → Page 7B Frame5 RW- ref1<br/>Memory usage 1→2 frames</div><div class="memViz"><div class="cell used">F3: 7A RW-</div><div class="cell used">F5: 7B RW-</div></div>`; root.querySelector('#cow-info').innerHTML=shared?`Before write: 1 frame saved. Both R--.<br/>On WRITE: kernel copies page, makes RW-, updates PTEs.`:`After write: 2 frames, each private RW-. Copy-on-write saves memory for fork() and shared libs.`;}
+ render();
+ root.querySelector('#cow-rA').onclick=()=>{root.querySelector('#cow-info').innerHTML+='<div>READ A: shared, no copy, fast</div>';};
+ root.querySelector('#cow-rB').onclick=()=>{root.querySelector('#cow-info').innerHTML+='<div>READ B: shared, no copy</div>';};
+ root.querySelector('#cow-wA').onclick=()=>{shared=false; render();};
+ root.querySelector('#cow-reset').onclick=()=>{shared=true; render();};
+}
+
+function mountPermLab(root){
+ root.innerHTML=`<div class="controls"><select id="perm-sel"><option value="R--">R--</option><option value="RW-">RW-</option><option value="R-X">R-X</option><option value="RWX">RWX</option></select><button class="btn" data-op="READ">READ</button><button class="btn" data-op="WRITE">WRITE</button><button class="btn" data-op="EXEC">EXECUTE</button><button class="btn" id="perm-exp">EXPERIMENT: remove W</button></div><div id="perm-res" class="card mono" style="margin-top:8px">Set permission and try access. Real check: region.R? region.W? region.X?</div>`;
+ let cur='R--';
+ root.querySelector('#perm-sel').onchange=e=>{cur=e.target.value;};
+ root.querySelectorAll('button[data-op]').forEach(b=>b.onclick=()=>{
+  const op=b.dataset.op; let allow=(op==='READ'&&cur.includes('R'))||(op==='WRITE'&&cur.includes('W'))||(op==='EXEC'&&cur.includes('X'));
+  const res=root.querySelector('#perm-res');
+  if(allow) res.innerHTML=`<span style="color:var(--emerald)">ALLOWED</span> — ${op} on ${cur} — PTE permits`;
+  else res.innerHTML=`<span style="color:var(--rose)">${op==='WRITE'?'PROTECTION FAULT — WRITE NOT PERMITTED':op==='EXEC'?'EXECUTION PROTECTION FAULT':'PROTECTION FAULT — READ NOT PERMITTED'}</span><br/>Region = ${cur}<br/>${op} → DENIED<br/>Reason: ${op} permission bit absent in PTE. OS raises SIGSEGV.`;
+ });
+ root.querySelector('#perm-exp').onclick=()=>{cur='R--'; root.querySelector('#perm-sel').value='R--'; root.querySelector('#perm-res').innerHTML=`EXPERIMENT: Changed to R-- then attempted WRITE → DENIED. Removing W protects code/rodata.`;};
+}
+
+function mountSwapLab(root){
+ root.innerHTML=`<div class="controls"><div class="ctrlGroup">RAM Pressure <input id="sw-press" type="range" min="0" max="100" value="30" style="width:120px"></div><button class="btn" id="sw-out">SWAP OUT (RAM→DISK)</button><button class="btn primary" id="sw-in">SWAP IN (DISK→RAM)</button><button class="btn" id="sw-thrash">THRASHING MODE</button></div><div class="grid2"><div><h4 style="font-size:11px">RAM Frames</h4><div id="sw-ram" class="memViz"></div></div><div><h4 style="font-size:11px">SWAP Space (disk)</h4><div id="sw-swap" class="memViz"></div></div></div><div id="sw-stats" class="card"></div>`;
+ function render(){const press=parseInt(root.querySelector('#sw-press').value); root.querySelector('#sw-ram').innerHTML=globalSys.ram.map(r=>`<div class="cell ${r.v!==null?'used':'free'}">F${r.f}<br/>V${r.v??'-'}</div>`).join(''); root.querySelector('#sw-swap').innerHTML=globalSys.swap.map(s=>`<div class="cell ${s.present?'used':'free'}">SW${s.id}<br/>V${s.v}</div>`).join(''); root.querySelector('#sw-stats').innerHTML=`Pressure ${press}% • RAM ${globalSys.ram.filter(r=>r.v!==null).length}/${globalSys.ram.length} • Swap ${globalSys.swap.filter(s=>s.present).length} pages<br/>${press>70?'<span style="color:var(--rose)">THRASHING: CPU waiting 80%, pages bouncing! Working set > RAM</span>':press>40?'Medium pressure — some pages swapped':'Low pressure — all hot pages in RAM'}`;}
+ render();
+ root.querySelector('#sw-press').oninput=render;
+ root.querySelector('#sw-out').onclick=()=>{const r=globalSys.ram.find(x=>x.v!==null); if(r){const v=r.v; r.v=null; globalSys.pageTable[v].present=false; const s=globalSys.swap.find(x=>x.v===v); if(s) s.present=true;} render();};
+ root.querySelector('#sw-in').onclick=()=>{const s=globalSys.swap.find(x=>x.present); if(s){const free=globalSys.ram.find(x=>x.v===null); if(free){free.v=s.v; globalSys.pageTable[s.v].present=true; globalSys.pageTable[s.v].f=free.f; s.present=false;}} render();};
+ root.querySelector('#sw-thrash').onclick=()=>{root.querySelector('#sw-stats').innerHTML+='<div style="color:var(--rose)">THRASHING: working set larger than RAM → constant swap in/out, CPU idle waiting for disk. Solution: add RAM or reduce processes.</div>';};
+}
+
+function mountKernelLab(root){
+ root.innerHTML=`<div class="card"><b>USER ↔ KERNEL Boundary</b><br/>User space: Code Heap Stack Libraries (unprivileged, RSP, page tables with U=1)<br/>Kernel space: Kernel code, memory manager, page tables, slab allocator (privileged, U=0, accessed via syscall)<br/><br/><b>malloc() flow:</b><br/>App malloc() → C lib allocator → free list? → if need more → syscall brk/mmap → Kernel → mm_struct → VMA → buddy allocator → frame → update PTE → return → user writes → may fault → kernel loads frame → success<br/><br/><b>Why app cannot directly control physical RAM?</b> Protection + isolation. Only kernel manages frames via buddy + slab.</div><div id="k-viz" class="memViz" style="margin-top:8px"><div class="cell">USER: malloc()</div><div class="cell used">KERNEL: sys_brk</div><div class="cell used">MM: buddy alloc</div><div class="cell">RAM: frame</div></div>`;
+}
+
+function mountBookkeepingLab(root){
+ root.innerHTML=`<div class="tabs" data-tabs><div class="tab active" data-t="free">FREE LIST</div><div class="tab" data-t="bitmap">BITMAP</div><div class="tab" data-t="buddy">BUDDY</div></div>
+ <div data-p="free"><div class="controls"><div class="ctrlGroup">Alloc <input id="bk-size" type="number" value="64" style="width:60px"></div><button class="btn primary" id="bk-alloc">ALLOCATE</button><button class="btn" id="bk-free">FREE last</button></div><div id="bk-flist" class="card mono"></div><div id="bk-viz" class="memViz"></div></div>
+ <div data-p="bitmap" style="display:none"><div class="controls"><button class="btn primary" id="bm-alloc">ALLOC bit</button><button class="btn" id="bm-free">FREE bit</button></div><div id="bm-viz" class="memViz"></div><div id="bm-info" class="card mono"></div></div>
+ <div data-p="buddy" style="display:none"><div class="controls"><button class="btn primary" id="bd-split">SPLIT 64KB → 32+32</button><button class="btn" id="bd-merge">MERGE buddies if both free</button><button class="btn" id="bd-reset">RESET 64KB</button></div><div id="bd-viz" class="card"></div><div class="callout">Buddy: power-of-two blocks. Split when need smaller, merge when both buddies free. Real Linux buddy allocator uses this for physical frames.</div></div>`;
+ let fl=[{size:64,used:false},{size:32,used:true,id:1},{size:128,used:false},{size:64,used:true,id:2}];
+ function renderFL(){root.querySelector('#bk-flist').innerHTML=fl.map(b=>`[${b.used?'USED':'FREE'} ${b.size}B${b.used?' #'+b.id:''}]`).join(' → '); root.querySelector('#bk-viz').innerHTML=fl.map(b=>`<div class="cell ${b.used?'used':'free'}">${b.size}B<br/>${b.used?'USED':'FREE'}</div>`).join('');}
+ renderFL();
+ root.querySelector('#bk-alloc').onclick=()=>{const sz=parseInt(root.querySelector('#bk-size').value)||64; const idx=fl.findIndex(b=>!b.used&&b.size>=sz); if(idx>=0){const b=fl[idx]; if(b.size>sz+8){fl.splice(idx,1,{size:sz,used:true,id:Date.now()%100},{size:b.size-sz,used:false});} else b.used=true; renderFL();}};
+ root.querySelector('#bk-free').onclick=()=>{const idx=[...fl].reverse().findIndex(b=>b.used); if(idx>=0){const real=fl.length-1-idx; fl[real].used=false; fl.sort((a,b)=>a.size-b.size); for(let i=0;i<fl.length-1;i++){if(!fl[i].used&&!fl[i+1].used){fl[i].size+=fl[i+1].size; fl.splice(i+1,1); i--;}} renderFL();}};
+ let bitmap=[0,0,1,1,0,1,0,0,1,0,0,0];
+ function renderBM(){root.querySelector('#bm-viz').innerHTML=bitmap.map((bit,i)=>`<div class="cell ${bit?'used':''}">${i}<br/>${bit}</div>`).join(''); root.querySelector('#bm-info').innerHTML=`Bitmap: ${bitmap.join(' ')}<br/>0=free 1=used — set bit on alloc, clear on free. Fast scan via find-first-zero.`;}
+ renderBM();
+ root.querySelector('#bm-alloc').onclick=()=>{const idx=bitmap.indexOf(0); if(idx>=0) bitmap[idx]=1; renderBM();};
+ root.querySelector('#bm-free').onclick=()=>{const idx=bitmap.lastIndexOf(1); if(idx>=0) bitmap[idx]=0; renderBM();};
+ let buddy=[{size:64,free:true,level:0}];
+ function renderBD(){root.querySelector('#bd-viz').innerHTML=buddy.map(b=>`<div class="cell ${b.free?'free':'used'}" style="display:inline-block;min-width:${Math.max(50,b.size)}px">${b.size}KB ${b.free?'FREE':'USED'} L${b.level}</div>`).join(' ');};
+ renderBD();
+ root.querySelector('#bd-split').onclick=()=>{const idx=buddy.findIndex(b=>b.free&&b.size>8); if(idx>=0){const sz=buddy[idx].size/2; buddy.splice(idx,1,{size:sz,free:true,level:buddy[idx].level+1},{size:sz,free:true,level:buddy[idx].level+1}); renderBD();}};
+ root.querySelector('#bd-merge').onclick=()=>{if(buddy.length>=2){const a=buddy[0],b=buddy[1]; if(a.free&&b.free&&a.size===b.size){buddy.splice(0,2,{size:a.size*2,free:true,level:a.level-1}); renderBD();}}};
+ root.querySelector('#bd-reset').onclick=()=>{buddy=[{size:64,free:true,level:0}]; renderBD();};
+ root.querySelectorAll('[data-tabs] .tab').forEach(t=>t.addEventListener('click',()=>{root.querySelectorAll('[data-tabs] .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); root.querySelectorAll('[data-p]').forEach(p=>p.style.display='none'); root.querySelector(`[data-p="${t.dataset.t}"]`).style.display='';}));
+}
+
+function mountMallocCaseStudy(root){
+ root.innerHTML=`<div class="controls"><button class="btn primary" id="mc-run">▶ START SYSTEM</button><button class="btn" id="mc-step">STEP</button><button class="btn" id="mc-reset">RESET</button></div><div class="grid2" style="margin-top:8px"><div id="mc-stages" class="card" style="max-height:380px;overflow:auto;font-size:11px"></div><div id="mc-detail" class="card"></div></div><div id="mc-viz" class="card diag"></div>`;
+ const stages=['01 SOURCE: int *p = malloc(100); *p=25;','02 COMPILATION: ELF .text .data .bss','03 LOADER: mm_struct + VMAs','04 PROCESS: PID 1001 created','05 ADDRESS SPACE: Code Data BSS Heap Stack','06 CODE/DATA/BSS: R-X RW- segments','07 STACK: main frame RSP','08 HEAP: brk 0x600000-0x602000','09 malloc(100): allocator first-fit search','10 ALLOCATOR: split block return 0x600010','11 OS SUPPORT: no sbrk needed (fast path)','12 VA: 0x600010 → VPN6 Offset 16','13 PAGE TABLE: V6→F2 Present R W','14 FRAME: F2 at 0x2000 PA=0x2010','15 RAM: Frame 2 holds data','16 WRITE: check W → ALLOWED → RAM=25','17 free(p): mark free coalesce','18 EXIT: VMAs freed TLB flushed'];
+ let idx=0;
+ function render(){root.querySelector('#mc-stages').innerHTML=stages.map((s,i)=>`<div style="padding:5px;border-radius:7px;${i===idx?'background:linear-gradient(90deg,rgba(94,232,255,.2),transparent);border:1px solid var(--cyan)':''}">${i===idx?'▶ ':''}${s}</div>`).join(''); const details=['Programmer requests 100B','ELF created','Loader creates VMAs','Process gets private VA space','Layout with permissions','Segments mapped','Stack with args','Heap VMA','Allocator searches free list (real algorithm)','Split block metadata','If heap full → sbrk/mmap syscall','MMU splits VA','PTE lookup','Physical frame','RAM access','Permission check','Allocator reuse','Cleanup']; root.querySelector('#mc-detail').innerHTML=`<b>${stages[idx]}</b><br/><br/>Detail: ${details[idx]}<br/><br/><b>Responsible:</b><br/>${idx<2?'C Compiler':idx<4?'OS Loader':idx<8?'OS + CPU':idx<11?'C Library Allocator':idx<15?'MMU + OS':'Kernel'}<br/><br/><b>Cross-lab sync:</b> Page Table, TLB, RAM views update when mapping changes.`; root.querySelector('#mc-viz').innerHTML=`<svg viewBox="0 0 500 40" width="500" height="30"><rect x="${idx*26}" y="10" width="30" height="8" rx="4" fill="var(--cyan)"/></svg>`;}
+ render();
+ root.querySelector('#mc-run').onclick=()=>{let iv=setInterval(()=>{idx=(idx+1)%stages.length; render(); if(idx===0) clearInterval(iv);},700);};
+ root.querySelector('#mc-step').onclick=()=>{idx=(idx+1)%stages.length; render();};
+ root.querySelector('#mc-reset').onclick=()=>{idx=0; render();};
+}
+
+function mountGlobalLab(root){
+ root.innerHTML=`<div class="tabs" data-tabs>${['CPU','PROCESS','VIRTUAL','PAGE TABLE','TLB','RAM','SWAP','HEAP','STACK'].map((t,i)=>`<div class="tab ${i===0?'active':''}" data-t="${t.toLowerCase()}">${t}</div>`).join('')}</div><div id="gl-body"></div><div class="controls" style="margin-top:8px"><button class="btn primary" data-gl="alloc">ALLOCATE 64B (updates all)</button><button class="btn" data-gl="free">FREE</button><button class="btn" data-gl="map">MAP new page</button><button class="btn" data-gl="fault">TRIGGER FAULT</button><button class="btn" data-gl="translate">TRANSLATE 8192</button><button class="btn" data-gl="swap">SWAP OUT</button></div><div id="gl-log" class="log"></div>`;
+ function render(tab){
+  const b=root.querySelector('#gl-body');
+  if(tab==='cpu') b.innerHTML=`<div class="card mono">CPU: RIP 0x400000 RSP 0x7FFF0000<br/>VA 8192 → Page 2 Offset 0 → Frame ${globalSys.pageTable[2].f} → PA ${globalSys.pageTable[2].f*4096} (real calc)<br/>CR3 → PML4 base</div>`;
+  else if(tab==='page table') b.innerHTML=`<div class="memViz">${globalSys.pageTable.map(p=>`<div class="cell ${p.present?'used':''}">V${p.v}→F${p.f}<br/>${p.present?'P':'NP'}</div>`).join('')}</div>`;
+  else if(tab==='tlb') b.innerHTML=`<div class="card mono">TLB LRU cap 4: ${globalSys.tlb.entries.map(e=>`V${e.v}→F${e.f}`).join(' | ')||'empty — access to fill'}<br/>Hit saves 4 memory accesses</div>`;
+  else if(tab==='ram') b.innerHTML=`<div class="memViz">${globalSys.ram.map(r=>`<div class="cell ${r.v!==null?'used':'free'}">F${r.f}<br/>V${r.v??'-'}</div>`).join('')}</div>`;
+  else if(tab==='heap') b.innerHTML=`<div class="memViz">${globalSys.heapBlocks.map(h=>`<div class="cell ${h.used?'used':'free'}">0x${h.start.toString(16)}<br/>${h.size}B ${h.used?'USED':''}</div>`).join('')}</div>`;
+  else if(tab==='stack') b.innerHTML=`<div class="card">${globalSys.stack.map(f=>`${f.func}() size ${f.size}B`).join(' → ')}<br/>Total ${globalSys.stack.reduce((a,b)=>a+b.size,0)}B</div>`;
+  else b.innerHTML=`<div class="card">Synchronized view ${tab.toUpperCase()} — shares PID 1001 state. Any allocation in HEAP updates PROCESS/VIRTUAL/PAGE TABLE/RAM/Metrics instantly. This is the REAL single memory system.</div>`;
+ }
+ render('cpu');
+ root.querySelectorAll('[data-tabs] .tab').forEach(t=>t.addEventListener('click',()=>{root.querySelectorAll('[data-tabs] .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); const tab=t.dataset.t.replace(' ',''); render(tab);}));
+ root.querySelectorAll('[data-gl]').forEach(b=>b.onclick=()=>{
+  const a=b.dataset.gl; const log=root.querySelector('#gl-log');
+  if(a==='alloc'){const v=globalSys.vPages; globalSys.pageTable.push({v,f:v%globalSys.pFrames,present:true,R:true,W:true,X:false}); globalSys.vPages++; log.innerHTML+=`<div>ALLOCATE V${v}→F${v%globalSys.pFrames} — PROCESS/VIRTUAL/PT/RAM updated</div>`;}
+  if(a==='free'){if(globalSys.pageTable.length>8){const p=globalSys.pageTable.pop(); globalSys.vPages--; log.innerHTML+=`<div>FREE V${p.v}</div>`;}}
+  if(a==='translate'){const r=calcTranslation(8192,4096,globalSys.pageTable,globalSys.tlb); log.innerHTML+=`<div>TRANSLATE 8192 → Page ${r.pageNum} Frame ${r.frame} PA ${r.pa} ${r.hit?'HIT':'MISS'}</div>`; if(!r.hit&&!r.fault){globalSys.tlb.entries.unshift({v:r.pageNum,f:r.frame}); if(globalSys.tlb.entries.length>4) globalSys.tlb.entries.pop();}}
+  if(a==='fault'){const idx=globalSys.pageTable.findIndex(p=>!p.present); if(idx>=0) log.innerHTML+=`<div>FAULT on V${idx} not present</div>`;}
+  if(a==='map'){const v=globalSys.vPages; globalSys.pageTable.push({v,f:v%globalSys.pFrames,present:false,R:true,W:true,X:false}); globalSys.vPages++; log.innerHTML+=`<div>MAP V${v} not present → will fault on access</div>`;}
+  if(a==='swap'){const r=globalSys.ram.find(x=>x.v!==null); if(r){globalSys.pageTable[r.v].present=false; r.v=null; log.innerHTML+=`<div>SWAP OUT frame ${r.f}</div>`;}}
+ });
+}
+
+function mountQuiz(id){
+ const cont=document.getElementById('quiz-'+id); if(!cont) return;
+ const qs=[
+  {q:`What does address bus carry?`,opts:['Data','WHERE address','Control','Power'],ans:1,exp:'Address bus = WHERE, Data = WHAT, Control = ACTION.'},
+  {q:`4KB page offset bits?`,opts:['10','12','14','20'],ans:1,exp:'4KB=4096=2^12 → 12 bits offset.'},
+  {q:`TLB hit means?`,opts:['Page fault','Translation in cache','Disk access','Segfault'],ans:1,exp:'TLB caches PTEs, hit = fast path no walk.'},
+  {q:`malloc vs mmap?`,opts:['Same','mmap syscall VMA, malloc library reuses','malloc syscall','Both kernel'],ans:1,exp:'malloc user-level, may call mmap/sbrk for more memory.'},
+  {q:`STACK vs HEAP growth?`,opts:['Both up','Stack down Heap up','Both down','Stack up Heap down'],ans:1,exp:'Heap grows up via brk, Stack grows down via RSP decrement.'},
+  {q:`COW saves memory when?`,opts:['Always copy','Read sharing, copy on write','Never','Only for stack'],ans:1,exp:'fork() shares pages R--, only copies on WRITE.'},
+ ];
+ cont.innerHTML=qs.map((qq,i)=>`<div class="card"><b>Q${i+1}. ${qq.q}</b><div id="q-${id}-${i}">${qq.opts.map((o,oi)=>`<div class="quizOpt" data-oi="${oi}">${o}</div>`).join('')}</div><div id="exp-${id}-${i}" class="callout" style="display:none"></div></div>`).join('');
+ qs.forEach((qq,i)=>{
+  cont.querySelectorAll(`#q-${id}-${i} .quizOpt`).forEach(opt=>{
+   opt.addEventListener('click',()=>{
+    const oi=parseInt(opt.dataset.oi);
+    const expDiv=document.getElementById(`exp-${id}-${i}`);
+    cont.querySelectorAll(`#q-${id}-${i} .quizOpt`).forEach(o=>o.classList.remove('correct','wrong'));
+    if(oi===qq.ans){opt.classList.add('correct'); expDiv.innerHTML=`<b style="color:var(--emerald)">CORRECT.</b> ${qq.exp}`;}
+    else {opt.classList.add('wrong'); cont.querySelectorAll(`#q-${id}-${i} .quizOpt`)[qq.ans].classList.add('correct'); expDiv.innerHTML=`<b style="color:var(--rose)">WRONG.</b> Correct: ${qq.opts[qq.ans]}. ${qq.exp}`;}
+    expDiv.style.display='block';
+   });
+  });
+ });
+}
+
+function makeModule(m){
+ const sec=el('section','module'); sec.id='mod-'+m.id;
+ sec.innerHTML=`<div class="moduleHead"><h3>${m.id} — ${m.title}</h3><div style="display:flex;gap:6px"><div class="levelToggle"><button class="active">Beginner</button><button>Intermediate</button><button>Advanced</button></div><button class="btn" onclick="this.closest('.module').querySelector('[data-deep]').style.display=this.closest('.module').querySelector('[data-deep]').style.display==='none'?'block':'none'">🔍 Deep Dive</button><button class="btn" onclick="toggleBookmark('${m.id}')">🔖 Bookmark</button><button class="btn" onclick="this.closest('.module').querySelector('.simWrap').requestFullscreen()">⛶ Lab</button></div></div>`;
+ const theory=getTheoryFull(m.id);
+ const content=el('div');
+ content.innerHTML=`
+ <div class="tabs" data-tabs><div class="tab active" data-t="what">What & Why</div><div class="tab" data-t="how">How it Works</div><div class="tab" data-t="vis">Visual</div><div class="tab" data-t="linux">Linux & C</div><div class="tab" data-t="exam">Exam • Viva • Interview</div></div>
+ <div data-p="what" class="grid2">
+  <div class="card"><h4>What is it?</h4><p>${theory.what}</p><div class="callout"><b>Simple:</b> ${theory.simple}</div><div class="teacherNote"><b>TEACHER NOTE:</b> ${theory.teacher}<br/><b>Key Point:</b> ${theory.what.slice(0,120)}...<br/><b>Ask Students:</b> Why can't process directly access physical RAM?</div></div>
+  <div class="card"><h4>Why needed? Problem solved?</h4><p>${theory.why}</p><p><b>Without it:</b> ${theory.without}</p><div class="card" style="background:var(--panel3)"><h4>Daily-life Analogy</h4>${theory.analogy}</div><div class="callout"><b>Memory Trick:</b> ${theory.trick}</div></div>
+ </div>
+ <div data-p="how" style="display:none" class="grid2">
+  <div class="card"><h4>Internal Structure</h4><pre class="mono" style="white-space:pre-wrap;font-size:11px">${theory.struct}</pre><h4>Terminology</h4><p>${theory.terms}</p></div>
+  <div class="card"><h4>Step-by-step Execution</h4><ol style="font-size:12px">${theory.steps}</ol><div class="callout"><b>CPU View:</b> ${theory.cpu}<br/><b>OS View:</b> ${theory.os}<br/><b>Advantages:</b> ${theory.adv}<br/><b>Limitations:</b> ${theory.lim}</div><p><b>Common Mistakes:</b> ${theory.mist}</p></div>
+ </div>
+ <div data-p="vis" style="display:none"><div class="card diag"><svg viewBox="0 0 400 120" width="400" height="100"><rect x="10" y="20" width="90" height="40" rx="10" fill="#12182e" stroke="#5ee8ff"/><text x="55" y="45" text-anchor="middle" fill="#5ee8ff" font-size="10">Virtual</text><path d="M100 40 H150" stroke="#fff" stroke-width="1.5"/><rect x="150" y="20" width="80" height="40" rx="10" fill="#1e294d" stroke="#a78bfa"/><text x="190" y="45" text-anchor="middle" fill="#fff" font-size="10">Page Table</text><path d="M230 40 H280" stroke="#fff" stroke-width="1.5"/><rect x="280" y="20" width="80" height="40" rx="10" fill="#171f3a" stroke="#34d399"/><text x="320" y="45" text-anchor="middle" fill="#fff" font-size="10">Frame RAM</text></svg><p style="font-size:11px;color:var(--muted)">Interactive: click simulator below, watch this path animate via bus flow animation.</p></div><div class="card"><h4>Compare Mode</h4><p>${theory.compare}</p></div></div>
+ <div data-p="linux" style="display:none" class="grid2">
+  <div class="card"><h4>Linux Perspective</h4><p>${theory.linux}</p><h4>C Programming</h4><pre class="mono" style="background:var(--bg);padding:8px;border-radius:8px;overflow:auto;font-size:11px">${theory.c}</pre></div>
+  <div class="card"><h4>Deep Technical</h4><p>${theory.deep}</p></div>
+ </div>
+ <div data-p="exam" style="display:none" class="grid2">
+  <div class="card"><h4>Compare Mode</h4><p>${theory.compare}</p></div>
+  <div class="card"><h4>Viva / Interview</h4><p><b>Viva:</b> ${theory.viva}</p><p><b>Interview:</b> ${theory.interview}</p><div class="callout">Exam Tip: ${theory.trick} • Focus on diagram + 5 advantages + 2 limitations for 10-mark answer.</div></div>
+ </div>
+ <div class="card" data-deep style="display:none"><h4>🔬 Deep Dive — Advanced Internals</h4><p>${theory.deep}</p><p><b>Edge Cases:</b> Invalid address → "Enter a valid address." Page not exist → "Page does not exist." Offset>limit → "SEGMENTATION FAULT — OFFSET EXCEEDS LIMIT." Write to R-- → "PROTECTION FAULT — WRITE NOT PERMITTED." Exec on RW- → "EXECUTION PROTECTION FAULT." No memory → "ALLOCATION FAILED — INSUFFICIENT FREE MEMORY."</p></div>
+ `;
+ sec.appendChild(content);
+ const simMount=el('div','simWrap'); simMount.innerHTML=`<div class="simHead"><h4>🧪 ${m.title} — Live Lab (Real State)</h4><div style="display:flex;gap:5px"><span class="badge">Real Calculation</span><span class="badge">PID 1001 Synced</span><span class="badge">No Fake Anim</span></div></div><div class="simBody" id="sim-${m.id}"></div>`;
+ sec.appendChild(simMount);
+ const practice=el('div','card'); practice.innerHTML=`<h4>🎯 Practice — Now You Try + Quiz (randomized)</h4><div id="quiz-${m.id}"></div>`;
+ sec.appendChild(practice);
+ sec.querySelectorAll('[data-tabs] .tab').forEach(t=>t.addEventListener('click',()=>{sec.querySelectorAll('[data-tabs] .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); sec.querySelectorAll('[data-p]').forEach(p=>p.style.display='none'); sec.querySelector(`[data-p="${t.dataset.t}"]`).style.display='';}));
+ setTimeout(()=>{mountSimulator(m.id); mountQuiz(m.id);},0);
+ return sec;
+}
+
+function mountSimulator(id){
+ const cont=document.getElementById('sim-'+id); if(!cont) return;
+ if(id==='01') mountCPULab(cont);
+ else if(id==='02') mountProcessExplorer(cont);
+ else if(id==='03') mountHeapLab(cont);
+ else if(id==='04') mountStackLab(cont);
+ else if(id==='05') mountLoaderLab(cont);
+ else if(id==='06') mountUsageLab(cont);
+ else if(id==='07') mountVirtualLab(cont);
+ else if(id==='08') mountSyscallLab(cont);
+ else if(id==='09') mountTranslationLab(cont);
+ else if(id==='10') mountPageTableLab(cont);
+ else if(id==='11') mountFaultLab(cont);
+ else if(id==='12') mountCOWLab(cont);
+ else if(id==='13') mountPermLab(cont);
+ else if(id==='14') mountSwapLab(cont);
+ else if(id==='15') mountKernelLab(cont);
+ else if(id==='16') mountBookkeepingLab(cont);
+ else if(id==='17') mountMallocCaseStudy(cont);
+ else if(id==='18') mountGlobalLab(cont);
+}
+
+function toggleBookmark(id){
+ let bms=store.get('bookmarks',[]);
+ if(bms.includes(id)) bms=bms.filter(x=>x!==id); else bms.push(id);
+ store.set('bookmarks',bms);
+ document.getElementById('bmCount').textContent=bms.length;
+}
+
+function renderContent(){
+ const mount=document.getElementById('contentMount');
+ syllabus.forEach(m=>mount.appendChild(makeModule(m)));
+}
+
+function buildSearch(){
+ const input=document.getElementById('searchInput');
+ const res=document.getElementById('searchRes');
+ input.addEventListener('input',()=>{
+  const q=input.value.toLowerCase().trim();
+  if(!q){res.style.display='none'; return;}
+  const hits=syllabus.filter(m=>m.title.toLowerCase().includes(q)||m.topics.join(' ').toLowerCase().includes(q)||m.short.toLowerCase().includes(q)).slice(0,10);
+  if(!hits.length){res.style.display='none'; return;}
+  res.innerHTML=hits.map(h=>`<div data-go="${h.id}"><b>${h.id} — ${h.title}</b><br/><small>${h.topics.join(', ')}</small></div>`).join('');
+  res.style.display='block';
+  res.querySelectorAll('div').forEach(d=>d.onclick=()=>{document.getElementById('mod-'+d.dataset.go).scrollIntoView({behavior:'smooth'}); res.style.display='none';});
+ });
+ document.addEventListener('click',e=>{if(!e.target.closest('.searchWrap')) res.style.display='none';});
+}
+
+function initTheme(){
+ const btn=document.getElementById('themeBtn');
+ btn.onclick=()=>{const cur=document.documentElement.getAttribute('data-theme'); const nxt=cur==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',nxt); store.set('theme',nxt);};
+ const saved=store.get('theme','dark'); document.documentElement.setAttribute('data-theme',saved);
+ document.getElementById('focusBtn').onclick=()=>document.body.classList.toggle('focusMode');
+ document.getElementById('teacherBtn').onclick=()=>document.body.classList.toggle('teacherMode');
+ document.getElementById('classBtn').onclick=()=>document.body.classList.toggle('classroom');
+ document.getElementById('bookmarkBtn').onclick=()=>{const bms=store.get('bookmarks',[]); if(!bms.length) alert('No bookmarks yet. Click 🔖 Bookmark in any module.'); else {const id=bms[0]; document.getElementById('mod-'+id).scrollIntoView({behavior:'smooth'});}};
+ document.getElementById('bmCount').textContent=store.get('bookmarks',[]).length;
+}
+
+function renderDash(){
+ document.getElementById('dashGrid').innerHTML=`
+  <div class="card"><h4>Topics</h4><div class="progressBar"><i style="width:72%"></i></div><small>13/18 reading</small></div>
+  <div class="card"><h4>Simulators</h4><div class="progressBar"><i style="width:68%"></i></div><small>All labs functional, real state</small></div>
+  <div class="card"><h4>Quiz Accuracy</h4><div class="progressBar"><i style="width:84%"></i></div><small>Randomized challenges</small></div>
+  <div class="card"><h4>MEMORY MANAGEMENT MASTERY</h4><div style="font-size:26px;font-weight:800">78%</div><div class="progressBar"><i style="width:78%"></i></div><small>Keep experimenting</small></div>`;
+ document.getElementById('cheatSheet').innerHTML=`
+ <div class="grid2" style="font-size:11px">
+  <div><b>Bus:</b> Addr WHERE, Data WHAT, Control ACTION, 2^n locations<br/><b>Layout:</b> Code R-X Data RW- BSS Heap↑ mmap Stack↓ Kernel<br/><b>Heap:</b> malloc metadata alignment first/best/worst fit frag leak dangling double-free<br/><b>Stack:</b> frame args locals retAddr push/pop overflow recursion</div>
+  <div><b>Virtual:</b> VA=VPN+Offset, Page→Frame, MMU, TLB hit saves walk<br/><b>PTE:</b> PFN+Present+R/W/X+Dirty+Accessed<br/><b>Fault:</b> not present → kernel → frame → disk → update PT → retry (minor/major)<br/><b>COW:</b> R-- shared refcount, WRITE → copy RW-</div>
+  <div><b>Perm:</b> R/W/X bits → segfault if violated (PROTECTION/EXECUTION FAULT)<br/><b>Swap:</b> RAM→Disk on pressure, thrashing if working set > RAM<br/><b>Syscalls:</b> mmap VMA, munmap remove, sbrk break, mprotect perm<br/><b>Bookkeeping:</b> Free list, Bitmap 0/1, Buddy split/merge power-of-2</div>
+  <div><b>malloc:</b> lib → free list (fast) → sbrk/mmap (slow) → VA → TLB miss → PT → PA → RAM → free coalesce<br/><b>Errors:</b> Invalid addr → "Enter valid address" • No page → "Page does not exist" • Offset>limit → "SEGMENTATION FAULT — OFFSET EXCEEDS LIMIT" • Write R-- → "PROTECTION FAULT — WRITE NOT PERMITTED" • Exec RW- → "EXECUTION PROTECTION FAULT" • No mem → "ALLOCATION FAILED — INSUFFICIENT FREE MEMORY"<br/><b>Tagline:</b> Don't just read memory. Watch it work. — Kishor S, AP/CSE-MVIT</div>
+ </div>`;
+ document.getElementById('finalCapstone').innerHTML=`
+ <div class="controls"><button class="btn primary" onclick="document.getElementById('mod-17').scrollIntoView({behavior:'smooth'})">▶ OPEN FULL SYSTEM SIMULATOR (Module 17)</button><button class="btn" onclick="document.getElementById('mod-18').scrollIntoView({behavior:'smooth'})">OPEN GLOBAL SYNC LAB (Module 18)</button></div>
+ <div class="card mono" style="font-size:11px">PROGRAM → Compilation → ELF → Loader → PROCESS PID1001 → Address Space → CODE/DATA/BSS → STACK → HEAP → malloc() → VIRTUAL ADDRESS → MMU → TLB (hit/miss) → PAGE TABLE (Present/R/W/X) → PHYSICAL FRAME → RAM → Permission check → PAGE FAULT (if not present) → KERNEL → DISK → RAM → TLB update → DATA ACCESS → free() → REUSE → EXIT<br/><br/>Every stage has real state: VA calculation = Page*PageSize+Offset, TLB LRU, PTE bits, frame allocation, permission enforcement, fragmentation handling. No fake animations.</div>
+ `;
+}
+
+renderSidebar();
+renderContent();
+buildSearch();
+initTheme();
+renderDash();
+
+let observer=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id.replace('mod-',''); const cur=store.get('prog-'+id,{read:0}); cur.read=Math.min(100,(cur.read||0)+4); store.set('prog-'+id,cur);}});},{threshold:0.25});
+document.querySelectorAll('.module').forEach(m=>observer.observe(m));
+
+document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){e.preventDefault(); document.getElementById('searchInput').focus();}});
+</script>
+</body>
+</html>
