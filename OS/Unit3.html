@@ -1,0 +1,2252 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OS Unit III — Process Management & Concurrency | Premium Handbook — Kishor S</title>
+<style>
+:root{
+ --bg:#070a16; --bg2:#0c1022; --panel:#12182e; --panel2:#171f3a; --panel3:#1e294d;
+ --border:rgba(140,160,255,.12); --border2:rgba(140,160,255,.22);
+ --text:#e9ecff; --muted:#9aa3c8; --dim:#6b759e;
+ --cyan:#5ee8ff; --violet:#a78bfa; --indigo:#6d8bff; --emerald:#34d399; --amber:#fbbf24; --rose:#fb7185;
+ --glow:0 0 40px rgba(94,232,255,.15); --radius:18px;
+}
+[data-theme="light"]{
+ --bg:#f6f7fb; --bg2:#ffffff; --panel:#ffffff; --panel2:#f1f4ff; --panel3:#e8ecff;
+ --border:rgba(30,40,90,.10); --border2:rgba(30,40,90,.18);
+ --text:#12182e; --muted:#5b648a; --dim:#8a93b6;
+ --cyan:#0e9cc5; --violet:#7c3aed; --indigo:#4f46e5;
+ --glow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:ui-sans-serif, -apple-system, Segoe UI, Roboto, Inter, sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.7}
+.mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+#aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+#aurora i{position:absolute;border-radius:50%;filter:blur(80px);opacity:.32}
+#aurora i:nth-child(1){width:900px;height:700px;background:radial-gradient(circle,#5ee8ff 0%,transparent 70%);left:-10%;top:-20%;animation:drift 22s infinite alternate}
+#aurora i:nth-child(2){width:800px;height:600px;background:radial-gradient(circle,#a78bfa 0%,transparent 70%);right:-10%;top:10%;animation:drift 26s infinite alternate-reverse}
+#aurora i:nth-child(3){width:700px;height:500px;background:radial-gradient(circle,#6d8bff 0%,transparent 70%);left:20%;bottom:-20%;animation:drift 30s infinite alternate}
+@keyframes drift{to{transform:translate(60px,-40px) scale(1.1)}}
+.gridBg{position:fixed;inset:0;z-index:-1;opacity:.05;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:42px 42px}
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:10px 14px;background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--cyan),var(--violet));display:grid;place-items:center;font-weight:800;color:#000;box-shadow:var(--glow)}
+.brand h1{margin:0;font-size:14px;letter-spacing:-.02em;line-height:1.1}
+.brand p{margin:0;font-size:10px;color:var(--muted)}
+.searchWrap{flex:1;max-width:560px;margin:0 8px;position:relative}
+.searchWrap input{width:100%;padding:10px 14px 10px 34px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);color:var(--text);outline:none;font-size:13px}
+.searchRes{position:absolute;top:112%;left:0;right:0;background:var(--panel);border:1px solid var(--border2);border-radius:14px;max-height:380px;overflow:auto;display:none;box-shadow:0 20px 60px rgba(0,0,0,.45);z-index:60}
+.searchRes div{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px}
+.searchRes div:hover{background:var(--panel2)}
+.hdrActions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn{padding:7px 11px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;transition:.18s}
+.btn:hover{transform:translateY(-1px);border-color:var(--border2)}
+.btn.primary{background:linear-gradient(135deg,var(--cyan),var(--indigo));color:#000;border:none}
+.iconBtn{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--border);background:var(--panel2);cursor:pointer}
+#layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 54px)}
+#sidebar{position:sticky;top:54px;height:calc(100vh - 54px);overflow:auto;padding:12px;border-right:1px solid var(--border);background:color-mix(in srgb,var(--bg2) 92%,transparent)}
+.sideSec{margin-bottom:16px}
+.sideSec h3{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:8px 6px}
+.navItem{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;font-size:12px;color:var(--muted);border:1px solid transparent;transition:.15s}
+.navItem:hover{background:var(--panel2);color:var(--text)}
+.navItem.active{background:linear-gradient(90deg,rgba(94,232,255,.14),rgba(167,139,250,.12));border-color:var(--border2);color:var(--text)}
+.navItem .prog{margin-left:auto;width:32px;height:4px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden}
+.navItem .prog i{display:block;height:100%;background:var(--cyan)}
+main{padding:16px 18px 120px}
+.hero{padding:24px;border-radius:22px;background:linear-gradient(135deg,rgba(94,232,255,.16),rgba(167,139,250,.14) 60%,rgba(109,139,255,.10));border:1px solid var(--border2);position:relative;overflow:hidden}
+.hero h2{font-size:32px;line-height:.95;letter-spacing:-.04em;margin:0}
+.hero p{color:var(--muted);max-width:760px;font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{padding:5px 9px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04);font-size:10px}
+.author{margin-top:14px;display:inline-flex;gap:8px;align-items:center;padding:7px 11px;border-radius:999px;background:#000;color:#fff;font-size:10px;letter-spacing:.04em}
+.module{margin-top:22px;padding:18px;border-radius:20px;background:var(--panel);border:1px solid var(--border);scroll-margin-top:74px}
+.moduleHead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.moduleHead h3{margin:0;font-size:19px;letter-spacing:-.03em}
+.levelToggle{display:flex;background:var(--panel2);border-radius:999px;padding:2px;border:1px solid var(--border)}
+.levelToggle button{padding:5px 10px;border-radius:999px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer}
+.levelToggle button.active{background:var(--text);color:var(--bg)}
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}
+.tab{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);font-size:11px;cursor:pointer}
+.tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.card{padding:12px 13px;border-radius:14px;background:var(--panel2);border:1px solid var(--border);margin:8px 0;font-size:13px}
+.card h4{margin:0 0 5px;font-size:12px;letter-spacing:.02em}
+.callout{border-left:3px solid var(--cyan);padding:8px 10px;background:color-mix(in srgb,var(--cyan) 8%,var(--panel2));border-radius:10px;margin:8px 0;font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:900px){#layout{grid-template-columns:1fr}#sidebar{position:relative;top:0;height:auto} .grid2,.grid3{grid-template-columns:1fr}}
+.progressBar{height:6px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;margin:6px 0}
+.progressBar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.diagram{padding:12px;background:var(--bg2);border-radius:12px;border:1px dashed var(--border2);font-size:12px;overflow:auto}
+.kbd{padding:2px 6px;border-radius:6px;background:var(--panel3);border:1px solid var(--border);font-size:11px}
+.stateFlow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.stateFlow .state{padding:8px 12px;border-radius:999px;border:1px solid var(--border2);background:var(--panel3);font-size:12px;font-weight:700}
+.stateFlow .arrow{color:var(--cyan)}
+.cpuBox{height:24px;background:var(--panel3);border-radius:8px;position:relative;overflow:hidden;border:1px solid var(--border)}
+.cpuBox i{position:absolute;top:0;left:0;bottom:0;background:linear-gradient(90deg,var(--emerald),var(--cyan));transition:width .3s}
+.table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.table th,.table td{padding:6px 8px;border:1px solid var(--border);text-align:left}
+.table th{background:var(--panel3)}
+.controls{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+input[type=range]{accent-color:var(--cyan)}
+/* ===== PREMIUM 2026 REFRESH ===== */
+:root{
+ --bg:#050711; --bg2:#0a0e1b; --panel:#0e1424; --panel2:#121a2d; --panel3:#18223a;
+ --border:rgba(148,163,184,.13); --border2:rgba(148,163,184,.26);
+ --text:#f3f6ff; --muted:#a8b2cc; --dim:#73809e;
+ --cyan:#67e8f9; --violet:#c4b5fd; --indigo:#818cf8; --emerald:#6ee7b7;
+ --amber:#fcd34d; --rose:#fb7185; --orange:#fdba74;
+ --glow:0 0 45px rgba(103,232,249,.12); --radius:20px;
+}
+body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.75}
+header{padding:12px 18px;background:rgba(7,10,22,.82);box-shadow:0 10px 35px rgba(0,0,0,.16)}
+.brand h1{font-size:15px}
+.logo{width:40px;height:40px;border-radius:12px;box-shadow:0 0 28px rgba(103,232,249,.25)}
+.hero{padding:32px;border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,.18)}
+.hero h2{font-size:42px;line-height:.94}
+.hero p{font-size:14px;line-height:1.8;max-width:900px}
+.module{padding:24px;border-radius:24px;box-shadow:0 18px 55px rgba(0,0,0,.12)}
+.moduleHead h3{font-size:21px}
+.card{padding:16px 17px;border-radius:16px;line-height:1.75}
+.card h4{font-size:14px}
+.callout{padding:13px 15px;border-left-width:4px}
+.diagram{padding:16px;border-radius:15px;line-height:1.75}
+.table{font-size:12.5px}
+.table th,.table td{padding:9px 10px}
+.tab{padding:7px 12px}
+.tab.active{box-shadow:0 8px 25px rgba(0,0,0,.15)}
+.controls{margin:12px 0}
+.btn{padding:8px 13px}
+.btn.primary{box-shadow:0 8px 24px rgba(103,232,249,.13)}
+.deepSection{margin:12px 0;padding:18px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.012))}
+.deepSection h4{margin-top:0}
+.realFile{border:1px solid rgba(103,232,249,.2);background:rgba(103,232,249,.035)}
+.codeExplain{margin-top:10px;padding:12px 14px;border-radius:12px;background:rgba(196,181,253,.05);border:1px solid rgba(196,181,253,.14);font-size:12px}
+.simStage{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:8px;margin:12px 0}
+.simNode{padding:12px 9px;border-radius:13px;text-align:center;border:1px solid var(--border2);background:var(--panel3);font-size:11px;font-weight:700;transition:.2s}
+.simNode.active{transform:translateY(-2px);border-color:var(--cyan);box-shadow:0 0 24px rgba(103,232,249,.16)}
+.metricGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.metricBox{padding:12px;border-radius:14px;background:var(--panel3);border:1px solid var(--border);text-align:center}
+.metricBox b{display:block;font-size:19px}
+.timeline{display:flex;min-height:52px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg2);margin:10px 0}
+.timeline .slice{display:flex;align-items:center;justify-content:center;border-right:1px solid rgba(255,255,255,.16);font-size:11px;font-weight:800;min-width:24px}
+.queueRow{display:flex;gap:7px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.queueLabel{width:42px;font-weight:800}
+.jobPill{padding:6px 9px;border-radius:9px;background:var(--panel3);border:1px solid var(--border2);font-size:11px}
+.resultGood{border-left:4px solid var(--emerald);padding:10px 12px;background:rgba(110,231,183,.06);border-radius:10px}
+.resultWarn{border-left:4px solid var(--amber);padding:10px 12px;background:rgba(252,211,77,.06);border-radius:10px}
+@media(max-width:900px){
+ .hero h2{font-size:32px}
+ .simStage{grid-template-columns:1fr 1fr}
+ .metricGrid{grid-template-columns:1fr 1fr}
+}
+@media print{
+ header,#sidebar,.tabs,.controls,.searchWrap{display:none!important}
+ #layout{display:block}
+ main{padding:0}
+ .module{break-inside:avoid;box-shadow:none}
+ .hero{box-shadow:none}
+}
+
+
+/* ============================================================
+   PREMIUM THEME v2 — TRUE DARK / TRUE LIGHT TEXT SYSTEM
+   ============================================================ */
+:root{
+  --bg:#03050b;
+  --bg2:#070b14;
+  --panel:#0b1120;
+  --panel2:#10182a;
+  --panel3:#172238;
+  --surface:#0e1626;
+  --surface2:#141e33;
+  --border:rgba(226,232,240,.12);
+  --border2:rgba(226,232,240,.24);
+  --text:#f8fafc;
+  --heading:#ffffff;
+  --muted:#cbd5e1;
+  --dim:#94a3b8;
+  --cyan:#67e8f9;
+  --violet:#c4b5fd;
+  --indigo:#a5b4fc;
+  --emerald:#6ee7b7;
+  --amber:#fde68a;
+  --rose:#fda4af;
+  --shadow:0 24px 70px rgba(0,0,0,.42);
+  --soft-shadow:0 12px 35px rgba(0,0,0,.28);
+}
+
+[data-theme="light"]{
+  --bg:#f4f7fb;
+  --bg2:#ffffff;
+  --panel:#ffffff;
+  --panel2:#f8fafc;
+  --panel3:#eef2f7;
+  --surface:#ffffff;
+  --surface2:#f1f5f9;
+  --border:rgba(15,23,42,.13);
+  --border2:rgba(15,23,42,.24);
+  --text:#172033;
+  --heading:#020617;
+  --muted:#475569;
+  --dim:#64748b;
+  --cyan:#0369a1;
+  --violet:#6d28d9;
+  --indigo:#4338ca;
+  --emerald:#047857;
+  --amber:#92400e;
+  --rose:#be123c;
+  --shadow:0 20px 55px rgba(15,23,42,.10);
+  --soft-shadow:0 10px 28px rgba(15,23,42,.08);
+}
+
+/* Global text hierarchy */
+html,body{
+  background:var(--bg);
+  color:var(--text);
+}
+body, p, li, td, th, label, small, span, div{
+  color:inherit;
+}
+h1,h2,h3,h4,h5,h6,
+.brand h1,.hero h2,.moduleHead h3,
+.card h4,.deepSection h4{
+  color:var(--heading);
+}
+p, li, td, label{
+  color:var(--text);
+}
+.muted,.brand p,.hero p,
+.sideSec h3,.navItem,.navItem:not(.active),
+.codeExplain,.searchWrap input::placeholder{
+  color:var(--muted);
+}
+.sideSec h3{
+  color:var(--dim);
+}
+.mono, pre, code{
+  color:var(--text);
+}
+a{
+  color:var(--cyan);
+}
+
+/* Header */
+header{
+  background:color-mix(in srgb,var(--panel) 91%,transparent);
+  border-bottom:1px solid var(--border2);
+  box-shadow:0 10px 40px rgba(0,0,0,.18);
+}
+.brand h1{color:var(--heading)}
+.brand p{color:var(--muted)}
+.logo{
+  color:#ffffff !important;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));
+  box-shadow:0 0 32px color-mix(in srgb,var(--cyan) 35%,transparent);
+}
+
+/* Search */
+.searchWrap input{
+  color:var(--text);
+  background:var(--panel2);
+  border-color:var(--border2);
+}
+.searchWrap input::placeholder{
+  color:var(--dim);
+}
+.searchRes{
+  background:var(--panel);
+  border-color:var(--border2);
+  box-shadow:var(--shadow);
+}
+.searchRes div{
+  color:var(--text);
+}
+
+/* Buttons */
+.btn,.iconBtn{
+  color:var(--text);
+  background:var(--panel2);
+  border-color:var(--border2);
+}
+.btn:hover,.iconBtn:hover{
+  color:var(--heading);
+  background:var(--panel3);
+}
+.btn.primary{
+  color:#020617 !important;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));
+  font-weight:800;
+}
+.btn.primary *{
+  color:#020617 !important;
+}
+
+/* Sidebar */
+#sidebar{
+  background:color-mix(in srgb,var(--bg2) 94%,transparent);
+  border-right-color:var(--border);
+}
+.navItem{
+  color:var(--muted);
+}
+.navItem b{
+  color:inherit;
+}
+.navItem:hover{
+  color:var(--heading);
+  background:var(--panel2);
+}
+.navItem.active{
+  color:var(--heading);
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--cyan) 14%,transparent),
+    color-mix(in srgb,var(--violet) 13%,transparent));
+  border-color:var(--border2);
+}
+.navItem .prog{
+  background:color-mix(in srgb,var(--text) 12%,transparent);
+}
+
+/* Main surfaces */
+.hero{
+  background:
+    radial-gradient(circle at 10% 20%,color-mix(in srgb,var(--cyan) 14%,transparent),transparent 38%),
+    radial-gradient(circle at 90% 20%,color-mix(in srgb,var(--violet) 15%,transparent),transparent 42%),
+    linear-gradient(135deg,
+      color-mix(in srgb,var(--panel2) 94%,transparent),
+      color-mix(in srgb,var(--panel3) 72%,transparent));
+  border-color:var(--border2);
+  box-shadow:var(--shadow);
+}
+.hero h2{color:var(--heading)}
+.hero p{color:var(--muted)}
+.chip{
+  color:var(--text);
+  background:color-mix(in srgb,var(--text) 5%,transparent);
+  border-color:var(--border2);
+}
+.author{
+  color:#ffffff !important;
+  background:#020617;
+}
+
+/* Modules/cards */
+.module{
+  background:var(--panel);
+  border-color:var(--border);
+  box-shadow:var(--soft-shadow);
+}
+.card,.deepSection{
+  background:var(--panel2);
+  border-color:var(--border);
+  color:var(--text);
+}
+.deepSection{
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb,var(--text) 2.5%,transparent),
+      transparent);
+}
+.deepSection.realFile{
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb,var(--cyan) 7%,var(--panel2)),
+      color-mix(in srgb,var(--violet) 4%,var(--panel2)));
+  border-color:color-mix(in srgb,var(--cyan) 28%,var(--border));
+}
+.card h4,.deepSection h4{
+  color:var(--heading);
+}
+.card p,.card li,.deepSection p,.deepSection li{
+  color:var(--text);
+}
+.callout{
+  color:var(--text);
+  background:color-mix(in srgb,var(--cyan) 7%,var(--panel2));
+  border-left-color:var(--cyan);
+}
+
+/* Diagrams and code */
+.diagram{
+  background:var(--bg2);
+  border-color:var(--border2);
+  color:var(--text);
+}
+pre{
+  color:var(--text) !important;
+}
+pre code, code{
+  color:var(--text) !important;
+}
+.codeExplain{
+  color:var(--muted);
+  background:color-mix(in srgb,var(--violet) 6%,var(--panel2));
+  border-color:color-mix(in srgb,var(--violet) 18%,var(--border));
+}
+.kbd{
+  color:var(--text);
+  background:var(--panel3);
+  border-color:var(--border2);
+}
+
+/* Tables */
+.table{
+  color:var(--text);
+}
+.table th{
+  color:var(--heading);
+  background:var(--panel3);
+}
+.table td{
+  color:var(--text);
+  background:transparent;
+}
+.table th,.table td{
+  border-color:var(--border2);
+}
+
+/* Tabs */
+.tab{
+  color:var(--text);
+  background:var(--panel2);
+  border-color:var(--border2);
+}
+.tab.active{
+  color:var(--bg);
+  background:var(--heading);
+  border-color:var(--heading);
+}
+
+/* State / simulator elements */
+.stateFlow .state{
+  color:var(--text);
+  background:var(--panel3);
+  border-color:var(--border2);
+}
+.stateFlow .arrow{
+  color:var(--cyan);
+}
+.metricBox{
+  color:var(--text);
+  background:var(--panel3);
+  border-color:var(--border2);
+}
+.metricBox b{
+  color:var(--heading);
+}
+.queueRow{
+  color:var(--text);
+  border-bottom-color:var(--border);
+}
+.queueLabel{
+  color:var(--heading);
+}
+.jobPill{
+  color:var(--text);
+  background:var(--panel3);
+  border-color:var(--border2);
+}
+.timeline{
+  background:var(--bg2);
+  border-color:var(--border2);
+}
+.timeline .slice{
+  color:var(--bg);
+  border-right-color:rgba(15,23,42,.25);
+  background:linear-gradient(135deg,var(--cyan),var(--violet));
+}
+.simNode{
+  color:var(--text);
+  background:var(--panel3);
+  border-color:var(--border2);
+}
+.simNode.active{
+  color:var(--heading);
+  border-color:var(--cyan);
+}
+
+/* Inputs */
+input,select,textarea{
+  color:var(--text);
+  background:var(--panel2);
+  border-color:var(--border2);
+}
+input::placeholder,textarea::placeholder{
+  color:var(--dim);
+}
+input[type=number]{
+  color:var(--text);
+}
+
+/* Explicit light-mode protection against inherited white text */
+[data-theme="light"] .author{
+  color:#ffffff !important;
+  background:#0f172a;
+}
+[data-theme="light"] .btn.primary,
+[data-theme="light"] .btn.primary *{
+  color:#020617 !important;
+}
+[data-theme="light"] .timeline .slice{
+  color:#020617 !important;
+}
+
+/* Explicit dark-mode protection */
+[data-theme="dark"] *,
+[data-theme="dark"] p,
+[data-theme="dark"] li,
+[data-theme="dark"] td,
+[data-theme="dark"] label{
+  color:var(--text);
+}
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6{
+  color:#ffffff;
+}
+[data-theme="dark"] .btn.primary,
+[data-theme="dark"] .btn.primary *{
+  color:#020617 !important;
+}
+[data-theme="dark"] .author{
+  color:#ffffff !important;
+}
+
+/* Preserve semantic accent colors */
+.callout b,.realFile b{
+  color:var(--cyan);
+}
+[data-theme="light"] .callout b,
+[data-theme="light"] .realFile b{
+  color:#075985;
+}
+
+</style>
+
+<style id="black-dark-theme-override">
+/* ============================================================
+   BLACK DARK THEME — PREMIUM OLED / CHARCOAL
+   Light theme remains unchanged.
+   ============================================================ */
+:root{
+  --bg:#000000;
+  --bg2:#050505;
+  --panel:#090909;
+  --panel2:#0f0f0f;
+  --panel3:#161616;
+  --surface:#0b0b0b;
+  --surface2:#121212;
+
+  --border:rgba(255,255,255,.09);
+  --border2:rgba(255,255,255,.17);
+
+  --text:#f5f5f5;
+  --heading:#ffffff;
+  --muted:#c2c2c2;
+  --dim:#858585;
+
+  --cyan:#7dd3fc;
+  --violet:#c4b5fd;
+  --indigo:#a5b4fc;
+  --emerald:#6ee7b7;
+  --amber:#fcd34d;
+  --rose:#fda4af;
+
+  --glow:0 0 42px rgba(255,255,255,.045);
+  --shadow:0 24px 80px rgba(0,0,0,.72);
+  --soft-shadow:0 14px 45px rgba(0,0,0,.58);
+}
+
+[data-theme="dark"] body{
+  background:#000000;
+  color:#f5f5f5;
+}
+
+[data-theme="dark"] #aurora i{
+  opacity:.035;
+  filter:blur(110px);
+}
+
+[data-theme="dark"] #aurora i:nth-child(1),
+[data-theme="dark"] #aurora i:nth-child(2),
+[data-theme="dark"] #aurora i:nth-child(3){
+  background:radial-gradient(circle,#ffffff 0%,transparent 70%);
+}
+
+[data-theme="dark"] .gridBg{
+  opacity:.025;
+  background-image:
+    linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px);
+}
+
+[data-theme="dark"] header{
+  background:rgba(0,0,0,.92);
+  border-bottom:1px solid rgba(255,255,255,.12);
+  box-shadow:0 10px 40px rgba(0,0,0,.72);
+}
+
+[data-theme="dark"] #sidebar{
+  background:rgba(3,3,3,.96);
+  border-right-color:rgba(255,255,255,.10);
+}
+
+[data-theme="dark"] .logo{
+  background:linear-gradient(135deg,#e5e5e5,#737373);
+  color:#000 !important;
+  box-shadow:0 0 26px rgba(255,255,255,.12);
+}
+
+[data-theme="dark"] .searchWrap input,
+[data-theme="dark"] .btn,
+[data-theme="dark"] .iconBtn,
+[data-theme="dark"] .tab,
+[data-theme="dark"] .levelToggle,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea{
+  background:#0d0d0d;
+  border-color:rgba(255,255,255,.13);
+  color:#f5f5f5;
+}
+
+[data-theme="dark"] .searchWrap input:focus,
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus{
+  border-color:rgba(255,255,255,.30);
+  box-shadow:0 0 0 3px rgba(255,255,255,.045);
+}
+
+[data-theme="dark"] .searchRes{
+  background:#090909;
+  border-color:rgba(255,255,255,.16);
+  box-shadow:0 25px 70px rgba(0,0,0,.85);
+}
+
+[data-theme="dark"] .searchRes div:hover{
+  background:#151515;
+}
+
+[data-theme="dark"] .navItem:hover{
+  background:#111111;
+}
+
+[data-theme="dark"] .navItem.active{
+  background:linear-gradient(90deg,rgba(255,255,255,.075),rgba(255,255,255,.035));
+  border-color:rgba(255,255,255,.16);
+}
+
+[data-theme="dark"] .hero{
+  background:
+    radial-gradient(circle at 10% 20%,rgba(255,255,255,.055),transparent 38%),
+    radial-gradient(circle at 90% 20%,rgba(255,255,255,.035),transparent 42%),
+    linear-gradient(135deg,#090909,#111111);
+  border-color:rgba(255,255,255,.15);
+  box-shadow:0 30px 90px rgba(0,0,0,.72);
+}
+
+[data-theme="dark"] .chip{
+  background:rgba(255,255,255,.035);
+  border-color:rgba(255,255,255,.11);
+}
+
+[data-theme="dark"] .module{
+  background:#090909;
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 18px 60px rgba(0,0,0,.62);
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .deepSection{
+  background:#101010;
+  border-color:rgba(255,255,255,.085);
+}
+
+[data-theme="dark"] .deepSection{
+  background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,.006));
+}
+
+[data-theme="dark"] .deepSection.realFile{
+  background:linear-gradient(135deg,#111111,#0d0d0d);
+  border-color:rgba(255,255,255,.16);
+}
+
+[data-theme="dark"] .callout{
+  background:rgba(255,255,255,.035);
+  border-left-color:#d4d4d4;
+}
+
+[data-theme="dark"] .diagram,
+[data-theme="dark"] .timeline{
+  background:#050505;
+  border-color:rgba(255,255,255,.13);
+}
+
+[data-theme="dark"] .kbd,
+[data-theme="dark"] .stateFlow .state,
+[data-theme="dark"] .metricBox,
+[data-theme="dark"] .jobPill,
+[data-theme="dark"] .simNode{
+  background:#151515;
+  border-color:rgba(255,255,255,.14);
+}
+
+[data-theme="dark"] .simNode.active{
+  border-color:#d4d4d4;
+  box-shadow:0 0 25px rgba(255,255,255,.09);
+}
+
+[data-theme="dark"] .table th{
+  background:#171717;
+}
+
+[data-theme="dark"] .table th,
+[data-theme="dark"] .table td{
+  border-color:rgba(255,255,255,.11);
+}
+
+[data-theme="dark"] .tab.active{
+  background:#ffffff;
+  color:#000000 !important;
+  border-color:#ffffff;
+}
+
+[data-theme="dark"] .levelToggle button.active{
+  background:#ffffff;
+  color:#000000 !important;
+}
+
+[data-theme="dark"] .btn.primary{
+  background:linear-gradient(135deg,#f5f5f5,#a3a3a3);
+  color:#000000 !important;
+  box-shadow:0 8px 30px rgba(255,255,255,.09);
+}
+
+[data-theme="dark"] .author{
+  background:#ffffff;
+  color:#000000 !important;
+}
+
+[data-theme="dark"] .progressBar,
+[data-theme="dark"] .navItem .prog,
+[data-theme="dark"] .cpuBox{
+  background:#1a1a1a;
+}
+
+[data-theme="dark"] .progressBar i{
+  background:linear-gradient(90deg,#d4d4d4,#737373);
+}
+
+[data-theme="dark"] .cpuBox i{
+  background:linear-gradient(90deg,#a3a3a3,#f5f5f5);
+}
+
+[data-theme="dark"] .timeline .slice{
+  background:linear-gradient(135deg,#d4d4d4,#737373);
+  color:#000 !important;
+  border-right-color:rgba(0,0,0,.22);
+}
+
+[data-theme="dark"] .stateFlow .arrow,
+[data-theme="dark"] .callout b,
+[data-theme="dark"] .realFile b{
+  color:#e5e5e5;
+}
+
+[data-theme="dark"] input[type=range]{
+  accent-color:#e5e5e5;
+}
+
+/* Keep all normal dark-theme text comfortably readable. */
+[data-theme="dark"] p,
+[data-theme="dark"] li,
+[data-theme="dark"] td,
+[data-theme="dark"] label,
+[data-theme="dark"] .card,
+[data-theme="dark"] .deepSection,
+[data-theme="dark"] .diagram{
+  color:#f5f5f5;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6{
+  color:#ffffff;
+}
+
+[data-theme="dark"] .muted,
+[data-theme="dark"] .brand p,
+[data-theme="dark"] .hero p,
+[data-theme="dark"] .sideSec h3,
+[data-theme="dark"] .codeExplain,
+[data-theme="dark"] .navItem{
+  color:#c2c2c2;
+}
+</style>
+
+
+<style id="final-theme-system">
+/* FINAL THEME SYSTEM
+   Dark = true black / OLED
+   Light = white / clean
+*/
+:root,
+[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#000;
+  --bg2:#050505;
+  --panel:#0a0a0a;
+  --panel2:#101010;
+  --panel3:#171717;
+  --border:rgba(255,255,255,.10);
+  --border2:rgba(255,255,255,.18);
+  --text:#f5f5f5;
+  --heading:#fff;
+  --muted:#c5c5c5;
+  --dim:#8b8b8b;
+  --cyan:#d9d9d9;
+  --violet:#bdbdbd;
+  --indigo:#a8a8a8;
+  --emerald:#8ee6b9;
+  --amber:#f6d77a;
+  --rose:#f59aaa;
+  --glow:0 0 35px rgba(255,255,255,.05);
+}
+[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f7f8fa;
+  --bg2:#fff;
+  --panel:#fff;
+  --panel2:#f1f3f5;
+  --panel3:#e7eaee;
+  --border:rgba(15,23,42,.11);
+  --border2:rgba(15,23,42,.20);
+  --text:#172033;
+  --heading:#080d18;
+  --muted:#475569;
+  --dim:#64748b;
+  --cyan:#0369a1;
+  --violet:#6d28d9;
+  --indigo:#4338ca;
+  --emerald:#047857;
+  --amber:#92400e;
+  --rose:#be123c;
+  --glow:none;
+}
+
+html,body{background:var(--bg)!important;color:var(--text)!important}
+body{transition:background-color .22s ease,color .22s ease}
+
+[data-theme="dark"] #aurora i{
+  opacity:.025!important;
+  background:radial-gradient(circle,#fff 0%,transparent 70%)!important;
+}
+[data-theme="dark"] .gridBg{opacity:.02!important}
+[data-theme="dark"] header{background:rgba(0,0,0,.94)!important}
+[data-theme="dark"] #sidebar{background:#030303!important}
+[data-theme="dark"] .hero{
+  background:
+    radial-gradient(circle at 10% 20%,rgba(255,255,255,.045),transparent 38%),
+    radial-gradient(circle at 90% 20%,rgba(255,255,255,.025),transparent 42%),
+    linear-gradient(135deg,#080808,#111)!important;
+}
+[data-theme="dark"] .module{background:#090909!important}
+[data-theme="dark"] .card,
+[data-theme="dark"] .deepSection{background:#101010!important}
+[data-theme="dark"] .diagram,
+[data-theme="dark"] .timeline{background:#050505!important}
+[data-theme="dark"] .btn,
+[data-theme="dark"] .iconBtn,
+[data-theme="dark"] .tab,
+[data-theme="dark"] .levelToggle,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea{
+  background:#0d0d0d!important;
+  color:#f5f5f5!important;
+}
+[data-theme="dark"] .navItem.active{
+  background:rgba(255,255,255,.055)!important;
+}
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6{color:#fff!important}
+[data-theme="dark"] p,
+[data-theme="dark"] li,
+[data-theme="dark"] td,
+[data-theme="dark"] label,
+[data-theme="dark"] .card,
+[data-theme="dark"] .deepSection,
+[data-theme="dark"] .diagram{color:#f5f5f5!important}
+
+[data-theme="light"] header{background:rgba(255,255,255,.94)!important}
+[data-theme="light"] #sidebar{background:rgba(255,255,255,.97)!important}
+[data-theme="light"] .hero{
+  background:
+    radial-gradient(circle at 10% 20%,rgba(3,105,161,.06),transparent 38%),
+    radial-gradient(circle at 90% 20%,rgba(109,40,217,.05),transparent 42%),
+    linear-gradient(135deg,#fff,#f7f8fa)!important;
+}
+[data-theme="light"] .module{background:#fff!important}
+[data-theme="light"] .card,
+[data-theme="light"] .deepSection{background:#f8fafc!important}
+[data-theme="light"] .diagram,
+[data-theme="light"] .timeline{background:#fff!important}
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] h5,
+[data-theme="light"] h6{color:#080d18!important}
+[data-theme="light"] p,
+[data-theme="light"] li,
+[data-theme="light"] td,
+[data-theme="light"] label,
+[data-theme="light"] .card,
+[data-theme="light"] .deepSection,
+[data-theme="light"] .diagram{color:#172033!important}
+
+/* Theme control */
+.themeToggle{
+  position:relative;
+  font-size:17px!important;
+  font-family:Arial,sans-serif;
+  line-height:1;
+  transition:transform .18s ease,background .18s ease,border-color .18s ease;
+}
+.themeToggle:hover{transform:translateY(-1px) scale(1.04)}
+[data-theme="dark"] .themeToggle{
+  background:#111!important;
+  border-color:rgba(255,255,255,.20)!important;
+  color:#fff!important;
+}
+[data-theme="light"] .themeToggle{
+  background:#fff!important;
+  border-color:rgba(15,23,42,.20)!important;
+  color:#111!important;
+}
+.themeToggle #themeIcon{display:block}
+</style>
+
+<script id="final-theme-script">
+(function(){
+  const root = document.documentElement;
+  const btn = document.getElementById('themeBtn');
+  const icon = document.getElementById('themeIcon');
+  if(!btn || !icon) return;
+
+  function applyTheme(theme, save){
+    theme = theme === 'light' ? 'light' : 'dark';
+    root.setAttribute('data-theme', theme);
+    icon.textContent = theme === 'dark' ? '☀' : '☾';
+    const next = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+    btn.setAttribute('aria-label', next);
+    btn.setAttribute('title', next);
+    if(save){
+      try{ localStorage.setItem('os3_theme', theme); }catch(e){}
+    }
+  }
+
+  let saved = null;
+  try{ saved = localStorage.getItem('os3_theme'); }catch(e){}
+
+  // Preserve a previously selected theme; otherwise start in dark mode.
+  applyTheme(saved === 'light' ? 'light' : 'dark', false);
+
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    const current = root.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark', true);
+  });
+})();
+</script>
+
+</head>
+<body>
+<div id="aurora"><i></i><i></i><i></i></div>
+<div class="gridBg"></div>
+<header>
+ <div class="brand"><div class="logo">OS</div><div><h1>UNIT III — PROCESS MGMT</h1><p>CONCURRENCY • SCHEDULING • THREADS — Kishor S</p></div></div>
+ <div class="searchWrap"><input id="searchInput" placeholder="Search topics: PCB, MLFQ, pthread_create... (press / )"/><div id="searchRes" class="searchRes"></div></div>
+ <div class="hdrActions">
+  <button class="iconBtn themeToggle" id="themeBtn" type="button"
+  aria-label="Switch to light mode" title="Switch to light mode">
+  <span id="themeIcon" aria-hidden="true">☀</span>
+</button>
+  <button class="btn" id="bookmarkBtn">🔖 <span id="bmCount">0</span></button>
+ </div>
+</header>
+<div id="layout">
+ <aside id="sidebar"></aside>
+ <main>
+  <section class="hero">
+   <h2>PROCESS MANAGEMENT &<br/> CONCURRENCY</h2>
+   <p>From <b>source code to running process</b>, how OS gets control back via <b>Limited Direct Execution</b>, interrupts & system calls, the full <b>context switch & PCB lifecycle</b>, deep dive into <b>scheduling policies, metrics, interactive vs real-time</b>, and finally <b>why threads, what are pthreads, and how concurrency really works</b>. Every concept has structured notes, deep-dive internals, runnable examples, and targeted live labs.</p>
+   <div class="chips">
+    <span class="chip">⏱️ 9 Hrs • 18 Modules</span>
+    <span class="chip">🧠 Process Lifecycle</span>
+    <span class="chip">⚡ LDE + Interrupts + Syscalls</span>
+    <span class="chip">🔄 PCB & Context Switch</span>
+    <span class="chip">📊 FIFO SJF RR MLFQ</span>
+    <span class="chip">🧵 Threads & pthread API</span>
+    <span class="chip">🧪 Interactive Learning Labs</span>
+   </div>
+   <div class="author">⚡ Premium OS Handbook • Unit III • Process Management & Concurrency • AP/CSE-MVIT</div>
+  </section>
+  <div id="dashMount" class="module"><div class="moduleHead"><h3>Dashboard & Learning Map</h3></div><div id="dashGrid" class="grid3"></div><div id="cheatSheet" style="margin-top:12px"></div><div id="finalCapstone" style="margin-top:12px"></div></div>
+  <div id="contentMount"></div>
+ </main>
+</div>
+<script>
+const syllabus=[
+ {id:'01',title:'PROCESS LIFECYCLE — FROM PROGRAM TO PROCESS',short:'Lifecycle',topics:['Program vs Process','States: New→Ready→Running→Waiting→Terminated','5-state model','OS bookkeeping']},
+ {id:'02',title:'SOURCE CODE TO EXECUTION — THE FULL PIPELINE',short:'Code→Exec',topics:['Compiler → Assembler → Linker → Loader → ELF','exec()','Address space creation']},
+ {id:'03',title:'OS MODE OF EXECUTION — USER vs KERNEL',short:'Dual Mode',topics:['Privileged mode','User mode','Mode bit','Protected instructions']},
+ {id:'04',title:'LIMITED DIRECT EXECUTION (LDE) RECAP',short:'LDE',topics:['Direct execution problem','How OS regains control','Timer interrupt','Cooperative vs Preemptive']},
+ {id:'05',title:'INTERRUPTS — THE HEARTBEAT OF OS',short:'Interrupts',topics:['Hardware interrupt','Software interrupt','Interrupt vector','IDT','Handling flow']},
+ {id:'06',title:'SYSTEM CALLS — THE GATEWAY TO KERNEL',short:'Syscalls',topics:['Trap instruction','syscall table','Arguments passing','Return from kernel']},
+ {id:'07',title:'CONTEXT SWITCH MECHANISM',short:'Context Switch',topics:['What is saved','When it happens','Cost of switch','Hardware support']},
+ {id:'08',title:'PCB & PROCESS STATES — THE DNA OF A PROCESS',short:'PCB',topics:['PCB fields','State queue','PID, PC, SP, Registers','Open files']},
+ {id:'09',title:'SCHEDULING METRICS, GOALS & WORKLOADS',short:'Metrics',topics:['Turnaround, Response, Waiting','Throughput','Fairness','Batch vs Interactive']},
+ {id:'10',title:'SCHEDULING POLICIES I — FIFO, SJF, STCF',short:'FIFO SJF',topics:['First-Come First-Serve','Shortest Job First','Shortest Time-to-Completion First','Convoy effect']},
+ {id:'11',title:'SCHEDULING POLICIES II — ROUND ROBIN',short:'RR',topics:['Time quantum','Time slicing','Tradeoff: quantum size','Fairness']},
+ {id:'12',title:'PRIORITY SCHEDULING & MLFQ',short:'Priority & MLFQ',topics:['Priority inversion','Aging','Multi-Level Feedback Queue','Rules of MLFQ']},
+ {id:'13',title:'INTERACTIVE vs REAL-TIME SCHEDULING',short:'Interactive vs RT',topics:['Interactive goals','Real-time: Hard vs Soft','EDF, Rate Monotonic','Deadline']},
+ {id:'14',title:'MOTIVATION FOR CONCURRENCY',short:'Why Concurrency',topics:['Why concurrency needed','Application use cases','OS use cases','I/O overlap']},
+ {id:'15',title:'PROCESS vs THREAD — THE FUNDAMENTAL DIFFERENCE',short:'Process vs Thread',topics:['Heavyweight vs Lightweight','Shared vs Isolated','When to use what']},
+ {id:'16',title:'INTRODUCTION TO THREADS & PTHREAD API',short:'Pthreads',topics:['pthread_create','pthread_join','pthread_exit','Detached vs Joinable','Race demo']},
+ {id:'17',title:'CASE STUDY: COMPLETE PROCESS LIFECYCLE LAB',short:'Lifecycle Lab',topics:['fork→exec→run→wait→exit full chain','Real PID timeline']},
+ {id:'18',title:'COMPLETE SCHEDULER & CONCURRENCY LAB',short:'Global Lab',topics:['Global scheduler playground','Thread pool','Synchronized state']},
+];
+const store={get(k,d){try{return JSON.parse(localStorage.getItem('os3_'+k))??d}catch{return d}},set(k,v){localStorage.setItem('os3_'+k,JSON.stringify(v))}};
+function renderSidebar(){
+ const sb=document.getElementById('sidebar');
+ let h=`<div class="sideSec"><h3>Navigation</h3><div class="navItem active" onclick="window.scrollTo({top:0,behavior:'smooth'})">📊 Dashboard</div></div><div class="sideSec"><h3>Unit III Modules (18)</h3>`;
+ syllabus.forEach(m=>{
+  const prog=store.get('prog-'+m.id,{read:0});
+  h+=`<div class="navItem" data-go="${m.id}" onclick="document.getElementById('mod-${m.id}').scrollIntoView({behavior:'smooth'})"><span>${m.id}</span> <b>${m.short}</b><span class="prog"><i style="width:${prog.read||0}%"></i></span></div>`;
+ });
+ h+=`</div><div class="sideSec"><h3>Quick Memory</h3><div class="card" style="font-size:11px"><b>LDE:</b> Let process run directly BUT OS controls via timer + trap<br/><b>Switch:</b> Save regs → Save to PCB → Pick next → Load PCB → Restore regs<br/><b>MLFQ:</b> Many queues, priority decreases if uses full quantum<br/><b>Pthread:</b> create→run→join. Shared memory = danger!</div></div>`;
+ sb.innerHTML=h;
+}
+const contentMap={
+'01':{
+ overview:`<div class="card"><h4>What is a Process? — The Program in Action</h4><p><b>Program</b> = passive file on disk (code + data). <b>Process</b> = active instance in execution. One program can have many processes.</p><p>Think of program as recipe, process as cooking.</p></div>
+ <div class="callout"><b>5-State Lifecycle:</b> <b>New</b> (being created) → <b>Ready</b> (waiting for CPU) → <b>Running</b> (on CPU) → <b>Waiting/Blocked</b> (waiting for I/O) → <b>Terminated</b> (finished). Plus <b>Suspended Ready/Blocked</b> when swapped out.</div>
+ <div class="grid2"><div class="card"><h4>Why 5 states?</h4><ul><li>Ready vs Running: OS can have many ready, only one (per core) running</li><li>Waiting: Don't waste CPU polling for I/O</li><li>New/Terminated bookkeeping</li></ul></div><div class="card"><h4>Student Analogy</h4>Students = processes. Classroom seats = CPU cores. Waiting outside class = Ready queue. Asking doubt to teacher = I/O wait. Leaving school = Terminated.</div></div>`,
+ internals:`<div class="card"><h4>Detailed State Transitions</h4><table class="table"><tr><th>Transition</th><th>Reason</th><th>Who does it?</th></tr><tr><td>New→Ready</td><td>Admitted by OS, resources allocated</td><td>Long-term scheduler</td></tr><tr><td>Ready→Running</td><td>Dispatched by short-term scheduler</td><td>CPU Scheduler</td></tr><tr><td>Running→Waiting</td><td>I/O request, wait(), page fault</td><td>Process itself (syscall)</td></tr><tr><td>Waiting→Ready</td><td>I/O complete, interrupt</td><td>OS interrupt handler</td></tr><tr><td>Running→Ready</td><td>Timer interrupt, preemption, higher priority arrives</td><td>OS</td></tr><tr><td>Running→Terminated</td><td>exit(), error, killed</td><td>Process / OS</td></tr></table></div>
+ <div class="diagram"><b>Key Insight:</b> Only ONE way to go from Ready to Running (dispatch). Only process itself can go Running→Waiting. Only OS can preempt Running→Ready. This separation is core to protection.</div>
+<div class="deepSection realFile"><h4>Real File Example — Observe a Process on Linux</h4>
+<pre class="mono">sleep 60 &amp;
+PID=$!
+ps -o pid,ppid,stat,etime,cmd -p $PID
+cat /proc/$PID/status
+cat /proc/$PID/stat
+kill $PID</pre>
+<p class="codeExplain"><span class="mono">/proc/PID/status</span> exposes state, parent PID, memory and scheduling-related fields. This turns the abstract PCB idea into a real operating-system observation.</p></div>`,
+ simulator:`<div id="lifeSim"></div>`,
+ code:`<div class="card"><h4>Process creation in C (Unix)</h4><pre class="mono" style="font-size:12px;white-space:pre-wrap">pid_t pid = fork(); // clones current process
+if(pid==0){
+  // Child
+  printf("I am child, PID=%d\\n", getpid());
+  execl("/bin/ls","ls",NULL); // replace with new program
+} else if(pid>0){
+  // Parent
+  wait(NULL); // wait for child to finish (moves parent to Waiting)
+  printf("Child done\\n");
+}</pre><p><b>fork()</b> = New→Ready, <b>exec()</b> = load program, <b>wait()</b> = Running→Waiting, <b>exit()</b> = Running→Terminated</p></div>
+<p class="codeExplain"><b>Execution mapping:</b> fork creates a child process, exec replaces the current process image, wait blocks the parent until a child state changes, and exit terminates the process.</p>`,
+ quiz:`<div class="card"><h4>Quick Check</h4><p>Q1: Can a process go directly from Waiting to Running? <br/><button class="btn" onclick="alert('NO! Must go via Ready. OS must schedule it.')">Show Answer</button></p><p>Q2: Which state uses no CPU? <button class="btn" onclick="alert('Waiting and Ready — but Waiting is not even in run queue')">Answer</button></p></div>`
+},
+'02':{
+ overview:`<div class="card"><h4>Source Code to Running Process — Full Journey</h4><p>Many students think double-click = magic. No. It is 6 stages:</p><div class="stateFlow"><span class="state" style="border-color:var(--cyan)">.c/.cpp Source</span><span class="arrow">→</span><span class="state">Compiler → Assembly</span><span class="arrow">→</span><span class="state">Assembler → Object .o</span><span class="arrow">→</span><span class="state">Linker → ELF Executable</span><span class="arrow">→</span><span class="state">Loader → Memory</span><span class="arrow">→</span><span class="state" style="background:var(--emerald);color:#000">Process</span></div></div>
+ <div class="grid2"><div class="card"><h4>1. Compiler</h4>Checks syntax, optimizes, generates assembly. Example: <span class="mono">gcc -S hello.c</span></div><div class="card"><h4>2. Assembler</h4>Assembly → machine code relocatable object. <span class="mono">as</span></div><div class="card"><h4>3. Linker</h4>Combines .o + libraries (printf). Resolves symbols. Creates ELF with headers. <span class="mono">ld</span></div><div class="card"><h4>4. Loader (OS)</h4>Kernel's exec() reads ELF, creates address space: Code, Data, BSS, Heap, Stack. Allocates frames. Sets PC to _start.</div></div>`,
+ internals:`<div class="card"><h4>ELF Inside</h4><p>ELF header says: Entry point 0x401000, Code segment R-X, Data RW-, BSS size, Interpreter /lib64/ld-linux.so</p><p><b>Loader steps (exec syscall):</b><br/>1. Validate ELF magic<br/>2. Kill old address space (if any)<br/>3. Create new VMA list<br/>4. mmap code/data from file<br/>5. Zero BSS<br/>6. Setup stack with args/env<br/>7. Set registers: PC=entry, SP=top of stack<br/>8. Move to Ready queue</p></div>
+<div class="deepSection realFile"><h4>Real File Example — Build Artifacts</h4>
+<pre class="mono">cat &gt; hello.c &lt;&lt;'EOF'
+#include &lt;stdio.h&gt;
+int main(void){ puts("Hello OS"); return 0; }
+EOF
+
+gcc -E hello.c -o hello.i
+gcc -S hello.c -o hello.s
+gcc -c hello.c -o hello.o
+gcc hello.o -o hello
+
+file hello hello.o
+readelf -h hello
+readelf -S hello</pre>
+<p class="codeExplain">The files make each transformation visible: preprocessed source, assembly, relocatable object, and final executable.</p></div>`,
+ simulator:`<div id="pipelineSim"></div>`,
+ code:`<div class="card"><pre class="mono"> // See full pipeline
+ $ gcc hello.c -o hello -v   // verbose shows cc1, as, ld
+ $ readelf -h hello          // ELF header
+ $ strace ./hello            // shows execve, mmap, write syscalls
+</pre></div>
+<p class="codeExplain"><b>Build vs run:</b> compiler/assembler/linker operate before execution; loader work happens when the executable is started.</p>`,
+ quiz:`<div class="card"><p>What does linker do vs loader? <button class="btn" onclick="alert('Linker (build time): combines objects → executable. Loader (run time): executable → RAM process.')">Answer</button></p></div>`
+},
+'03':{
+ overview:`<div class="card"><h4>Dual Mode Execution — Why OS Needs Privilege</h4><p>CPU must differentiate <b>your code</b> (untrusted) vs <b>OS code</b> (trusted). Solution: hardware mode bit.</p><ul><li><b>User Mode (1):</b> Limited instructions. Cannot do I/O, cannot change page tables, cannot halt CPU.</li><li><b>Kernel Mode (0):</b> All instructions allowed. Only OS runs here.</li></ul></div><div class="callout">If user tries privileged instruction → CPU traps → OS kills process (segfault / illegal instruction).</div>`,
+ internals:`<div class="card"><h4>How mode switches happen?</h4><table class="table"><tr><th>Event</th><th>Mode Change</th></tr><tr><td>System call (trap)</td><td>User → Kernel</td></tr><tr><td>Interrupt</td><td>User → Kernel</td></tr><tr><td>Exception (page fault)</td><td>User → Kernel</td></tr><tr><td>Return from interrupt (iret)</td><td>Kernel → User</td></tr></table><p>Hardware saves: PC, SP, Mode, Registers on kernel stack. This is atomic and trusted.</p></div>
+<div class="deepSection realFile"><h4>Real File Example — User/KERNEL Boundary</h4>
+<pre class="mono">strace -e trace=read,write,openat ./hello
+cat /proc/self/status | grep -E 'Uid|Gid'</pre>
+<p class="codeExplain">The user program runs in user space while system calls cross into the kernel under hardware protection. <span class="mono">strace</span> lets students observe the boundary at the syscall level.</p></div>`,
+ simulator:`<div id="modeSim"></div>`,
+ code:`<div class="card"><pre class="mono"> // User code cannot do:
+ // __asm__ volatile("hlt"); // → segfault in user mode
+ // But OS can:
+ // Kernel: outb(0x20, 0x20); // I/O allowed only in kernel
+</pre></div>
+<p class="codeExplain"><b>Protection:</b> the important concept is not the exact instruction syntax but that privileged operations are available only under the CPU's protected execution mode.</p>`,
+ quiz:`<div class="card"><p>Why can't we just run OS as library? <button class="btn" onclick="alert('Then user could overwrite OS, bypass protection, monopolize CPU. Dual mode is security.')">Answer</button></p></div>`
+},
+'04':{
+ overview:`<div class="card"><h4>Limited Direct Execution — The Genius Trick</h4><p><b>Idea:</b> Run process directly on CPU for speed (no emulation), but limit it so OS stays in control.</p><p><b>Problem with pure direct execution:</b> Process could infinite loop → OS never gets CPU back → system hangs.</p><p><b>Solution = 2 keys:</b><br/>1. <b>For OS calls:</b> Trap / syscall → process voluntarily gives control<br/>2. <b>For CPU hog:</b> Timer interrupt → OS forcibly takes control</p></div><div class="callout"><b>OSTEP Summary:</b> LDE = Direct execution + Protection via dual mode + Regaining control via interrupts/traps. This is how modern OS gets both performance and control.</div>`,
+ internals:`<div class="card"><h4>Boot + First Process Timeline</h4><pre class="mono">Boot: Kernel mode → init hardware → create first process (init) → set timer → iret to user mode (first process runs)
+Running: Process runs full speed
+Timer tick (e.g., every 10ms): HW interrupt → Kernel mode → scheduler decides: keep running or switch?
+Syscall: Process trap → Kernel mode → do work → return
+</pre><p><b>Cooperative vs Preemptive:</b> Cooperative = OS waits for process to yield (old Mac, risky). Preemptive = OS uses timer to forcefully preempt (Unix, Linux, Windows).</p></div>
+<div class="deepSection realFile"><h4>Real File Example — Observe Timer/CPU Scheduling Effects</h4>
+<pre class="mono">yes &gt; /dev/null &amp;
+PID=$!
+top -p $PID
+# stop after observing
+kill $PID</pre>
+<p class="codeExplain">A CPU-bound process can consume CPU, but the OS continues scheduling other runnable work because control is periodically regained by the kernel.</p></div>`,
+ simulator:`<div id="ldeSim"></div>`,
+ code:`<div class="card"><h4>Pseudo-code of LDE</h4><pre class="mono">OS at boot:
+  init trap table, timer interrupt = 10ms
+OS → process A: set timer, stack pointer, iret
+
+Process A: runs, may syscall → trap table → OS handler
+Timer interrupt → OS:
+  save regs of A to PCB_A
+  scheduler picks B
+  restore regs of B from PCB_B
+  iret to B</pre></div>
+<p class="codeExplain"><b>LDE:</b> direct execution gives performance, while traps and interrupts provide controlled entry into the kernel.</p>`,
+ quiz:`<div class="card"><p>What if timer interrupt disabled by user? <button class="btn" onclick="alert('CPU prevents that — disabling timer is privileged. Only kernel can.')">Ans</button></p></div>`
+},
+'05':{
+ overview:`<div class="card"><h4>Interrupts — OS's Alarm System</h4><div class="grid2"><div><b>Hardware Interrupt</b> (async, external): Disk done, keyboard press, timer tick. CPU finishes current instruction → checks interrupt line → jumps to handler.</div><div><b>Software Interrupt / Trap</b> (sync, internal): Division by zero, syscall, page fault. Caused by current instruction itself.</div></div></div><div class="card"><h4>Interrupt Vector / IDT</h4><p>Table of function pointers: IDT[0]=divide-by-zero handler, IDT[32]=timer, IDT[128]=syscall. Set up at boot, protected (kernel only).</p></div>`,
+ internals:`<div class="card"><h4>Interrupt Handling Flow (step-by-step, hardware+software)</h4><ol><li>Interrupt occurs</li><li>CPU: finish current instr, save PC+PSW to kernel stack, switch to kernel mode, disable interrupts</li><li>CPU: index IDT by interrupt number → jump to handler</li><li>OS handler: save remaining regs to PCB, determine cause, do work (e.g., wake blocked process)</li><li>OS: call scheduler</li><li>Restore regs of next process, iret (restore PC, mode, re-enable interrupts)</li></ol><p><b>Nested interrupts:</b> Higher priority can preempt lower.</p></div>
+<div class="deepSection realFile"><h4>Real File Example — Interrupt Accounting</h4>
+<pre class="mono">cat /proc/interrupts
+cat /proc/softirqs
+watch -n 1 'cat /proc/interrupts | head -20'</pre>
+<p class="codeExplain">These Linux pseudo-files expose interrupt and softirq counters. Values vary by machine and hardware; students should treat them as live observations rather than fixed textbook numbers.</p></div>`,
+ simulator:`<div id="intSim"></div>`,
+ code:`<div class="card"><pre class="mono">// Linux: cat /proc/interrupts shows counts
+// x86: int $0x80  or syscall instruction triggers software interrupt
+</pre></div>
+<p class="codeExplain"><b>Observation:</b> interrupt counters are useful because they show that the OS reacts to asynchronous hardware events as well as synchronous traps.</p>`,
+ quiz:`<div class="card"><p>Difference between interrupt and syscall? <button class="btn" onclick="alert('Both jump to kernel via IDT, but interrupt is involuntary external, syscall is voluntary trap by process to request service.')">Ans</button></p></div>`
+},
+'06':{
+ overview:`<div class="card"><h4>System Calls — The Only Door to Kernel</h4><p>Process cannot directly call kernel function (protection). It must <b>trap</b> via special instruction.</p><p>Examples: <span class="mono">read(), write(), fork(), exec(), open(), mmap(), exit()</span> — all are wrappers over trap.</p></div><div class="grid2"><div class="card"><h4>What happens in write()</h4><ol><li>User library puts syscall number (1 for write) in rax</li><li>Args in rdi,rsi,rdx</li><li>Executes <b>syscall</b> instruction</li><li>CPU traps to kernel, switches mode</li><li>Kernel looks up sys_write via syscall table</li><li>Checks permissions, copies data, writes</li><li>Return value in rax, iret to user</li></ol></div><div class="card"><h4>Why controlled?</h4><ul><li>Validate args (no buffer overflow to kernel)</li><li>Check permissions</li><li>Copy_from_user to avoid TOCTOU</li></ul></div></div>`,
+ internals:`<div class="card"><h4>Syscall Table (Linux x86_64)</h4><table class="table"><tr><th>Num</th><th>Name</th><th>Entry</th></tr><tr><td>0</td><td>read</td><td>sys_read</td></tr><tr><td>1</td><td>write</td><td>sys_write</td></tr><tr><td>57</td><td>fork</td><td>sys_fork</td></tr><tr><td>59</td><td>execve</td><td>sys_execve</td></tr></table><p>~400+ syscalls. <span class="mono">strace</span> shows them.</p></div>
+<div class="deepSection realFile"><h4>Real File Example — See System Calls</h4>
+<pre class="mono">cat &gt; syscall_demo.c &lt;&lt;'EOF'
+#include &lt;unistd.h&gt;
+int main(void){
+    const char msg[]="hello\n";
+    write(STDOUT_FILENO,msg,sizeof(msg)-1);
+    return 0;
+}
+EOF
+gcc syscall_demo.c -o syscall_demo
+strace -e trace=write,exit_group ./syscall_demo</pre>
+<p class="codeExplain">The C library/program executes in user space, while <span class="mono">write</span> enters the kernel through the system-call mechanism.</p></div>`,
+ simulator:`<div id="syscallSim"></div>`,
+ code:`<div class="card"><pre class="mono">#include <unistd.h>
+write(1, "hi\\n", 3); // triggers syscall
+// strace ./a.out → write(1, "hi\\n", 3) = 3
+</pre></div>
+<p class="codeExplain"><b>Read the trace:</b> the syscall name, arguments and return value show the transition from a user-level API request to kernel service.</p>`,
+ quiz:`<div class="card"><p>Is printf a syscall? <button class="btn" onclick="alert('No, library function that buffers and eventually calls write() syscall.')">Ans</button></p></div>`
+},
+'07':{
+ overview:`<div class="card"><h4>Context Switch — Saving the Soul of a Process</h4><p>When OS switches CPU from P1 to P2, it must save P1's entire CPU state and restore P2's.</p><p><b>Context = PC + SP + Registers + Mode + TLB state</b></p><p>It is pure overhead — no useful work, but essential. Takes ~1-100us, depends on hardware.</p></div><div class="callout"><b>When?</b> Timer interrupt (preemption), syscall blocking (I/O), fork/exit, wait(), yield().</div>`,
+ internals:`<div class="card"><h4>Switch Assembly Pseudocode (OSTEP)</h4><pre class="mono">void swtch(struct context *old, struct context *new):
+  save regs to old (push)
+  save SP to old->sp
+  load SP from new->sp
+  pop regs from new
+  ret (jumps to new PC)
+</pre><p>OS also switches address space: writes new page table base to CR3 (x86). Flush TLB (or tag with ASID).</p><p><b>Cost breakdown:</b> Direct save/restore + cache/TLB cold + scheduler + pipeline flush.</p></div>
+<div class="deepSection realFile"><h4>Real File Example — Context Switch Counters</h4>
+<pre class="mono">grep -E 'voluntary_ctxt_switches|nonvoluntary_ctxt_switches' /proc/&lt;PID&gt;/status</pre>
+<p class="codeExplain">Linux exposes voluntary and nonvoluntary context-switch counters for processes. They are useful for connecting the scheduler theory to a live process.</p></div>`,
+ simulator:`<div id="ctxSim"></div>`,
+ code:`<div class="card"><pre class="mono">// Linux measures voluntary/involuntary ctx switches
+// cat /proc/<pid>/status | grep ctxt
+</pre></div>
+<p class="codeExplain"><b>Key point:</b> saving/restoring CPU state is necessary work for switching execution contexts, but it does not itself advance the user's computation.</p>`,
+ quiz:`<div class="card"><p>Why context switch is expensive? <button class="btn" onclick="alert('Destroys cache locality, TLB flush, kernel entry/exit, scheduler work. ~ microseconds wasted.')">Ans</button></p></div>`
+},
+'08':{
+ overview:`<div class="card"><h4>PCB — Process Control Block</h4><p>OS needs a data structure per process to remember everything. That is PCB (aka task_struct in Linux).</p><table class="table"><tr><th>Field</th><th>Example</th></tr><tr><td>PID</td><td>1001</td></tr><tr><td>State</td><td>READY/RUNNING/BLOCKED</td></tr><tr><td>PC</td><td>0x40102a</td></tr><tr><td>SP, Registers</td><td>RAX,RBX...</td></tr><tr><td>Page table ptr</td><td>CR3</td></tr><tr><td>Open files</td><td>fd table</td></tr><tr><td>Accounting</td><td>CPU time used</td></tr><tr><td>Priority</td><td>nice value</td></tr></table></div>`,
+ internals:`<div class="card"><h4>PCB Queues</h4><p>OS maintains: <b>Ready Queue</b> (processes ready), <b>Wait Queues</b> per device (disk, keyboard). PCB moves between queues on state change. No linear search — O(1) queues.</p><p><b>task_struct in Linux:</b> ~10KB, contains mm_struct (memory), files_struct, signal, sched_info.</p></div>
+<div class="deepSection realFile"><h4>Real File Example — PCB-Like Data in Linux</h4>
+<pre class="mono">PID=$$
+grep -E 'State|Pid|PPid|Threads|VmSize|VmRSS' /proc/$PID/status
+ls -l /proc/$PID/fd</pre>
+<p class="codeExplain">Linux does not expose its internal <span class="mono">task_struct</span> as a user-readable C struct, but <span class="mono">/proc</span> exposes selected process metadata and file descriptors.</p></div>`,
+ simulator:`<div id="pcbSim"></div>`,
+ code:`<div class="card"><pre class="mono">struct pcb {
+  int pid; enum state {NEW,READY,RUNNING,WAITING,TERMINATED} state;
+  uintptr_t pc, sp; long regs[16];
+  struct pagetable *pt;
+  int open_files[32];
+  int priority;
+};</pre></div>
+<p class="codeExplain"><b>PCB mental model:</b> every field exists because the kernel must be able to stop a process and later resume it correctly.</p>`,
+ quiz:`<div class="card"><p>Where is PCB stored? <button class="btn" onclick="alert('In kernel memory, protected from user. Not in user address space.')">Ans</button></p></div>`
+},
+'09':{
+ overview:`<div class="card"><h4>Scheduling — Who Gets CPU Next?</h4><p>On single CPU, only one RUNNING. Scheduler picks from READY queue. This choice defines system feel.</p><p><b>Workload assumptions:</b> Jobs arrive over time, each has runtime, may do I/O.</p><h4>Metrics</h4><ul><li><b>Turnaround Time</b> = Completion - Arrival (batch systems care)</li><li><b>Response Time</b> = FirstRun - Arrival (interactive care)</li><li><b>Waiting Time</b> = time in ready queue</li><li><b>Throughput</b> = jobs/sec</li><li><b>Fairness</b> = no starvation</li></ul></div>`,
+ internals:`<div class="card"><h4>Goals Conflict</h4><p>Minimizing turnaround (SJF) may hurt response time. Minimizing response (RR) may hurt turnaround. No one scheduler optimal for all. Hence MLFQ.</p><p><b>Batch vs Interactive vs Real-time:</b> Batch wants throughput/turnaround, interactive wants response, real-time wants deadline guarantee.</p></div>
+<div class="deepSection"><h4>Worked Metric Example</h4>
+<table class="table"><tr><th>Process</th><th>Arrival</th><th>First run</th><th>Completion</th><th>Turnaround</th><th>Response</th></tr>
+<tr><td>P1</td><td>0</td><td>0</td><td>8</td><td>8</td><td>0</td></tr>
+<tr><td>P2</td><td>2</td><td>8</td><td>11</td><td>9</td><td>6</td></tr></table>
+<p class="codeExplain">Turnaround = completion − arrival. Response = first CPU start − arrival. These metrics answer different questions, so one scheduler can improve one while worsening another.</p></div>`,
+ simulator:`<div id="metricSim"></div>`,
+ code:`<div class="card"><pre class="mono">// Given jobs: arrival, runtime
+// Turnaround = completion - arrival
+// Response = first_scheduled - arrival
+</pre></div>
+<p class="codeExplain"><b>Exam tip:</b> always draw the Gantt chart first; then calculate each metric from arrival, first-start and completion times.</p>`,
+ quiz:`<div class="card"><p>Why response time important? <button class="btn" onclick="alert('User feels lag if first response delayed. E.g., typing in editor must echo quickly even if job long.')">Ans</button></p></div>`
+},
+'10':{
+ overview:`<div class="card"><h4>Policy I: FIFO, SJF, STCF</h4><div class="grid3"><div class="card"><b>FIFO (FCFS)</b><br/>Run in arrival order, non-preemptive. Simple. Suffers convoy: short jobs stuck behind long.</div><div class="card"><b>SJF</b><br/>Shortest Job First, non-preemptive. Optimal for avg turnaround but needs future knowledge, starves long jobs.</div><div class="card"><b>STCF (SRTF)</b><br/>Preemptive SJF: if new job shorter than remaining of current, preempt. Best turnaround but still starvation.</div></div></div>`,
+ internals:`<div class="card"><h4>Example (convoy)</h4><p>Jobs: A=100s, B=10s, C=10s arrive at 0. FIFO avg turnaround = (100+110+120)/3=110. SJF avg = (10+20+120)/3=50. Huge difference.</p><p>SJF requires prediction — OS uses history (exponential averaging).</p></div>
+<div class="deepSection realFile"><h4>Real File Example — Measure a Workload</h4>
+<pre class="mono">time ./program_A
+time ./program_B
+/usr/bin/time -v ./program_A</pre>
+<p class="codeExplain">The shell's <span class="mono">time</span> and GNU <span class="mono">/usr/bin/time -v</span> provide real execution measurements. They are not a direct implementation of SJF/STCF, but they help students understand that runtime is an observable property of a workload.</p></div>`,
+ simulator:`<div id="sched1Sim"></div>`,
+ code:`<div class="card"><pre class="mono">// SJF prediction: next = alpha*actual + (1-alpha)*predicted
+</pre></div>
+<p class="codeExplain"><b>Policy comparison:</b> FCFS uses arrival order; SJF chooses the shortest known job; STCF repeatedly chooses the smallest remaining time.</p>`,
+ quiz:`<div class="card"><p>Which optimal for turnaround? <button class="btn" onclick="alert('STCF / SRTF preemptive shortest remaining')">Ans</button></p></div>`
+},
+'11':{
+ overview:`<div class="card"><h4>Round Robin — Fairness for Interactive</h4><p>Each job gets <b>time quantum</b> (e.g., 10ms). If not finished, preempt and put at tail of ready queue. Good response, fair.</p><p><b>Quantum tradeoff:</b> Too small → many switches (overhead). Too large → becomes FIFO, bad response.</p></div>`,
+ internals:`<div class="card"><h4>Quantum Tuning</h4><p>Typical 10-100ms. Linux CFS uses dynamic. Want: quantum >> context switch cost (1ms vs 10us ok) but << human perception (100ms).</p><p>RR is not optimal for turnaround if jobs have varied sizes.</p></div>
+<div class="deepSection"><h4>Quantum Trade-off Worked Example</h4>
+<p>Suppose three jobs need 2 ms, 5 ms and 8 ms. With a 1 ms quantum, the scheduler performs many rotations. With a very large quantum, the behavior approaches FCFS. The useful design question is always a balance between <b>response</b> and <b>context-switch overhead</b>.</p></div>`,
+ simulator:`<div id="rrSim"></div>`,
+ code:`<div class="card"><pre class="mono">queue q; while(q not empty){ p=q.pop(); run p for min(quantum, remaining); if(p remaining>0) q.push(p); }</pre></div>
+<p class="codeExplain"><b>Quantum:</b> the smaller the quantum, the more frequently a runnable job can regain CPU access, but the scheduler may perform more switches.</p>`,
+ quiz:`<div class="card"><p>What happens if quantum=infinity? <button class="btn" onclick="alert('Becomes FIFO')">Ans</button></p></div>`
+},
+'12':{
+  overview:`<div class="card"><h4>Priority Scheduling & MLFQ — Learn by Watching the Queue Change</h4>
+<p><b>Priority scheduling</b> chooses the runnable process with the highest priority. Priority can be static or dynamically adjusted. The central problem is that a low-priority process may wait indefinitely while higher-priority work keeps arriving.</p>
+<div class="grid2">
+<div class="card"><h4>Starvation</h4><p>A process remains READY but is repeatedly bypassed. <b>Aging</b> gradually improves its priority while it waits.</p><p><b>Example:</b> P1 has priority 1 and needs 12 ms. If high-priority jobs keep arriving, P1 can remain in the ready queue for a very long time.</p></div>
+<div class="card"><h4>Priority Inversion</h4><p>Imagine High H needs a lock held by Low L. Medium M does not need the lock but keeps running, indirectly preventing L from releasing it. H is blocked by work at a lower priority.</p><p>A common OS technique is <b>priority inheritance</b>: temporarily raise L to H's priority.</p></div>
+</div>
+<div class="callout"><b>MLFQ intuition:</b> instead of asking the programmer to know every job's CPU burst in advance, the scheduler observes behavior. CPU-heavy jobs gradually move down; interactive/I/O-heavy jobs tend to remain near the top.</div></div>
+<div class="deepSection"><h4>MLFQ With Concrete Numbers</h4>
+<table class="table"><tr><th>Queue</th><th>Priority</th><th>Quantum</th><th>Typical behavior</th></tr>
+<tr><td>Q2</td><td>Highest</td><td>2 ms</td><td>New / interactive work</td></tr>
+<tr><td>Q1</td><td>Medium</td><td>4 ms</td><td>Moderate CPU use</td></tr>
+<tr><td>Q0</td><td>Lowest</td><td>8 ms</td><td>CPU-bound work</td></tr></table>
+<p>Suppose P1 needs 10 ms of CPU and never blocks. It may receive 2 ms in Q2, then 4 ms in Q1, then the remaining 4 ms in Q0. The important learning point is not the exact numbers; it is the <b>feedback loop between observed CPU behavior and future priority</b>.</p></div>`,
+  internals:`<div class="deepSection"><h4>Deep Dive — Priority Scheduling</h4>
+<p>For a simple priority scheduler, define a rule such as <span class="mono">lower number = higher priority</span>. At each scheduling point:</p>
+<pre class="mono">1. Inspect READY processes
+2. Select the highest-priority runnable process
+3. If priorities tie, apply a tie-breaker such as RR/FCFS
+4. Dispatch the selected process
+5. On preemption or blocking, repeat</pre>
+<p><b>Starvation:</b> priority alone does not guarantee progress. <b>Aging</b> adds waiting time to the priority calculation. A conceptual model is:</p>
+<pre class="mono">effective_priority = base_priority + aging_bonus(wait_time)</pre>
+<p>The exact formula is OS-specific; the concept is that waiting should eventually improve a process's chance of service.</p></div>
+<div class="deepSection"><h4>Deep Dive — MLFQ Rules</h4>
+<ol><li>Higher-priority queue runs before lower-priority queues.</li><li>Jobs at the same priority share CPU using a time slice.</li><li>New jobs begin at a high queue.</li><li>Using an entire allocated quantum is evidence of CPU-bound behavior and can trigger demotion.</li><li>Frequent blocking/yielding is evidence of interactive/I/O-bound behavior and can preserve higher priority.</li><li>Periodic priority boosts prevent indefinite starvation.</li></ol>
+<div class="callout"><b>Important:</b> MLFQ is a family of policies. Exact promotion, demotion, accounting, and boost rules vary by implementation.</div></div>
+<div class="deepSection realFile"><h4>Real File / Terminal Example — Observe Linux Priorities</h4>
+<pre class="mono"># Start a CPU-heavy process
+yes &gt; /dev/null &amp;
+
+# Find its PID
+pgrep yes
+
+# Inspect scheduling-related information
+ps -o pid,ppid,ni,pri,stat,comm -p &lt;PID&gt;
+
+# Change the nice value (permission dependent)
+renice 10 -p &lt;PID&gt;
+
+# Stop the demonstration
+kill &lt;PID&gt;</pre>
+<p class="codeExplain"><b>What to observe:</b> <span class="mono">NI</span> is the nice value, while <span class="mono">PRI</span> is a scheduler priority representation. This is a real Linux observation exercise; it is not claiming Linux uses the MLFQ algorithm shown in this teaching simulator.</p></div>`,
+  simulator:`<div id="mlfqSim"></div>`,
+  code:`<div class="deepSection"><h4>Implementation Sketch — MLFQ Scheduler</h4>
+<pre class="mono">typedef struct {
+    char name[8];
+    int remaining;
+    int queue;          // 2 = high, 1 = medium, 0 = low
+    int quantum_used;
+    int completed;
+} Process;
+
+int quantum_for_queue(int q) {
+    if (q == 2) return 2;
+    if (q == 1) return 4;
+    return 8;
+}
+
+Process *pick_next(Queue queues[3]) {
+    // Search from highest priority to lowest.
+    for (int q = 2; q &gt;= 0; --q) {
+        if (!queue_empty(&amp;queues[q]))
+            return queue_pop(&amp;queues[q]);
+    }
+    return NULL;
+}
+
+void run_slice(Process *p) {
+    int q = p-&gt;queue;
+    int qtime = quantum_for_queue(q);
+    int slice = min(qtime, p-&gt;remaining);
+
+    p-&gt;remaining -= slice;
+    p-&gt;quantum_used += slice;
+
+    if (p-&gt;remaining == 0) {
+        p-&gt;completed = 1;
+    } else if (p-&gt;quantum_used &gt;= qtime) {
+        p-&gt;queue = max(0, q - 1);   // demote
+        p-&gt;quantum_used = 0;
+    }
+}</pre>
+<div class="codeExplain"><b>Line-by-line idea:</b> the scheduler never executes all processes at once. It repeatedly chooses one runnable process, gives it a bounded CPU slice, updates its accounting, then decides whether it remains at the same priority or moves down.</div></div>
+<div class="deepSection realFile"><h4>Runnable C Example — Priority + Aging</h4>
+<pre class="mono">#include &lt;stdio.h&gt;
+
+typedef struct {
+    const char *name;
+    int base_priority;
+    int waited;
+} Job;
+
+int effective_priority(Job *j) {
+    /* Larger effective value = more urgent in this toy model. */
+    return j-&gt;base_priority + j-&gt;waited / 5;
+}
+
+int main(void) {
+    Job jobs[] = {
+        {"P1", 10, 0},
+        {"P2", 5, 20},
+        {"P3", 7, 10}
+    };
+
+    for (int i = 0; i &lt; 3; ++i)
+        printf("%s effective=%d
+",
+               jobs[i].name, effective_priority(&amp;jobs[i]));
+    return 0;
+}</pre>
+<p class="codeExplain">Compile with <span class="mono">gcc priority_aging.c -o priority_aging</span>. This is a teaching model of aging, not a replacement for a kernel scheduler.</p></div>`,
+  quiz:`<div class="card"><h4>Think Like the Scheduler</h4><p>If a CPU-bound process repeatedly consumes its full quantum in a 3-level MLFQ, what should you expect over time?</p><button class="btn primary" onclick="alert('It is typically demoted toward lower-priority queues, while interactive jobs that frequently block can retain higher priority.')">Reveal Reasoning</button></div>`
+
+},
+'13':{
+  overview:`<div class="card"><h4>Interactive vs Real-Time — Two Different Meanings of “Fast”</h4>
+<div class="grid2"><div class="card"><h4>Interactive Scheduling</h4><p>The goal is good <b>response and perceived responsiveness</b>. A terminal should echo keystrokes quickly; a UI should react quickly to input.</p><ul><li>Response time matters strongly.</li><li>Fairness and smoothness matter.</li><li>Workloads are often bursty and unpredictable.</li></ul></div>
+<div class="card"><h4>Real-Time Scheduling</h4><p>The key question is whether work completes before a <b>deadline</b>. Real-time does not simply mean “very fast”.</p><ul><li><b>Hard real-time:</b> missing a deadline is unacceptable for the system requirement.</li><li><b>Soft real-time:</b> missing deadlines degrades quality but may be tolerated.</li><li>Deadline awareness is central.</li></ul></div></div>
+<div class="callout"><b>Core distinction:</b> Interactive scheduling optimizes how quickly a user gets service; real-time scheduling reasons explicitly about timing constraints and deadlines.</div></div>
+<div class="deepSection"><h4>Concrete Task Model</h4>
+<table class="table"><tr><th>Task</th><th>Execution C</th><th>Period T</th><th>Deadline D</th><th>Meaning</th></tr>
+<tr><td>T1</td><td>1 ms</td><td>4 ms</td><td>4 ms</td><td>Periodic sensor/control work</td></tr>
+<tr><td>T2</td><td>2 ms</td><td>6 ms</td><td>6 ms</td><td>Periodic processing</td></tr>
+<tr><td>T3</td><td>1 ms</td><td>10 ms</td><td>10 ms</td><td>Lower-frequency work</td></tr></table>
+<p>CPU utilization is <span class="mono">Σ(C/T)</span>. For these tasks: <span class="mono">1/4 + 2/6 + 1/10 ≈ 0.517</span>, or about 51.7% of one CPU under the simple periodic model.</p></div>`,
+  internals:`<div class="deepSection"><h4>Deep Dive — Earliest Deadline First (EDF)</h4>
+<p>EDF is dynamic: whenever a scheduling decision is made, the ready job with the earliest absolute deadline is selected.</p>
+<pre class="mono">At each decision point:
+    collect READY jobs
+    choose job with smallest absolute deadline
+    execute it until completion, preemption, or next event</pre>
+<p>For idealized independent periodic tasks on a uniprocessor with suitable assumptions, EDF has strong schedulability properties. Real systems add overheads, blocking, interrupts, multiprocessor effects, and resource constraints.</p></div>
+<div class="deepSection"><h4>Deep Dive — Rate Monotonic (RM)</h4>
+<p>RM assigns fixed priorities according to period: <b>shorter period → higher priority</b>. It is useful when task periods are known and fixed.</p>
+<pre class="mono">T1 = 4 ms  → higher fixed priority
+T2 = 6 ms  → lower fixed priority
+T3 = 10 ms → lower fixed priority</pre>
+<p>The classic Liu–Layland utilization bound is <span class="mono">n(2^(1/n)-1)</span> for n periodic tasks under its assumptions. For two tasks this is about 82.8%; as n grows, it approaches about 69.3%. A utilization above the bound does not automatically mean failure; it means the sufficient test no longer guarantees schedulability.</p></div>
+<div class="deepSection realFile"><h4>Real Linux File / API Example</h4>
+<pre class="mono"># Inspect the scheduling policy of a running process
+chrt -p &lt;PID&gt;
+
+# Run a command with a real-time scheduling policy
+sudo chrt -f 80 ./my_rt_program
+
+# See scheduling-related fields
+cat /proc/&lt;PID&gt;/sched</pre>
+<p class="codeExplain"><b>Safety note:</b> real-time policies can affect system responsiveness. Use them only in a controlled VM/lab environment and understand the privileges required.</p></div>`,
+  simulator:`<div id="rtSim"></div>`,
+  code:`<div class="deepSection"><h4>EDF — Complete Teaching Simulator Logic in JavaScript</h4>
+<pre class="mono">function chooseEDF(readyJobs) {
+    return readyJobs.reduce((best, job) =&gt;
+        !best || job.deadline &lt; best.deadline ? job : best,
+        null
+    );
+}
+
+function releaseTask(task, time) {
+    return {
+        name: task.name,
+        remaining: task.execution,
+        deadline: time + task.deadline
+    };
+}</pre>
+<div class="codeExplain"><b>Why this works:</b> EDF does not care which task arrived first. It compares the current absolute deadlines of runnable jobs and chooses the smallest one.</div></div>
+<div class="deepSection"><h4>RM — Fixed Priority Model</h4>
+<pre class="mono">function rmPriority(task) {
+    // smaller period = higher priority
+    return 1 / task.period;
+}
+
+tasks.sort((a, b) =&gt; rmPriority(b) - rmPriority(a));</pre>
+<div class="codeExplain">The simulator uses this simple relationship to make the fixed-priority rule visible. It is an educational model, not a kernel implementation.</div></div>
+<div class="deepSection realFile"><h4>C Example — Inspecting Scheduling Policy</h4>
+<pre class="mono">#include &lt;sched.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+
+int main(void) {
+    int policy = sched_getscheduler(0);
+
+    if (policy == SCHED_OTHER) puts("SCHED_OTHER");
+    else if (policy == SCHED_FIFO) puts("SCHED_FIFO");
+    else if (policy == SCHED_RR) puts("SCHED_RR");
+    else if (policy == SCHED_BATCH) puts("SCHED_BATCH");
+    else puts("Other policy");
+
+    return 0;
+}</pre>
+<p class="codeExplain">Compile with <span class="mono">gcc policy.c -o policy</span>. This program queries the current process's Linux scheduling policy.</p></div>`,
+  quiz:`<div class="card"><p><b>Question:</b> A job has a deadline of 12 ms and another has a deadline of 7 ms. Under EDF, which is selected first if both are READY?</p><button class="btn primary" onclick="alert('The 7 ms deadline job, because EDF chooses the smallest absolute deadline.')">Reveal Answer</button></div>`
+
+},
+'14':{
+ overview:`<div class="card"><h4>Why Concurrency? Motivation</h4><p>Until now: one process, one thread of execution. But world is concurrent.</p><ul><li><b>Application view:</b> Web server handling 1000 clients, browser rendering + JS + network, Word handling typing + autosave + spellcheck</li><li><b>OS view:</b> Kernel handling disk, network, user processes concurrently, overlapping I/O and CPU</li><li><b>Performance:</b> I/O wait wastes CPU → overlap with other work via threads</li></ul></div><div class="callout">Without concurrency: When one client does slow disk read, entire server blocks. With concurrency: other clients still served.</div>`,
+ internals:`<div class="card"><h4>Two Forms</h4><p><b>Multiprocessing:</b> Multiple processes, isolated address spaces, heavy (fork).</p><p><b>Multithreading:</b> Multiple threads within same process, share address space, light.</p><p>Concurrency ≠ Parallelism: Concurrency is logical overlap, parallelism is physical simultaneous execution on multiple cores. You can have concurrency on 1 core via time-sharing.</p></div>
+<div class="deepSection realFile"><h4>Real File Example — Observe Threads in a Running Program</h4>
+<pre class="mono">ps -L -p &lt;PID&gt;
+ls /proc/&lt;PID&gt;/task/
+cat /proc/&lt;PID&gt;/status | grep Threads</pre>
+<p class="codeExplain">A process can contain multiple schedulable threads. Linux exposes the thread count and per-thread task directories through <span class="mono">/proc</span>.</p></div>`,
+ simulator:`<div id="motSim"></div>`,
+ code:`<div class="card"><pre class="mono">// Without threads: sequential server
+while(1){ client=accept(); handle(client); } // blocks other clients
+// With threads: concurrent
+while(1){ client=accept(); pthread_create(..., handle, client); }
+</pre></div>
+<p class="codeExplain"><b>Concurrency vs parallelism:</b> concurrency means multiple activities make progress over time; parallelism means work actually executes simultaneously on multiple execution units.</p>`,
+ quiz:`<div class="card"><p>Why not just many processes? <button class="btn" onclick="alert('Process creation heavy, no shared memory easy, IPC costly. Threads share memory → easy collaboration but race risks.')">Ans</button></p></div>`
+},
+'15':{
+  overview:`<div class="card"><h4>Process vs Thread — See the Memory Boundary, Not Just a Table</h4>
+<p>A <b>process</b> is a resource-owning execution environment with its own virtual address space. A <b>thread</b> is an execution path inside a process. Threads belonging to one process normally share the process's address space and many resources.</p>
+<table class="table"><tr><th>Aspect</th><th>Process</th><th>Thread</th></tr>
+<tr><td>Address space</td><td>Normally isolated</td><td>Shared with sibling threads</td></tr>
+<tr><td>Code / global data / heap</td><td>Private to the process</td><td>Shared by threads in the process</td></tr>
+<tr><td>Stack</td><td>Each process has a user stack</td><td>Each thread has its own stack</td></tr>
+<tr><td>Registers / PC</td><td>Per execution context</td><td>Private to each thread</td></tr>
+<tr><td>Communication</td><td>IPC mechanisms commonly required</td><td>Shared memory is direct, but synchronization is required</td></tr>
+<tr><td>Failure isolation</td><td>Stronger isolation between processes</td><td>A serious memory error can affect the whole process</td></tr>
+</table></div>
+<div class="callout"><b>Remember:</b> “Threads share memory” does not mean threads share everything. A thread has its own stack, registers, program counter, and scheduling state while sharing process resources such as the address space.</div>`,
+  internals:`<div class="deepSection"><h4>Deep Dive — Process Memory</h4>
+<pre class="mono">PROCESS A
++-----------------------------+
+| Code / Text                 |
+| Read-only data              |
+| Global / static data        |
+| Heap                        |
+| ...                         |
+| Stack                       |
++-----------------------------+
+          Virtual address space
+
+PROCESS B
++-----------------------------+
+| Separate virtual address    |
+| space from Process A        |
++-----------------------------</pre>
+<p>If Process A writes to one of its normal private variables, that does not directly change Process B's private variable with the same address. The virtual address can be the same while mapping to different physical memory.</p></div>
+<div class="deepSection"><h4>Deep Dive — Two Threads in One Process</h4>
+<pre class="mono">ONE PROCESS
++------------------------------------------+
+| Code  ← shared                           |
+| Globals ← shared                         |
+| Heap ← shared                            |
+| File descriptors/resources ← shared     |
+|                                          |
+| Thread 1: PC + registers + Stack 1       |
+| Thread 2: PC + registers + Stack 2       |
++------------------------------------------</pre>
+<p>This is why threads can communicate cheaply through shared objects—and why a missing mutex can corrupt shared state.</p></div>
+<div class="deepSection"><h4>Real Scenario — Web Server Worker Model</h4>
+<p>A process can own the listening socket and shared configuration. Worker threads can handle separate client requests. Each worker keeps request-local variables on its own stack, while shared caches and counters live in the common address space.</p>
+<p><b>Danger:</b> two workers updating <span class="mono">active_clients</span> simultaneously can race unless the operation is atomic or synchronized.</p></div>
+<div class="deepSection realFile"><h4>Real Linux File Examples</h4>
+<pre class="mono"># See processes
+ps -e -o pid,ppid,comm
+
+# See threads of a process
+ps -L -p &lt;PID&gt;
+
+# Another Linux view
+ls /proc/&lt;PID&gt;/task/
+
+# Inspect memory mappings of a process
+cat /proc/&lt;PID&gt;/maps</pre>
+<p class="codeExplain"><b>What these prove:</b> <span class="mono">ps</span> can expose process/thread relationships, while <span class="mono">/proc/PID/task</span> contains one directory per thread ID for a Linux process.</p></div>`,
+  simulator:`<div id="ptSim"></div>`,
+  code:`<div class="deepSection"><h4>Real C Example — Two Threads Sharing a Global Variable</h4>
+<pre class="mono">#include &lt;pthread.h&gt;
+#include &lt;stdio.h&gt;
+
+int counter = 0;
+
+void *worker(void *arg) {
+    for (int i = 0; i &lt; 100000; ++i)
+        counter++;
+    return NULL;
+}
+
+int main(void) {
+    pthread_t t1, t2;
+
+    pthread_create(&amp;t1, NULL, worker, NULL);
+    pthread_create(&amp;t2, NULL, worker, NULL);
+
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    printf("counter = %d
+", counter);
+    return 0;
+}</pre>
+<div class="codeExplain"><b>Why is this unsafe?</b> <span class="mono">counter++</span> is a read-modify-write sequence. Two threads can interleave those steps. The exact result is timing-dependent and should not be assumed to equal 200000.</div></div>
+<div class="deepSection"><h4>Process Isolation Example</h4>
+<pre class="mono">#include &lt;unistd.h&gt;
+#include &lt;stdio.h&gt;
+
+int value = 10;
+
+int main(void) {
+    pid_t pid = fork();
+
+    if (pid == 0) {
+        value = 99;
+        printf("Child value = %d
+", value);
+    } else {
+        sleep(1);
+        printf("Parent value = %d
+", value);
+    }
+}</pre>
+<div class="codeExplain">After <span class="mono">fork()</span>, parent and child have separate virtual address spaces. With normal private memory, changing the child's <span class="mono">value</span> does not directly change the parent's copy.</div></div>
+<div class="deepSection realFile"><h4>Compile and Inspect</h4>
+<pre class="mono">gcc process_example.c -o process_example
+./process_example
+
+gcc -pthread thread_example.c -o thread_example
+./thread_example
+
+# Inspect threads while a program is alive
+ps -L -p &lt;PID&gt;</pre></div>`,
+  quiz:`<div class="card"><h4>Predict Before Running</h4><p>Two threads share a global integer. Each executes <span class="mono">counter++</span> 100,000 times. Is 200,000 guaranteed?</p><button class="btn primary" onclick="alert('No. The increment is not guaranteed to be an indivisible operation. Synchronization or an appropriate atomic operation is needed for a reliable result.')">Reveal</button></div>`
+
+},
+'16':{
+ overview:`<div class="card"><h4>Pthread API — The Standard</h4><p>POSIX Threads, available on Linux, macOS, etc. Link with -pthread</p><table class="table"><tr><th>Call</th><th>Meaning</th></tr><tr><td><span class="mono">pthread_create(tid,attr,func,arg)</span></td><td>Create new thread running func(arg)</td></tr><tr><td><span class="mono">pthread_join(tid, &ret)</span></td><td>Wait for thread termination (like wait() for processes)</td></tr><tr><td><span class="mono">pthread_exit(ret)</span></td><td>Exit current thread</td></tr><tr><td><span class="mono">pthread_detach(tid)</span></td><td>Don't need join, auto reclaim</td></tr><tr><td><span class="mono">pthread_self()</span></td><td>Get own tid</td></tr></table></div><div class="callout">Default: joinable thread. If you don't join nor detach → memory leak (zombie thread).</div>`,
+ internals:`<div class="card"><h4>Common Patterns</h4><ul><li><b>Boss-worker:</b> Main accepts work, creates workers</li><li><b>Pipeline:</b> Threads connected by queues</li><li><b>Thread pool:</b> Pre-create N workers, reuse (avoid create overhead)</li></ul><p><b>Race Condition Demo:</b> Two threads increment same counter without lock → lost update because read-modify-write not atomic.</p></div>
+<div class="deepSection realFile"><h4>Real File Example — Compile a Pthread Program</h4>
+<pre class="mono">gcc -pthread thread_demo.c -o thread_demo
+./thread_demo
+ps -L -p &lt;PID&gt;</pre>
+<p class="codeExplain">The <span class="mono">-pthread</span> option enables the required POSIX-thread compilation/linking behavior. Use a long-running demo if you want to inspect its threads with <span class="mono">ps -L</span>.</p></div>`,
+ simulator:`<div id="pthreadSim"></div>`,
+ code:`<div class="card"><h4>Full Pthread Example</h4><pre class="mono" id="pthreadCode">#include <pthread.h>
+#include <stdio.h>
+int counter=0;
+pthread_mutex_t lock=PTHREAD_MUTEX_INITIALIZER;
+void* inc(void* arg){
+  for(int i=0;i<100000;i++){
+    pthread_mutex_lock(&lock);
+    counter++;
+    pthread_mutex_unlock(&lock);
+  }
+  return NULL;
+}
+int main(){
+  pthread_t t1,t2;
+  pthread_create(&t1,NULL,inc,NULL);
+  pthread_create(&t2,NULL,inc,NULL);
+  pthread_join(t1,NULL);
+  pthread_join(t2,NULL);
+  printf("counter=%d (expected 200000)\\n",counter);
+}
+</pre><button class="btn primary" onclick="navigator.clipboard.writeText(document.getElementById('pthreadCode').innerText).then(()=>alert('Copied! Compile: gcc -pthread file.c'))">Copy Code</button></div>
+<p class="codeExplain"><b>pthread_create:</b> it starts a new execution path inside the same process; pthread_join establishes a synchronization point where the caller waits for completion.</p>`,
+ quiz:`<div class="card"><p>What if no mutex? <button class="btn" onclick="alert('Race: counter may be <200000 due to interleaving. Try removing lock in lab below.')">Ans</button></p></div>`
+},
+'17':{
+ overview:`<div class="card"><h4>Case Study: fork → exec → schedule → wait → exit</h4><p>We tie everything together: the full lifecycle with real PCB movement.</p></div>`,
+ internals:`<div class="diagram">USER: fork() → TRAP → KERNEL: copy PCB, allocate PID, copy page table (COW), add child to Ready Q → return to both → Scheduler picks → Child exec(ls) → old memory freed, new ELF loaded → Running → writes to screen (write syscall) → exit() → TERMINATED → parent woken from Waiting → Ready → Running</div>
+<div class="deepSection realFile"><h4>Real File Example — Observe fork/exec/wait</h4>
+<pre class="mono">strace -f ./fork_exec_example
+ps -o pid,ppid,stat,cmd -e | head -30</pre>
+<p class="codeExplain">The trace lets students connect the conceptual lifecycle to actual process creation, program replacement, waiting and termination events.</p></div>`,
+ simulator:`<div id="fullLifeSim"></div>`,
+ code:`<div class="card"><pre class="mono">strace -f ./fork_exec_example  # shows fork, execve, wait4, exit
+ps -o pid,ppid,stat,cmd -e | head
+</pre></div>
+<p class="codeExplain"><b>Full chain:</b> the parent and child return from fork with different return values, then their subsequent system calls can lead to different state transitions.</p>`,
+ quiz:`<div class="card"><p>Why fork uses COW? <button class="btn" onclick="alert('To make fork fast: dont copy all memory, share read-only and copy only on write.')">Ans</button></p></div>`
+},
+'18':{
+ overview:`<div class="card"><h4>Global Scheduler & Concurrency Lab</h4><p>Final lab where all concepts meet: you create jobs, choose policy, add threads, see PCB moves, metrics live.</p></div>`,
+ internals:`<div class="card"><p>This is the capstone — combines scheduler + threads + PCB + context switch cost.</p></div>
+<div class="deepSection"><h4>Capstone Investigation Checklist</h4>
+<ol><li>Create a workload with at least one short interactive job and one CPU-bound job.</li><li>Compare FCFS, SJF, RR and MLFQ.</li><li>Record turnaround, response, waiting and context-switch count.</li><li>Add two threads sharing a counter.</li><li>Run once without synchronization and once with a mutex.</li><li>Explain every observed difference using process state, scheduler policy and shared-memory reasoning.</li></ol></div>`,
+ simulator:`<div id="globalSim"></div>`,
+ code:`<div class="card"><pre class="mono">// Compile all pthread examples with -pthread
+// Use htop to see threads: htop -p <pid> then press H
+// Use ps -L to list threads
+</pre></div>
+<p class="codeExplain"><b>Capstone goal:</b> don't treat the simulator as an animation. Use it as evidence for a written explanation of scheduling and concurrency behavior.</p>`,
+ quiz:`<div class="card"><p>Final challenge: Build a web server with thread pool! <button class="btn primary" onclick="document.getElementById('pthreadSim').scrollIntoView({behavior:'smooth'})">Go to Pthread Lab</button></p></div>`
+},
+};
+
+function makeModule(m){
+ const wrap=document.createElement('div'); wrap.className='module'; wrap.id='mod-'+m.id;
+ const topics=m.topics.map(t=>`<span class="chip">${t}</span>`).join('');
+ wrap.innerHTML=`
+  <div class="moduleHead">
+   <h3>${m.id} — ${m.title}</h3>
+   <div style="display:flex;gap:6px;align-items:center">
+    <button class="btn" onclick="toggleBookmark('${m.id}')">🔖 Bookmark</button>
+   </div>
+  </div>
+  <div class="chips" style="margin:8px 0">${topics}</div>
+  <div class="card" style="margin-top:12px;background:linear-gradient(135deg,rgba(103,232,249,.045),rgba(196,181,253,.045));">
+     <b>Deep-learning path:</b> Understand the concept → inspect the Deep Dive → run the Live Simulator → read the Code → explain the result in your own words.
+   </div>
+   <div class="tabs">
+   <button class="tab active" data-tab="overview">Overview</button>
+   <button class="tab" data-tab="internals">Deep Dive</button>
+   <button class="tab" data-tab="simulator">Live Simulator</button>
+   <button class="tab" data-tab="code">Code</button>
+   <button class="tab" data-tab="quiz">Quiz</button>
+  </div>
+  <div class="tabPane" data-pane="overview">${contentMap[m.id].overview}</div>
+  <div class="tabPane" data-pane="internals" style="display:none">${contentMap[m.id].internals}</div>
+  <div class="tabPane" data-pane="simulator" style="display:none">${contentMap[m.id].simulator}</div>
+  <div class="tabPane" data-pane="code" style="display:none">${contentMap[m.id].code}</div>
+  <div class="tabPane" data-pane="quiz" style="display:none">${contentMap[m.id].quiz}</div>
+ `;
+ wrap.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+   wrap.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+   t.classList.add('active');
+   wrap.querySelectorAll('.tabPane').forEach(p=>p.style.display='none');
+   wrap.querySelector(`.tabPane[data-pane="${t.dataset.tab}"]`).style.display='block';
+   if(t.dataset.tab==='simulator'){ setTimeout(()=>mountLab(m.id),50); }
+  };
+ });
+return wrap;
+}
+function mountLab(id){
+ const cont=document.querySelector(`#mod-${id} .tabPane[data-pane="simulator"] > div`);
+ if(!cont || cont.dataset.mounted) return;
+ cont.dataset.mounted='1';
+ if(id==='01') mountLifeLab(cont);
+ else if(id==='02') mountPipelineLab(cont);
+ else if(id==='03') mountModeLab(cont);
+ else if(id==='04') mountLDELab(cont);
+ else if(id==='05') mountIntLab(cont);
+ else if(id==='06') mountSyscallLab(cont);
+ else if(id==='07') mountCtxLab(cont);
+ else if(id==='08') mountPCBLab(cont);
+ else if(id==='09') mountMetricLab(cont);
+ else if(id==='10') mountSched1Lab(cont);
+ else if(id==='11') mountRRLab(cont);
+ else if(id==='12') mountMLFQLab(cont);
+ else if(id==='13') mountRTLab(cont);
+ else if(id==='14') mountMotLab(cont);
+ else if(id==='15') mountPTLab(cont);
+ else if(id==='16') mountPthreadLab(cont);
+ else if(id==='17') mountFullLifeLab(cont);
+ else if(id==='18') mountGlobalLab(cont);
+}
+
+// --- LAB IMPLEMENTATIONS ---
+function mountLifeLab(c){
+ c.innerHTML=`<div class="card"><h4>Process State Simulator — Click to transition</h4><div id="lifeStates" class="stateFlow"></div><div class="controls"><button class="btn primary" onclick="lifeStep()">⏭️ Next Event</button><button class="btn" onclick="lifeReset()">Reset</button><span class="kbd" id="lifeLog">Ready</span></div><div class="diagram mono" id="lifeDiagram"></div></div>`;
+ window.lifeState='NEW'; window.lifeLog=[];
+ window.lifeReset=()=>{
+  window.lifeState='NEW'; window.lifeLog=['NEW: Process created, PID 101']; renderLife();
+ };
+ window.lifeStep=()=>{
+  const trans={ 'NEW':'READY', 'READY':'RUNNING', 'RUNNING': Math.random()>0.5?'WAITING':'READY', 'WAITING':'READY' };
+  if(window.lifeState==='READY' && Math.random()>0.7){ window.lifeState='RUNNING'; }
+  else if(window.lifeState==='RUNNING' && Math.random()>0.8){ window.lifeState='TERMINATED'; window.lifeLog.push('TERMINATED: exit() called'); renderLife(); return;}
+  else { window.lifeState=trans[window.lifeState]||'TERMINATED'; }
+  window.lifeLog.push(window.lifeState+': '+{READY:'Admitted to ready queue',RUNNING:'Dispatched by scheduler, CPU executes',WAITING:'I/O request → blocked',TERMINATED:'Finished'}[window.lifeState]);
+  renderLife();
+ };
+ function renderLife(){
+  document.getElementById('lifeStates').innerHTML=['NEW','READY','RUNNING','WAITING','TERMINATED'].map(s=>`<span class="state" style="${s===window.lifeState?'background:var(--cyan);color:#000;box-shadow:var(--glow)':''}">${s}</span>`).join('<span class="arrow">→</span>');
+  document.getElementById('lifeDiagram').innerHTML=window.lifeLog.slice(-8).join('<br/>');
+  document.getElementById('lifeLog').textContent=window.lifeState;
+ }
+ renderLife();
+}
+function mountPipelineLab(c){
+ c.innerHTML=`<div class="card"><h4>Source → Execution Pipeline — Animated</h4><div class="controls"><button class="btn primary" id="pipeBtn">▶️ Run Pipeline</button></div><div class="stateFlow" id="pipeFlow"></div><div class="diagram mono" id="pipeLog">Click Run</div></div>`;
+ document.getElementById('pipeBtn').onclick=async()=>{
+  const steps=[
+   'hello.c → Preprocessor: #include expands → hello.i',
+   'Compiler (cc1): C → Assembly hello.s',
+   'Assembler (as): hello.s → relocatable hello.o (ELF)',
+   'Linker (ld): hello.o + libc → executable hello (ELF with entry 0x401000)',
+   'Loader (execve): Kernel reads ELF, creates address space, maps code R-X, data RW-, BSS zeroed',
+   'Process PID 101 in READY → Scheduler dispatches → RUNNING → _start → main() → printf → write syscall → exit'
+  ];
+  const flow=document.getElementById('pipeFlow'); flow.innerHTML='';
+  for(let i=0;i<steps.length;i++){
+   const el=document.createElement('div'); el.className='state'; el.textContent=steps[i].split(':')[0]; el.style.opacity='0.4'; flow.appendChild(el);
+   if(i<steps.length-1){ const a=document.createElement('span'); a.className='arrow'; a.textContent='→'; a.style.opacity='0.4'; flow.appendChild(a); }
+   await new Promise(r=>setTimeout(r,600));
+   el.style.opacity='1'; el.style.background='var(--panel3)'; document.getElementById('pipeLog').innerHTML=steps.slice(0,i+1).join('<br/>→ ');
+  }
+ };
+}
+function mountModeLab(c){
+ c.innerHTML=`<div class="card"><h4>Dual Mode Demo</h4><p>User mode: try privileged instruction?</p><div class="controls"><button class="btn primary" onclick="modeTry('user')">User tries HLT</button><button class="btn" onclick="modeTry('kernel')">Kernel executes HLT (sim)</button></div><div class="diagram" id="modeOut">Ready</div></div>`;
+ window.modeTry=(m)=>{
+  const out=document.getElementById('modeOut');
+  if(m==='user') out.innerHTML='<span style="color:var(--rose)">CPU Exception: #GP — Privileged instruction in user mode → Trap to kernel → Process killed (SIGILL)</span><br/>Mode bit = 1 (user). Hardware prevents.';
+  else out.innerHTML='<span style="color:var(--emerald)">Kernel mode: HLT allowed, CPU halted safely. Mode bit = 0 (kernel). Only OS can do this.</span>';
+ };
+}
+function mountLDELab(c){
+ c.innerHTML=`<div class="card"><h4>LDE with Timer — How OS regains CPU</h4><div class="cpuBox"><i id="ldeCpu" style="width:0%"></i></div><div class="controls"><label>Process runtime without yield: <input type="range" id="ldeRange" min="1" max="100" value="60"><span id="ldeVal">60ms</span></label><button class="btn primary" id="ldeRun">▶️ Run with Timer Interrupt (10ms)</button></div><div class="diagram mono" id="ldeLog"></div></div>`;
+ document.getElementById('ldeRange').oninput=e=>document.getElementById('ldeVal').textContent=e.target.value+'ms';
+ document.getElementById('ldeRun').onclick=async()=>{
+  const need=parseInt(document.getElementById('ldeRange').value);
+  const quantum=10; let used=0; const log=document.getElementById('ldeLog'); log.innerHTML=''; document.getElementById('ldeCpu').style.width='0%';
+  while(used<need){
+   await new Promise(r=>setTimeout(r,250));
+   used+=quantum; const pct=Math.min(100, (used/need)*100); document.getElementById('ldeCpu').style.width=pct+'%';
+   if(used<need){ log.innerHTML+=`[t=${used}ms] Timer interrupt → Kernel mode → Save PCB_A, scheduler decides → Continue A (still has ${need-used}ms)<br/>`; }
+   else { log.innerHTML+=`[t=${used}ms] Process voluntarily yields / blocks → Trap → OS regains control<br/>`; }
+  }
+  log.innerHTML+=`<br/><b>Result: Without timer, process would hog CPU forever. Timer guarantees OS gets control every ${quantum}ms.</b>`;
+ };
+}
+function mountIntLab(c){
+ c.innerHTML=`<div class="card"><h4>Interrupt Handling Visualizer</h4><div class="controls"><button class="btn primary" onclick="intFire('timer')">🔔 Timer Interrupt</button><button class="btn" onclick="intFire('disk')">💾 Disk I/O Complete</button><button class="btn" onclick="intFire('syscall')">📞 Syscall Trap</button></div><div class="diagram mono" id="intLog">CPU running user process P1... (PC=0x40102a, Mode=User)<br/>Interrupt line idle</div></div>`;
+ window.intFire=(type)=>{
+  const log=document.getElementById('intLog');
+  const msgs={
+   timer:`[HW] Timer tick IRQ0 → CPU: save PC/SP to kernel stack, switch to kernel, IDT[32] → timer_handler()<br/>→ handler: update ticks, wake scheduler, check if quantum expired → if yes, set need_resched<br/>→ iret → back to user (or switch to P2)`,
+   disk:`[HW] Disk IRQ14 → CPU traps → IDT[46] → disk_handler()<br/>→ Data ready, move PCB of waiting process P2 from WaitQ(disk) → ReadyQ<br/>→ scheduler may preempt P1<br/>→ iret`,
+   syscall:`[SW] Process executes SYSCALL instr → Trap → IDT[128] → syscall_handler<br/>→ Save regs to PCB, dispatch by rax (e.g., 1=write) → validate args → copy_from_user → do work<br/>→ put return in rax → iret to user`
+  };
+  log.innerHTML+=`<br/><br/>${msgs[type]}`;
+ };
+}
+function mountSyscallLab(c){
+ c.innerHTML=`<div class="card"><h4>Syscall Trap Mechanism — Step</h4><div class="grid2"><div class="diagram mono" id="scUser">User: write(1, "hi", 3)<br/>rax=1 (sys_write)<br/>rdi=1, rsi=buf, rdx=3<br/>→ syscall instruction</div><div class="diagram mono" id="scKernel">Kernel: idle</div></div><div class="controls"><button class="btn primary" onclick="scStep()">▶️ Trap to Kernel</button><button class="btn" onclick="scReset()">Reset</button></div><div class="card mono" id="scLog" style="font-size:11px"></div></div>`;
+ let stepped=false;
+ window.scStep=()=>{
+  if(stepped){ scReset(); return; }
+  stepped=true;
+  document.getElementById('scKernel').innerHTML='Kernel: trap → mode=kernel<br/>IDT[128] → sys_write()<br/>Check fd=1 valid?<br/>copy_from_user(buf)<br/>vfs_write()<br/>return 3<br/>→ iret';
+  document.getElementById('scLog').innerHTML='Syscall table lookup: sys_call_table[1] = sys_write<br/>Permission check: process has write perm for fd 1<br/>Result placed in RAX=3<br/>User resumes after syscall instruction, next PC';
+ };
+ window.scReset=()=>{ stepped=false; document.getElementById('scKernel').textContent='Kernel: idle'; document.getElementById('scLog').textContent=''; };
+}
+function mountCtxLab(c){
+ c.innerHTML=`<div class="card"><h4>Context Switch — Save/Restore</h4><div class="grid2"><div class="card"><h4>P1 PCB (Running)</h4><pre class="mono" id="pcb1">PID=101 PC=0x401030 SP=0x7ffc0010 RAX=5</pre></div><div class="card"><h4>P2 PCB (Ready)</h4><pre class="mono" id="pcb2">PID=102 PC=0x401080 SP=0x7ffc0020 RAX=0</pre></div></div><div class="controls"><button class="btn primary" onclick="ctxSwitch()">🔄 Switch P1 → P2</button><button class="btn" onclick="ctxSwitchBack()">↩️ Switch Back</button></div><div class="diagram mono" id="ctxLog">CPU currently running P1</div></div>`;
+ window.ctxSwitch=()=>{
+  document.getElementById('pcb1').textContent='PID=101 PC=0x401034 SP=0x7ffc0008 (saved) RAX=5 (saved to PCB)';
+  document.getElementById('pcb2').textContent='PID=102 PC=0x401080 SP=0x7ffc0020 (loaded) RAX=0 (restored)';
+  document.getElementById('ctxLog').innerHTML='1. Timer interrupt → Kernel<br/>2. swtch(): push regs to kernel stack of P1, save SP to PCB1->sp<br/>3. Load SP from PCB2->sp, pop regs of P2<br/>4. Switch CR3 to P2 page table → TLB flush<br/>5. iret to 0x401080 → Now running P2<br/><b>Cost: ~5us + TLB miss penalty</b>';
+ };
+ window.ctxSwitchBack=()=>{
+  document.getElementById('pcb1').textContent='PID=101 PC=0x401030 SP=0x7ffc0010 RAX=5 (restored)';
+  document.getElementById('pcb2').textContent='PID=102 PC=0x401090 SP=0x7ffc0018 (saved)';
+  document.getElementById('ctxLog').textContent='Switched back to P1';
+ };
+}
+function mountPCBLab(c){
+ c.innerHTML=`<div class="card"><h4>PCB Manager — Live Queues</h4><div class="grid3"><div><b>Ready Queue</b><div id="readyQ" class="diagram"></div></div><div><b>Running (CPU)</b><div id="runQ" class="diagram"></div></div><div><b>Wait Queue (Disk)</b><div id="waitQ" class="diagram"></div></div></div><div class="controls"><button class="btn primary" onclick="pcbCreate()">➕ Create Process</button><button class="btn" onclick="pcbDispatch()">▶️ Dispatch</button><button class="btn" onclick="pcbBlock()">⏸️ Block for I/O</button><button class="btn" onclick="pcbWake()">✅ I/O Complete</button><button class="btn" onclick="pcbExit()">❌ Exit</button></div><div class="diagram mono" id="pcbDetail">Click actions to move PCBs between queues</div></div>`;
+ window.pcbId=100; window.ready=[]; window.running=null; window.waiting=[];
+ window.pcbCreate=()=>{ window.pcbId++; const pcb={pid:window.pcbId, pc:'0x401000', pri:Math.floor(Math.random()*8)}; window.ready.push(pcb); renderPCB(); };
+ window.pcbDispatch=()=>{ if(window.ready.length && !window.running){ window.running=window.ready.shift(); renderPCB(); } };
+ window.pcbBlock=()=>{ if(window.running){ window.waiting.push(window.running); window.running=null; renderPCB(); } };
+ window.pcbWake=()=>{ if(window.waiting.length){ window.ready.push(window.waiting.shift()); renderPCB(); } };
+ window.pcbExit=()=>{ if(window.running){ window.running=null; renderPCB(); } };
+ function renderPCB(){
+  document.getElementById('readyQ').innerHTML=window.ready.map(p=>`PID${p.pid} (PC ${p.pc})`).join('<br/>')||'empty';
+  document.getElementById('runQ').innerHTML=window.running?`PID${window.running.pid} RUNNING<br/>PC=${window.running.pc}<br/>SP=0x7fff...<br/>State=RUNNING`:'idle';
+  document.getElementById('waitQ').innerHTML=window.waiting.map(p=>`PID${p.pid} waiting disk`).join('<br/>')||'empty';
+  document.getElementById('pcbDetail').innerHTML=`Ready=${window.ready.length} Running=${window.running?1:0} Waiting=${window.waiting.length}<br/>PCB stored in kernel memory: task_struct {pid, state, pc, sp, regs[16], pgdir, files, priority}`;
+ }
+ renderPCB();
+}
+function mountMetricLab(c){
+ c.innerHTML=`<div class="card"><h4>Scheduling Metrics Calculator</h4><div class="controls">Jobs (arrival, runtime): <input id="metInput" value="0,5; 1,3; 2,8" style="width:200px" class="kbd"> <button class="btn primary" onclick="calcMetrics()">Calculate FIFO</button></div><div class="diagram" id="metOut"></div></div>`;
+ window.calcMetrics=()=>{
+  const input=document.getElementById('metInput').value;
+  const jobs=input.split(';').map(s=>{ const [a,r]=s.split(',').map(x=>parseInt(x.trim())); return {arrival:a, runtime:r}; });
+  let time=0, results=[];
+  jobs.forEach((j,i)=>{
+   if(time<j.arrival) time=j.arrival;
+   const start=time, comp=time+j.runtime, turnaround=comp-j.arrival, response=start-j.arrival, waiting=response;
+   results.push({i, arrival:j.arrival, runtime:j.runtime, start, comp, turnaround, response, waiting});
+   time=comp;
+  });
+  const avgT=results.reduce((s,r)=>s+r.turnaround,0)/results.length;
+  const avgR=results.reduce((s,r)=>s+r.response,0)/results.length;
+  document.getElementById('metOut').innerHTML=`<table class="table"><tr><th>Job</th><th>Arr</th><th>Run</th><th>Start</th><th>Comp</th><th>Turn</th><th>Resp</th></tr>${results.map(r=>`<tr><td>J${r.i}</td><td>${r.arrival}</td><td>${r.runtime}</td><td>${r.start}</td><td>${r.comp}</td><td>${r.turnaround}</td><td>${r.response}</td></tr>`).join('')}<tr><th colspan="5">Average</th><th>${avgT.toFixed(1)}</th><th>${avgR.toFixed(1)}</th></tr></table><p><b>Turnaround</b> cares about completion, <b>Response</b> cares about first run. FIFO bad for avg turnaround when long job first.</p>`;
+ };
+ calcMetrics();
+}
+function mountSched1Lab(c){
+ c.innerHTML=`<div class="card"><h4>FIFO vs SJF vs STCF Playground</h4><div class="controls"><label>Jobs (runtime): <input id="s1Input" value="10,2,6" class="kbd" style="width:120px"></label><select id="s1Pol" class="btn"><option value="FIFO">FIFO</option><option value="SJF">SJF (non-preemptive)</option><option value="STCF">STCF (preemptive)</option></select><button class="btn primary" onclick="runS1()">▶️ Simulate</button></div><div class="diagram" id="s1Out"></div><canvas id="s1Canvas" width="700" height="120" style="width:100%;background:var(--bg2);border-radius:10px;border:1px solid var(--border)"></canvas></div>`;
+ window.runS1=()=>{
+  const runtimes=document.getElementById('s1Input').value.split(',').map(x=>parseInt(x.trim()));
+  const pol=document.getElementById('s1Pol').value;
+  let jobs=runtimes.map((r,i)=>({id:i, runtime:r, remaining:r, arrival:0}));
+  if(pol==='SJF') jobs.sort((a,b)=>a.runtime-b.runtime);
+  let time=0, timeline=[], completed=[];
+  if(pol==='STCF'){
+   // preemptive simulation with arrivals 0 but for demo same as SJF
+   jobs=[...runtimes.map((r,i)=>({id:i, runtime:r, remaining:r}))].sort((a,b)=>a.runtime-b.runtime);
+   for(let j of jobs){ timeline.push({id:j.id, start:time, end:time+j.runtime}); time+=j.runtime; completed.push({id:j.id, comp:time}); }
+  } else {
+   for(let j of jobs){ timeline.push({id:j.id, start:time, end:time+j.runtime}); const comp=time+j.runtime; completed.push({id:j.id, comp}); time=comp; }
+  }
+  const avg=completed.reduce((s,c)=>s+c.comp,0)/completed.length;
+  document.getElementById('s1Out').innerHTML=`Policy <b>${pol}</b> — Avg Turnaround = <b>${avg.toFixed(1)}</b> — Timeline: ${timeline.map(t=>`P${t.id}[${t.start}-${t.end}]`).join(' → ')}<br/><span style="color:var(--muted)">SJF minimizes avg turnaround but needs knowledge of runtime. STCF even better with preemption.</span>`;
+  const canvas=document.getElementById('s1Canvas'); const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+  timeline.forEach((t,i)=>{ ctx.fillStyle=`hsl(${i*70},80%,60%)`; const x=(t.start/time)*canvas.width, w=(t.end-t.start)/time*canvas.width; ctx.fillRect(x,10,w,60); ctx.fillStyle='#000'; ctx.fillText(`P${t.id}`,x+5,40); });
+ };
+ runS1();
+}
+function mountRRLab(c){
+ c.innerHTML=`<div class="card"><h4>Round Robin — Quantum Impact</h4><div class="controls"><label>Quantum: <input type="range" id="rrQ" min="1" max="10" value="2"><span id="rrQv">2</span></label><label>Jobs: <input id="rrJobs" value="5,3,1" class="kbd" style="width:80px"></label><button class="btn primary" onclick="runRR()">▶️ Run RR</button></div><div class="diagram" id="rrOut"></div><canvas id="rrCanvas" width="700" height="140" style="width:100%;background:var(--bg2);border-radius:10px;border:1px solid var(--border)"></canvas></div>`;
+ document.getElementById('rrQ').oninput=e=>document.getElementById('rrQv').textContent=e.target.value;
+ window.runRR=()=>{
+  const q=parseInt(document.getElementById('rrQ').value);
+  const runtimes=document.getElementById('rrJobs').value.split(',').map(x=>parseInt(x.trim()));
+  let jobs=runtimes.map((r,i)=>({id:i, remaining:r, arrival:0}));
+  let queue=[...jobs], time=0, timeline=[], ctxSwitches=0;
+  while(queue.length){
+   let j=queue.shift(); let run=Math.min(q,j.remaining); timeline.push({id:j.id, start:time, end:time+run}); time+=run; j.remaining-=run; if(j.remaining>0){ queue.push(j); ctxSwitches++; }
+  }
+  const total= time;
+  document.getElementById('rrOut').innerHTML=`Quantum=${q} — Total time=${total}, Context switches=${ctxSwitches}, Avg Response improves with small quantum but switches increase. Timeline: ${timeline.map(t=>`P${t.id}`).join('→')}`;
+  const canvas=document.getElementById('rrCanvas'); const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+  timeline.forEach(t=>{ ctx.fillStyle=`hsl(${t.id*80},80%,60%)`; const x=(t.start/total)*canvas.width, w=(t.end-t.start)/total*canvas.width; ctx.fillRect(x,20,w,40); });
+ };
+ runRR();
+}
+function mountMLFQLab(c){
+ c.innerHTML=`<div class="card">
+ <h4>LIVE MLFQ LAB — Change Workload, Quantum & Boost Interval</h4>
+ <p>Run the same workload under different MLFQ settings. Watch every CPU slice, queue movement, demotion, completion time and starvation-prevention boost.</p>
+ <div class="controls">
+  <label>Q2 quantum <input type="range" id="m12q2" min="1" max="5" value="2"><span id="m12q2v">2</span> ms</label>
+  <label>Q1 quantum <input type="range" id="m12q1" min="2" max="8" value="4"><span id="m12q1v">4</span> ms</label>
+  <label>Boost every <input type="range" id="m12boost" min="8" max="40" value="20"><span id="m12boostv">20</span> ms</label>
+  <button class="btn primary" id="m12run">▶ Run MLFQ</button><button class="btn" id="m12reset">Reset</button>
+ </div>
+ <div class="metricGrid" id="m12metrics"></div>
+ <div id="m12queues"></div>
+ <div class="timeline" id="m12timeline"></div>
+ <div class="diagram mono" id="m12log" style="max-height:280px;overflow:auto">Configure the controls and press Run.</div>
+ </div>`;
+ const $=id=>document.getElementById(id);
+ ["m12q2","m12q1","m12boost"].forEach(id=>$(id).oninput=()=>{
+   $(id+"v").textContent=$(id).value;
+ });
+ function reset(){
+   $("m12timeline").innerHTML=""; $("m12log").innerHTML="Configure the controls and press Run.";
+   $("m12queues").innerHTML=""; $("m12metrics").innerHTML="";
+ }
+ $("m12reset").onclick=reset;
+ $("m12run").onclick=()=>{
+   const q2=+$("m12q2").value, q1=+$("m12q1").value, boost=+$("m12boost").value;
+   const jobs=[
+    {id:"P1",type:"I/O",remaining:7,q:2},
+    {id:"P2",type:"CPU",remaining:15,q:2},
+    {id:"P3",type:"I/O",remaining:5,q:2},
+    {id:"P4",type:"CPU",remaining:11,q:2},
+    {id:"P5",type:"CPU",remaining:8,q:2}
+   ];
+   let qs=[[],[],[]]; jobs.forEach(j=>qs[0].push(j));
+   let t=0, slices=[], log=[], boosts=0, switches=0;
+   const qtime=q=>q===2?q2:q===1?q1:q1*2;
+   while(jobs.some(j=>j.remaining>0) && t<200){
+     if(t>0 && t%boost===0){
+       qs=[[],[],[]];
+       jobs.filter(j=>j.remaining>0).forEach(j=>{j.q=2;qs[0].push(j)});
+       boosts++; log.push(`[t=${t}] PRIORITY BOOST → all unfinished jobs moved to Q2`);
+     }
+     const qi=qs.findIndex(q=>q.length);
+     if(qi<0) break;
+     const j=qs[qi].shift(), level=2-qi, q=qtime(level);
+     let run=Math.min(q,j.remaining);
+     // I/O-bound jobs voluntarily block after a short CPU burst.
+     if(j.type==="I/O") run=Math.min(run,1);
+     const start=t; j.remaining-=run; t+=run; switches++;
+     slices.push({id:j.id,level,start,end:t});
+     if(j.remaining<=0){
+       j.done=t; log.push(`[t=${start}-${t}] ${j.id} ${j.type}: finished in Q${level}`);
+     } else if(run===q){
+       j.q=Math.max(0,level-1);
+       qs[2-j.q].push(j);
+       log.push(`[t=${start}-${t}] ${j.id}: full quantum ${q}ms → DEMOTE to Q${j.q}`);
+     } else {
+       qs[qi].push(j);
+       log.push(`[t=${start}-${t}] ${j.id}: short burst/I/O → STAY in Q${level}`);
+     }
+   }
+   const avg=(jobs.reduce((a,j)=>a+j.done,0)/jobs.length).toFixed(1);
+   const cpu=jobs.filter(j=>j.type==="CPU").map(j=>j.done).join(", ");
+   $("m12metrics").innerHTML=
+    `<div class="metricBox"><b>${t} ms</b><small>Total time</small></div>
+     <div class="metricBox"><b>${avg} ms</b><small>Avg completion</small></div>
+     <div class="metricBox"><b>${switches}</b><small>CPU slices</small></div>
+     <div class="metricBox"><b>${boosts}</b><small>Boosts</small></div>`;
+   $("m12timeline").innerHTML=slices.map(x=>`<div class="slice" style="flex:${Math.max(1,x.end-x.start)}">${x.id}<br>Q${x.level}</div>`).join("");
+   $("m12log").innerHTML=log.join("<br>")+
+    `<br><br><b>Learning result:</b> I/O jobs receive short bursts and tend to remain high; CPU-bound jobs repeatedly consume full quanta and move down. The boost interval periodically restores fairness.`;
+   $("m12queues").innerHTML=[2,1,0].map(level=>{
+     const arr=qs[2-level];
+     return `<div class="queueRow"><span class="queueLabel">Q${level}</span>${arr.map(j=>`<span class="jobPill">${j.id} · rem ${j.remaining}</span>`).join("")||"<span class='jobPill'>empty</span>"}</div>`;
+   }).join("");
+ };
+ reset();
+}
+function mountRTLab(c){
+ c.innerHTML=`<div class="card">
+ <h4>LIVE REAL-TIME LAB — EDF vs Rate Monotonic</h4>
+ <p>Edit task execution time, period and deadline. Then run the schedule. The simulator generates releases, selects the next task, marks deadline misses and calculates utilization.</p>
+ <div class="grid2">
+  <div class="card">
+   <h4>T1</h4>
+   <label>C <input type="number" id="rtC1" value="1" min="1" max="5"></label>
+   <label>T <input type="number" id="rtT1" value="4" min="2" max="20"></label>
+   <label>D <input type="number" id="rtD1" value="4" min="1" max="20"></label>
+  </div>
+  <div class="card">
+   <h4>T2</h4>
+   <label>C <input type="number" id="rtC2" value="2" min="1" max="5"></label>
+   <label>T <input type="number" id="rtT2" value="6" min="2" max="20"></label>
+   <label>D <input type="number" id="rtD2" value="6" min="1" max="20"></label>
+  </div>
+ </div>
+ <div class="controls"><label>Simulation horizon <input type="range" id="rtH" min="8" max="40" value="20"><span id="rtHv">20</span> ms</label>
+ <button class="btn primary" id="rtEDF">▶ Run EDF</button><button class="btn" id="rtRM">Run RM</button></div>
+ <div class="metricGrid" id="rtMetrics"></div><div class="timeline" id="rtTimeline"></div>
+ <div class="diagram mono" id="rtOut">Choose EDF or RM.</div>
+ </div>`;
+ const $=id=>document.getElementById(id);
+ $("rtH").oninput=()=>$("rtHv").textContent=$("rtH").value;
+ function readTasks(){
+   return [
+    {name:"T1",C:+$("rtC1").value,T:+$("rtT1").value,D:+$("rtD1").value},
+    {name:"T2",C:+$("rtC2").value,T:+$("rtT2").value,D:+$("rtD2").value}
+   ];
+ }
+ function simulate(mode){
+   const tasks=readTasks(), H=+$("rtH").value;
+   let releases=[];
+   for(let t=0;t<H;t++) tasks.forEach(task=>{
+     if(t%task.T===0) releases.push({name:task.name,release:t,deadline:t+task.D,remaining:task.C,id:releases.length});
+   });
+   let active=[], timeline=[], misses=[], completed=0;
+   for(let t=0;t<H;t++){
+     releases.filter(r=>r.release===t).forEach(r=>active.push({...r}));
+     active=active.filter(r=>{
+       if(r.deadline<t && r.remaining>0){misses.push(r);return false}
+       return true;
+     });
+     let pick=null;
+     if(active.length){
+       if(mode==="EDF") pick=active.reduce((a,b)=>b.deadline<a.deadline?b:a);
+       else {
+         const rank=n=>tasks.findIndex(x=>x.name===n);
+         pick=active.reduce((a,b)=>rank(b.name)<rank(a.name)?b:a);
+       }
+       pick.remaining--; timeline.push({name:pick.name,t});
+       if(pick.remaining===0){completed++;active=active.filter(x=>x!==pick)}
+     } else timeline.push({name:"IDLE",t});
+     active.forEach(r=>{if(r.deadline<=t+1 && r.remaining>0 && r.deadline===t+1) misses.push(r)});
+   }
+   const util=tasks.reduce((a,x)=>a+x.C/x.T,0);
+   $("rtMetrics").innerHTML=
+    `<div class="metricBox"><b>${(util*100).toFixed(1)}%</b><small>Utilization</small></div>
+     <div class="metricBox"><b>${completed}</b><small>Completed jobs</small></div>
+     <div class="metricBox"><b>${misses.length}</b><small>Deadline events</small></div>
+     <div class="metricBox"><b>${mode}</b><small>Policy</small></div>`;
+   $("rtTimeline").innerHTML=timeline.map(x=>`<div class="slice" style="flex:1">${x.name}<br>${x.t}</div>`).join("");
+   const rmBound=(2*(Math.pow(2,1/2)-1));
+   $("rtOut").innerHTML=
+    `<b>${mode} schedule</b><br>`+
+    timeline.map(x=>`t=${x.t}: ${x.name}`).join(" → ")+
+    `<br><br><b>Utilization:</b> ${(util*100).toFixed(1)}%`+
+    (mode==="RM"?`<br><b>Two-task RM sufficient bound:</b> ${(rmBound*100).toFixed(1)}% (a sufficient test under its assumptions)`:"")+
+    `<br><b>Deadline events recorded:</b> ${misses.length}`+
+    `<br><br><span class="${misses.length?'resultWarn':'resultGood'}">${misses.length?'At least one job experienced a deadline problem within this finite simulation.':'No deadline miss was recorded within this finite simulation horizon.'}</span>`;
+ }
+ $("rtEDF").onclick=()=>simulate("EDF");
+ $("rtRM").onclick=()=>simulate("RM");
+}
+function mountMotLab(c){
+ c.innerHTML=`<div class="card"><h4>Why Concurrency Matters — I/O Overlap Demo</h4><div class="controls"><button class="btn primary" onclick="motRun(false)">▶️ Sequential (no threads)</button><button class="btn" onclick="motRun(true)">⚡ Concurrent (2 threads)</button></div><div class="diagram"><div class="cpuBox"><i id="motCpu" style="width:0%"></i></div><div class="cpuBox" style="margin-top:6px"><i id="motIO" style="width:0%;background:linear-gradient(90deg,var(--violet),var(--indigo))"></i></div><div class="mono" id="motLog"></div></div></div>`;
+ window.motRun=async(concurrent)=>{
+  const log=document.getElementById('motLog'); log.innerHTML=''; document.getElementById('motCpu').style.width='0%'; document.getElementById('motIO').style.width='0%';
+  if(!concurrent){
+   log.innerHTML+='Task1: CPU 2s → I/O 3s (CPU idle) → CPU 1s = 6s total<br/>';
+   for(let i=0;i<=100;i++){ document.getElementById('motCpu').style.width=(i<33?i:33)+' %'; await new Promise(r=>setTimeout(r,20)); }
+   log.innerHTML+='I/O waiting... CPU wasted<br/>'; await new Promise(r=>setTimeout(r,800));
+   for(let i=33;i<=100;i++){ document.getElementById('motCpu').style.width=i+'%'; await new Promise(r=>setTimeout(r,15)); }
+   log.innerHTML+='<b>Sequential = 6s, CPU utilization 50%</b>';
+  } else {
+   log.innerHTML+='T1 CPU while T2 I/O → overlap<br/>';
+   for(let i=0;i<=100;i++){ document.getElementById('motCpu').style.width=i+'%'; document.getElementById('motIO').style.width=Math.min(100,i*1.2)+'%' ; await new Promise(r=>setTimeout(r,18)); }
+   log.innerHTML+='<b>Concurrent = ~3.5s, CPU utilization ~85% — I/O overlapped!</b>';
+  }
+ };
+}
+function mountPTLab(c){
+ c.innerHTML=`<div class="card">
+ <h4>LIVE PROCESS vs THREAD LAB — Isolation, Sharing & Race Condition</h4>
+ <p>Use the controls to create a visual model of separate processes or threads inside one process. Then run a deterministic interleaving race demonstration and compare it with a mutex-protected execution.</p>
+ <div class="controls"><label>Workers <input type="range" id="ptN" min="2" max="6" value="2"><span id="ptNv">2</span></label>
+ <button class="btn primary" id="ptBuild">Build Memory Model</button><button class="btn" id="ptRaceBtn">💥 Run Race</button><button class="btn" id="ptSafeBtn">🔒 Run Mutex</button></div>
+ <div id="ptModel"></div><div class="metricGrid" id="ptMetrics"></div><div class="timeline" id="ptTimeline"></div>
+ <div class="diagram mono" id="ptOut">Choose an experiment.</div>
+ </div>`;
+ const $=id=>document.getElementById(id);
+ $("ptN").oninput=()=>$("ptNv").textContent=$("ptN").value;
+ function build(){
+   const n=+$("ptN").value;
+   $("ptModel").innerHTML=`<div class="grid2">
+    <div class="card"><h4>${n} Separate Processes</h4><div class="diagram">
+      Code: separate virtual address spaces<br>
+      Global data: <b>isolated</b><br>
+      Heap: <b>isolated</b><br>
+      Stack: private per process<br>
+      Communication: IPC/shared memory/socket required
+    </div></div>
+    <div class="card"><h4>One Process + ${n} Threads</h4><div class="diagram">
+      Code: <b>shared</b><br>
+      Global data: <b>shared</b><br>
+      Heap: <b>shared</b><br>
+      Stack: private per thread<br>
+      Registers/PC: private per thread<br>
+      Synchronization: required for shared mutable state
+    </div></div>
+   </div>`;
+ }
+ function runRace(safe){
+   const n=+$("ptN").value, iterations=20;
+   let counter=0, events=[];
+   if(safe){
+     // Simulate serialized critical sections.
+     for(let i=0;i<n;i++) for(let k=0;k<iterations;k++){
+       const before=counter; counter=before+1;
+       events.push({id:i,before,after:counter});
+     }
+   }else{
+     // Deterministic lost-update model: each round all workers read the same value, then write.
+     for(let k=0;k<iterations;k++){
+       const snapshot=counter;
+       for(let i=0;i<n;i++) events.push({id:i,before:snapshot,after:snapshot+1});
+       counter=snapshot+1;
+     }
+   }
+   $("ptMetrics").innerHTML=
+    `<div class="metricBox"><b>${counter}</b><small>Final counter</small></div>
+     <div class="metricBox"><b>${n*iterations}</b><small>Expected increments</small></div>
+     <div class="metricBox"><b>${safe?"0":n*iterations-counter}</b><small>Lost updates</small></div>
+     <div class="metricBox"><b>${safe?"LOCKED":"RACE"}</b><small>Execution model</small></div>`;
+   $("ptTimeline").innerHTML=events.slice(0,80).map((e,i)=>`<div class="slice" style="flex:1">${e.id}<br>${e.after}</div>`).join("");
+   $("ptOut").innerHTML=
+    `<b>${safe?"Mutex-protected":"Unsynchronized"} experiment</b><br>`+
+    `Workers=${n}, iterations/worker=${iterations}<br>`+
+    `Final counter=${counter}; expected=${n*iterations}.<br><br>`+
+    (safe?`<span class="resultGood">Each increment is modeled as a protected critical section, so the final count is preserved.</span>`:
+    `<span class="resultWarn">The workers repeatedly read the same snapshot and overwrite one another. This is the lost-update pattern behind a race condition.</span>`);
+ }
+ $("ptBuild").onclick=build;
+ $("ptRaceBtn").onclick=()=>runRace(false);
+ $("ptSafeBtn").onclick=()=>runRace(true);
+ build();
+}
+function mountPthreadLab(c){
+ c.innerHTML=`<div class="card"><h4>Pthread Live Playground — Create / Join / Race</h4><div class="controls"><label>Threads: <input type="range" id="pthN" min="1" max="8" value="2"><span id="pthNv">2</span></label><label><input type="checkbox" id="pthLock"> Use Mutex</label><button class="btn primary" onclick="runPthread()">▶️ Run</button></div><div class="diagram mono" id="pthOut"></div><div class="card"><h4>Output Timeline</h4><canvas id="pthCanvas" width="700" height="160" style="width:100%;background:var(--bg2);border-radius:10px;border:1px solid var(--border)"></canvas></div></div>`;
+ document.getElementById('pthN').oninput=e=>document.getElementById('pthNv').textContent=e.target.value;
+ window.runPthread=async()=>{
+  const n=parseInt(document.getElementById('pthN').value); const useLock=document.getElementById('pthLock').checked;
+  let counter=0; let lock=false; const timeline=[]; const out=document.getElementById('pthOut'); out.innerHTML=`Spawning ${n} threads via pthread_create()...<br/>`;
+  async function worker(id){
+   for(let i=0;i<200;i++){
+    if(useLock){ while(lock) await new Promise(r=>setTimeout(r,0)); lock=true; }
+    let tmp=counter; await new Promise(r=>setTimeout(r,0)); counter=tmp+1; timeline.push({t:Date.now(), id, c:counter});
+    if(useLock) lock=false;
+   }
+   out.innerHTML+=`Thread ${id} finished (pthread_join ready)<br/>`;
+  }
+  const start=Date.now();
+  await Promise.all(Array.from({length:n},(_,i)=>worker(i)));
+  out.innerHTML+=`<b>Final counter=${counter}, expected=${n*200}. ${useLock?'Safe with mutex':'Race — lost '+(n*200-counter)+' updates!'}</b><br/>Time ${(Date.now()-start)}ms`;
+  const canvas=document.getElementById('pthCanvas'); const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+  timeline.slice(0,400).forEach((e,idx)=>{ ctx.fillStyle=`hsl(${e.id*60},80%,60%)`; ctx.fillRect((idx/timeline.length)*canvas.width, e.id*18+10, 2, 12); });
+ };
+}
+function mountFullLifeLab(c){
+ c.innerHTML=`<div class="card"><h4>Full Lifecycle: fork → exec → schedule → exit</h4><div class="controls"><button class="btn primary" onclick="fullRun()">▶️ Run Full Chain</button></div><div class="diagram mono" id="fullLog" style="height:300px;overflow:auto"></div></div>`;
+ window.fullRun=async()=>{
+  const log=document.getElementById('fullLog'); log.innerHTML='';
+  const steps=[
+   'Parent PID 100: fork() → trap → kernel',
+   'Kernel: allocate PCB PID 101, state NEW, copy parent page table with COW, add to Ready Q, return 101 to parent, 0 to child',
+   'Parent: fork returns 101 → calls wait() → trap → state WAITING, moved to WaitQ, scheduler invoked',
+   'Scheduler: picks child PID 101 from Ready → dispatch → RUNNING, load CR3=child pgdir, iret',
+   'Child PID 101: in user mode, calls exec("/bin/ls") → trap → kernel',
+   'Kernel: exec → free old address space, read ELF of /bin/ls, mmap code R-X, data RW-, setup stack with args, set PC=entry, state READY→RUNNING',
+   'Child: Running /bin/ls → write syscall (output) → trap → kernel does vfs_write → return',
+   'Child: exit(0) → trap → state TERMINATED, PCB kept as zombie until parent wait, wake parent from WaitQ → Ready',
+   'Scheduler: parent PID 100 Ready→Running',
+   'Parent: wait returns 101, prints child done, continues',
+   'Parent: exit → TERMINATED, init adopts orphans'
+  ];
+  for(let s of steps){ log.innerHTML+=`→ ${s}<br/>`; await new Promise(r=>setTimeout(r,400)); }
+  log.innerHTML+=`<br/><b>Full chain complete. PCB lifecycle, LDE, syscall, interrupt, context switch all used.</b>`;
+ };
+}
+function mountGlobalLab(c){
+ c.innerHTML=`<div class="card"><h4>Global Scheduler + Thread Pool — Capstone Lab</h4><div class="controls"><label>Policy: <select id="gPol" class="btn"><option>FIFO</option><option>SJF</option><option>RR</option><option>MLFQ</option></select></label><label>Jobs: <input id="gJobs" value="4,2,6,1" class="kbd" style="width:80px"></label><label>Threads/job: <input id="gTh" type="range" min="1" max="4" value="1"><span id="gThV">1</span></label><button class="btn primary" onclick="runGlobal()">▶️ Simulate Global</button></div><div class="grid2"><div class="diagram" id="gMetrics"></div><div class="diagram mono" id="gTimeline"></div></div><canvas id="gCanvas" width="700" height="200" style="width:100%;background:var(--bg2);border-radius:10px;border:1px solid var(--border)"></canvas></div>`;
+ document.getElementById('gTh').oninput=e=>document.getElementById('gThV').textContent=e.target.value;
+ window.runGlobal=()=>{
+  const pol=document.getElementById('gPol').value;
+  let runtimes=document.getElementById('gJobs').value.split(',').map(x=>parseInt(x.trim()));
+  const thPerJob=parseInt(document.getElementById('gTh').value);
+  let jobs=runtimes.map((r,i)=>({id:i, runtime:r, remaining:r, threads:thPerJob, arrival:0}));
+  if(pol==='SJF') jobs.sort((a,b)=>a.runtime-b.runtime);
+  let time=0, timeline=[], ctx=0;
+  if(pol==='RR'){
+   let q=[...jobs]; let quantum=2;
+   while(q.length){ let j=q.shift(); let run=Math.min(quantum, j.remaining/thPerJob); timeline.push({id:j.id, start:time, end:time+run, th:j.threads}); time+=run; j.remaining-=run*thPerJob; if(j.remaining>0) q.push(j); ctx++; }
+  } else {
+   for(let j of jobs){ let eff=j.runtime/j.threads; timeline.push({id:j.id, start:time, end:time+eff, th:j.threads}); time+=eff; }
+  }
+  document.getElementById('gMetrics').innerHTML=`Policy: <b>${pol}</b><br/>Total Time: ${time.toFixed(1)}s (vs ${runtimes.reduce((a,b)=>a+b,0)}s single-thread)<br/>Speedup with ${thPerJob} threads/job: ${(runtimes.reduce((a,b)=>a+b,0)/time).toFixed(2)}x<br/>Context switches: ${ctx}<br/>Throughput: ${(jobs.length/time).toFixed(2)} jobs/s<br/><span style="color:var(--muted)">Threads share address space → less switch cost, better I/O overlap</span>`;
+  document.getElementById('gTimeline').innerHTML=timeline.map(t=>`P${t.id} x${t.th} [${t.start.toFixed(1)}-${t.end.toFixed(1)}]`).join('<br/>');
+  const canvas=document.getElementById('gCanvas'); const ctx2=canvas.getContext('2d'); ctx2.clearRect(0,0,canvas.width,canvas.height);
+  timeline.forEach(t=>{ ctx2.fillStyle=`hsl(${t.id*70},80%,60%)`; const x=(t.start/time)*canvas.width, w=((t.end-t.start)/time)*canvas.width; ctx2.fillRect(x, t.id*20+10, w, 14); ctx2.fillStyle='#fff'; ctx2.font='10px monospace'; ctx2.fillText(`P${t.id}x${t.th}`, x+2, t.id*20+19); });
+ };
+ runGlobal();
+}
+
+function toggleBookmark(id){
+ let bms=store.get('bookmarks',[]);
+ if(bms.includes(id)) bms=bms.filter(x=>x!==id); else bms.push(id);
+ store.set('bookmarks',bms);
+ document.getElementById('bmCount').textContent=bms.length;
+}
+function renderContent(){
+ const mount=document.getElementById('contentMount');
+ syllabus.forEach(m=>mount.appendChild(makeModule(m)));
+}
+function buildSearch(){
+ const input=document.getElementById('searchInput');
+ const res=document.getElementById('searchRes');
+ input.addEventListener('input',()=>{
+  const q=input.value.toLowerCase().trim();
+  if(!q){res.style.display='none'; return;}
+  const hits=syllabus.filter(m=>m.title.toLowerCase().includes(q)||m.topics.join(' ').toLowerCase().includes(q)||m.short.toLowerCase().includes(q)).slice(0,10);
+  if(!hits.length){res.style.display='none'; return;}
+  res.innerHTML=hits.map(h=>`<div data-go="${h.id}"><b>${h.id} — ${h.title}</b><br/><small>${h.topics.join(', ')}</small></div>`).join('');
+  res.style.display='block';
+  res.querySelectorAll('div').forEach(d=>d.onclick=()=>{document.getElementById('mod-'+d.dataset.go).scrollIntoView({behavior:'smooth'}); res.style.display='none';});
+ });
+ document.addEventListener('click',e=>{if(!e.target.closest('.searchWrap')) res.style.display='none';});
+}
+function initTheme(){
+ const btn=document.getElementById('themeBtn');
+ btn.onclick=()=>{const cur=document.documentElement.getAttribute('data-theme'); const nxt=cur==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',nxt); store.set('theme',nxt);};
+ const saved=store.get('theme','dark'); document.documentElement.setAttribute('data-theme',saved);
+document.getElementById('bookmarkBtn').onclick=()=>{const bms=store.get('bookmarks',[]); if(!bms.length) alert('No bookmarks yet. Click 🔖 Bookmark in any module.'); else {const id=bms[0]; document.getElementById('mod-'+id).scrollIntoView({behavior:'smooth'});}};
+ document.getElementById('bmCount').textContent=store.get('bookmarks',[]).length;
+}
+function renderDash(){
+ document.getElementById('dashGrid').innerHTML=`
+  <div class="card"><h4>Topics</h4><div class="progressBar"><i style="width:92%"></i></div><small>18/18 Process & Concurrency</small></div>
+  <div class="card"><h4>Simulators</h4><div class="progressBar"><i style="width:100%"></i></div><small>18 labs functional, real PCB state</small></div>
+  <div class="card"><h4>Quiz Mastery</h4><div class="progressBar"><i style="width:78%"></i></div><small>Race, MLFQ, LDE challenges</small></div>
+  <div class="card"><h4>UNIT III MASTERY</h4><div style="font-size:26px;font-weight:800">81%</div><div class="progressBar"><i style="width:81%"></i></div><small>Keep scheduling</small></div>`;
+ document.getElementById('cheatSheet').innerHTML=`
+ <div class="grid2" style="font-size:11px">
+  <div><b>Lifecycle:</b> NEW→READY→RUNNING→WAITING→TERMINATED. PCB moves ReadyQ/WaitQ. fork()=New, exec()=new mem, wait()=Block, exit()=Term.<br/><b>Pipeline:</b> .c → compiler → .s → assembler → .o → linker → ELF → loader (exec) → Process<br/><b>Modes:</b> User (1) limited, Kernel (0) full. Mode bit, privileged instr trap.<br/><b>LDE:</b> Direct execution for speed + timer interrupt + syscall trap to regain control. Preemptive > cooperative.</div>
+  <div><b>Interrupts:</b> HW async (timer,disk) vs SW sync (trap, fault). IDT table, save PC/PSW, handler, iret.<br/><b>Syscall:</b> User: rax=num, args rdi,rsi,rdx → syscall instr → IDT128 → sys_* table → validate → copy_from_user → return rax → iret.<br/><b>Ctx Switch:</b> Save regs → save SP to old PCB → load SP from new PCB → load CR3 (pgdir) → TLB flush → restore regs → ret. Cost ~us + cache cold.<br/><b>PCB:</b> PID, State, PC, SP, regs, pgdir, files, priority, accounting.</div>
+  <div><b>Metrics:</b> Turnaround=Comp-Arr, Response=First-Arr, Waiting=Ready time, Throughput=jobs/sec. Goals conflict.<br/><b>FIFO:</b> FCFS, convoy effect. <b>SJF:</b> optimal avg turnaround, needs prediction, starves. <b>STCF:</b> preemptive SJF, best turnaround.<br/><b>RR:</b> Quantum q, fair, good response, q too small → overhead, q large → FIFO.<br/><b>Priority:</b> High first, aging prevents starvation, inversion problem (low holds lock).</div>
+  <div><b>MLFQ:</b> Q0..Qn high→low, small q high, large q low. Rules: new→top, full q→demote, yield→stay, periodic boost. Approximates SJF without knowing runtime, favors interactive.<br/><b>RT:</b> Hard must meet, Soft tries. RM: period short=high prio, bound 69%. EDF: earliest deadline first, optimal unipro 100%. Linux SCHED_FIFO/RR/DEADLINE.<br/><b>Concurrency:</b> Overlap I/O+CPU, server handling many clients. Process=isolated, Thread=shared code/data/heap, private stack/regs. pthread_create/join/exit/detach. Race = unsynchronized shared access. Mutex fixes.<br/><b>Tagline:</b> Don't just read scheduling. Watch PCB move. — Kishor S, AP/CSE-MVIT</div>
+ </div>`;
+ document.getElementById('finalCapstone').innerHTML=`
+ <div class="controls"><button class="btn primary" onclick="document.getElementById('mod-17').scrollIntoView({behavior:'smooth'})">▶ OPEN FULL LIFECYCLE SIMULATOR (Module 17)</button><button class="btn" onclick="document.getElementById('mod-18').scrollIntoView({behavior:'smooth'})">OPEN GLOBAL SCHEDULER LAB (Module 18)</button></div>
+ <div class="card mono" style="font-size:11px">SOURCE → Compiler → ELF → fork() → PCB PID → ReadyQ → Scheduler (FIFO/SJF/RR/MLFQ) → Dispatch → RUNNING → Limited Direct Execution → Timer Interrupt / Syscall Trap → Save to PCB → Context Switch (CR3, TLB flush) → Next Process → Thread (pthread_create shares heap) → Race → Mutex → exit → TERMINATED → Parent wait → Ready<br/><br/>Every stage has real state: PCB queue movement, register save/restore, quantum accounting, MLFQ demotion, thread shared vs private, race lost-update counting. No fake animations.</div>
+ `;
+}
+
+renderSidebar();
+renderContent();
+buildSearch();
+initTheme();
+renderDash();
+
+let observer=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id.replace('mod-',''); const cur=store.get('prog-'+id,{read:0}); cur.read=Math.min(100,(cur.read||0)+4); store.set('prog-'+id,cur);}});},{threshold:0.25});
+document.querySelectorAll('.module').forEach(m=>observer.observe(m));
+document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'){e.preventDefault(); document.getElementById('searchInput').focus();}});
+</script>
+</body>
+</html>
