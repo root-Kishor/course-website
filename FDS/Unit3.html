@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FDS Unit — Correlation & Regression Mastery |  Handbook — Kishor S</title>
+<style>
+:root{
+ --bg:#090b18; --bg2:#101329; --panel:#151a34; --panel2:#1b2242; --panel3:#252e55;
+ --border:rgba(124,255,231,.14); --border2:rgba(124,255,231,.28);
+ --text:#f4f7ff; --muted:#a7b0d0; --dim:#707ba6;
+ --cyan:#7cffe7; --violet:#c4a7ff; --indigo:#79a7ff; --emerald:#62e6a7; --amber:#ffd36a; --rose:#ff7898;
+ --glow:0 0 44px rgba(124,255,231,.16); --radius:18px;
+}
+[data-theme="light"]{
+ --bg:#f6f7ff; --bg2:#ffffff; --panel:#ffffff; --panel2:#f0f2ff; --panel3:#e5e8ff;
+ --border:rgba(55,65,140,.12); --border2:rgba(55,65,140,.22);
+ --text:#151936; --muted:#606987; --dim:#8b93b0;
+ --cyan:#087f72; --violet:#6d4bd1; --indigo:#386fd1;
+ --glow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:ui-sans-serif,-apple-system,Segoe UI,Roboto,Inter,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.75}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+#aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+#aurora i{position:absolute;border-radius:50%;filter:blur(80px);opacity:.32}
+#aurora i:nth-child(1){width:900px;height:700px;background:radial-gradient(circle,#7cffe7 0%,transparent 70%);left:-10%;top:-20%;animation:drift 22s infinite alternate}
+#aurora i:nth-child(2){width:800px;height:600px;background:radial-gradient(circle,#c4a7ff 0%,transparent 70%);right:-10%;top:10%;animation:drift 26s infinite alternate-reverse}
+#aurora i:nth-child(3){width:700px;height:500px;background:radial-gradient(circle,#ffd166 0%,transparent 70%);left:20%;bottom:-20%;animation:drift 30s infinite alternate}
+@keyframes drift{to{transform:translate(60px,-40px) scale(1.1)}}
+.gridBg{position:fixed;inset:0;z-index:-1;opacity:.05;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:42px 42px}
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:10px 14px;background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--cyan),var(--violet));display:grid;place-items:center;font-weight:800;color:#000;box-shadow:var(--glow)}
+.brand h1{margin:0;font-size:14px;letter-spacing:-.02em;line-height:1.1}
+.brand p{margin:0;font-size:10px;color:var(--muted)}
+.searchWrap{flex:1;max-width:560px;margin:0 8px;position:relative}
+.searchWrap input{width:100%;padding:10px 14px 10px 34px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);color:var(--text);outline:none;font-size:13px}
+.searchRes{position:absolute;top:112%;left:0;right:0;background:var(--panel);border:1px solid var(--border2);border-radius:14px;max-height:380px;overflow:auto;display:none;box-shadow:0 20px 60px rgba(0,0,0,.45);z-index:60}
+.searchRes div{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:12px}
+.searchRes div:hover{background:var(--panel2)}
+.hdrActions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn{padding:7px 11px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;transition:.18s}
+.btn:hover{transform:translateY(-1px);border-color:var(--border2)}
+.btn.primary{background:linear-gradient(135deg,var(--cyan),var(--indigo));color:#000;border:none}
+.iconBtn{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--border);background:var(--panel2);cursor:pointer}
+#layout{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 54px)}
+#sidebar{position:sticky;top:54px;height:calc(100vh - 54px);overflow:auto;padding:12px;border-right:1px solid var(--border);background:color-mix(in srgb,var(--bg2) 92%,transparent)}
+.sideSec{margin-bottom:16px}
+.sideSec h3{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:8px 6px}
+.navItem{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:10px;cursor:pointer;font-size:12px;color:var(--muted);border:1px solid transparent;transition:.15s}
+.navItem:hover{background:var(--panel2);color:var(--text)}
+.navItem.active{background:linear-gradient(90deg,rgba(126,244,194,.14),rgba(184,160,255,.12));border-color:var(--border2);color:var(--text)}
+.navItem .prog{margin-left:auto;width:32px;height:4px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden}
+.navItem .prog i{display:block;height:100%;background:var(--cyan)}
+main{padding:16px 18px 120px}
+.hero{padding:28px;border-radius:22px;background:linear-gradient(135deg,rgba(126,244,194,.18),rgba(184,160,255,.16) 55%,rgba(115,183,255,.12));border:1px solid var(--border2);position:relative;overflow:hidden}
+.hero h2{font-size:34px;line-height:.92;letter-spacing:-.04em;margin:0}
+.hero p{color:var(--muted);max-width:860px;font-size:13.5px;margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{padding:5px 9px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04);font-size:10px}
+.author{margin-top:14px;display:inline-flex;gap:8px;align-items:center;padding:7px 11px;border-radius:999px;background:#000;color:#fff;font-size:10px;letter-spacing:.04em}
+.module{margin-top:22px;padding:18px;border-radius:20px;background:var(--panel);border:1px solid var(--border);scroll-margin-top:74px}
+.moduleHead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.moduleHead h3{margin:0;font-size:19px;letter-spacing:-.03em}
+.levelToggle{display:flex;background:var(--panel2);border-radius:999px;padding:2px;border:1px solid var(--border)}
+.levelToggle button{padding:5px 10px;border-radius:999px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer}
+.levelToggle button.active{background:var(--text);color:var(--bg)}
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0}
+.tab{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:var(--panel2);font-size:11px;cursor:pointer}
+.tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+.card{padding:12px 13px;border-radius:14px;background:var(--panel2);border:1px solid var(--border);margin:8px 0;font-size:13px}
+.card h4{margin:0 0 6px;font-size:12px;letter-spacing:.02em;color:var(--cyan)}
+.callout{border-left:3px solid var(--cyan);padding:8px 10px;background:color-mix(in srgb,var(--cyan) 8%,var(--panel2));border-radius:10px;margin:8px 0;font-size:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:900px){#layout{grid-template-columns:1fr}#sidebar{position:relative;top:0;height:auto}.grid2{grid-template-columns:1fr}}
+.kbd{padding:2px 6px;border-radius:6px;background:var(--panel3);border:1px solid var(--border);font-size:10px}
+.editorWrap{border:1px solid var(--border2);border-radius:14px;overflow:hidden;background:var(--bg2);margin:10px 0}
+.editorHead{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--panel2);border-bottom:1px solid var(--border);font-size:11px}
+.editorHead .dots{display:flex;gap:4px}.editorHead .dots i{width:8px;height:8px;border-radius:50%;display:block}
+textarea.code{width:100%;min-height:220px;background:transparent;color:var(--text);border:none;outline:none;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.6;resize:vertical}
+.out{padding:10px 12px;background:#06090c;color:#c6ffe8;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;white-space:pre-wrap;min-height:48px;max-height:380px;overflow:auto;border-top:1px solid var(--border)}
+.vis{padding:10px;background:var(--bg2);border:1px dashed var(--border2);border-radius:12px;margin:8px 0;min-height:120px}
+.scatterCanvas{width:100%;height:320px;background:var(--panel2);border-radius:10px}
+.controls{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.rangeLabel{font-size:11px;color:var(--muted)}
+.progressBar{height:6px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;margin:6px 0}
+.progressBar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--violet))}
+.formula{padding:10px 14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);font-family:ui-monospace,monospace;font-size:13px;margin:8px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+.visualShell{background:linear-gradient(145deg,rgba(124,255,231,.06),rgba(196,167,255,.08));border:1px solid var(--border2);border-radius:16px;padding:14px;box-shadow:var(--glow)}
+.labTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.labBadge{font-size:10px;padding:4px 8px;border-radius:999px;background:var(--panel3);border:1px solid var(--border)}
+.metricRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.metric{padding:9px;border-radius:11px;background:var(--panel2);border:1px solid var(--border);text-align:center}
+.metric b{display:block;font-size:18px;color:var(--cyan)}
+.formulaStrip{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.formulaStrip .formula{margin:0}
+@media(max-width:700px){.metricRow,.formulaStrip{grid-template-columns:1fr}}
+
+th,td{padding:6px 8px;border:1px solid var(--border);text-align:left}
+th{background:var(--panel3);color:var(--cyan)}
+</style>
+</head>
+<body>
+<div id="aurora"><i></i><i></i><i></i></div><div class="gridBg"></div>
+<header>
+ <div class="brand"><div class="logo">FDS</div><div><h1>Correlation & Regression</h1><p>FDS Unit 5 • Interactive Lab</p></div></div>
+ <div class="searchWrap"><input id="searchInput" placeholder="Search topics, e.g. r2, least squares, multiple..."/><div id="searchRes" class="searchRes"></div></div>
+ <div class="hdrActions"><button class="btn" id="bookmarkBtn">🔖 <span id="bmCount">0</span></button><button class="iconBtn" id="themeBtn">◐</button><button class="btn primary" onclick="document.getElementById('dash').scrollIntoView({behavior:'smooth'})">Dashboard</button></div>
+</header>
+<div id="layout">
+ <aside id="sidebar"></aside>
+ <main>
+  <div class="hero">
+   <h2>Correlation to Regression — From Dots to Predictions</h2>
+   <p>Master how two variables dance together. This unit builds intuition from <b>scatter plots</b> to <b>correlation coefficient r</b>, then to <b>regression line, least squares, standard error, R²</b> and finally <b>multiple regression & regression to the mean</b>. Every concept has 📘 Concept, 💻 Live Python (Numpy/Pandas), 🔬 Visual Lab.</p>
+   <div class="chips"><span class="chip">📘 11 Modules</span><span class="chip">💻 Pyodide Live</span><span class="chip">🔬 Interactive Visuals</span><span class="chip">🎯 Exam Ready Formulas</span><span class="chip">FDS • 2nd Year</span></div>
+   <div class="author"> Handbook — Crafted by Kishor S — AP/CSE MVIT </div>
+  </div>
+  <div id="contentMount"></div>
+  <div class="module" id="dash">
+   <div class="moduleHead"><h3>📊 Dashboard & Master Cheat Sheet</h3></div>
+   <div id="dashGrid" class="grid2"></div>
+   <div id="cheatSheet" style="margin-top:12px"></div>
+   <div class="editorWrap" style="margin-top:14px"><div class="editorHead"><span>🧪 Final Playground — Try Your Own Data</span><div style="display:flex;gap:6px"><button class="btn" onclick="runEditor('final')">▶ Run</button><button class="btn" onclick="resetEditor('final')">Reset</button></div></div><div id="finalEditor"></div></div>
+  </div>
+ </main>
+</div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+<script>
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
+let pyodide=null, pyReady=false;
+async function loadPy(){
+ try{
+  pyodide=await loadPyodide(); await pyodide.loadPackage(['numpy','pandas']);
+  pyReady=true; document.querySelectorAll('.pyStatus').forEach(e=>e.textContent='Ready • Numpy + Pandas');
+  renderDash();
+ }catch(e){ document.querySelectorAll('.pyStatus').forEach(el=>el.textContent='Failed to load'); }
+}
+loadPy();
+
+const syllabus=[
+ {
+  id:1, title:"What is Correlation? Intuition", short:"Why correlation matters, types, causation vs correlation", topics:["correlation definition","positive negative zero","causation trap"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 Simple Idea</h4>Correlation answers: <b>When X goes up, does Y go up or down?</b><br/>• <b>Positive:</b> Height ↑ Weight ↑ (r > 0)<br/>• <b>Negative:</b> Price ↑ Demand ↓ (r < 0)<br/>• <b>Zero:</b> Shoe size vs IQ — no relation.<br/><div class="callout">⚠️ <b>Golden Rule:</b> Correlation ≠ Causation. Ice-cream sales & drowning correlate — both driven by Summer, not each other.</div></div><div class="grid2"><div class="card"><h4>Real Life</h4>Study Hours vs Marks (positive), Stress vs Performance (negative after a point), Random: Birth month vs CGPA (zero).</div><div class="card"><h4>Why for FDS?</h4>First filter before modelling. If |r| < 0.2, linear model may be useless. Feature selection starts here.</div></div>`,
+   intermediate:`<div class="card"><h4>📘 Formal + Assumptions</h4><b>Pearson correlation</b> measures <i>linear</i> association between two quantitative variables.<br/>Assumptions: <span class="kbd">Quantitative</span> <span class="kbd">Linearity</span> <span class="kbd">No extreme outliers</span> <span class="kbd">Homoscedasticity-ish</span><br/><br/><b>Range:</b> r ∈ [-1, 1]<br/>|r| > 0.7 strong, 0.4-0.7 moderate, <0.4 weak.<br/><div class="formula">r = Cov(X,Y) / (σx * σy) = Σ[(Xi - X̄)(Yi - Ŷ)] / √[Σ(Xi-X̄)² Σ(Yi-Ŷ)²]</div><p style="font-size:12px;color:var(--muted)">Covariance is raw co-movement; dividing by std devs standardizes to [-1,1].</p></div>`,
+   advanced:`<div class="card"><h4>📘 Deep Dive</h4><b>Geometric view:</b> Center data (mean 0), r = cosine of angle between vectors Xc and Yc in n-dim space.<br/>r=1 → angle 0° (same direction), r=-1 → 180°, r=0 → 90° orthogonal.<br/><br/><b>Types beyond Pearson:</b><ul><li><b>Spearman ρ:</b> rank correlation — captures monotonic non-linear.</li><li><b>Point-biserial:</b> one binary, one quantitative.</li></ul><b>Failure mode:</b> Anscombe's quartet — same r but wildly different patterns. Always plot!</div>`
+  },
+  code:`import numpy as np, pandas as pd
+# Let's feel correlation
+np.random.seed(0)
+x = np.arange(10)
+y_pos = x*2 + np.random.normal(0,1,10)  # positive
+y_neg = -x*1.5 + 20 + np.random.normal(0,1,10) # negative
+y_zero = np.random.normal(0,5,10) # zero
+
+def pearson(a,b):
+    return np.corrcoef(a,b)[0,1]
+
+print(f"Positive r: {pearson(x,y_pos):.3f}")
+print(f"Negative r: {pearson(x,y_neg):.3f}")
+print(f"Zero r: {pearson(x,y_zero):.3f}")
+
+df = pd.DataFrame({'Hours':x,'Pos':y_pos,'Neg':y_neg})
+print("\\nDataFrame\\n", df.head())
+`,
+  visual:`<div class="controls"><button class="btn primary" onclick="vAction(1,'pos')">Positive r</button><button class="btn" onclick="vAction(1,'neg')">Negative r</button><button class="btn" onclick="vAction(1,'zero')">Zero r</button><button class="btn" onclick="vAction(1,'anscombe')">Anscombe Trap</button></div><canvas id="vis1" class="scatterCanvas"></canvas><div class="callout" id="vis1txt">Click buttons to see correlation types.</div>`
+ },
+ {
+  id:2, title:"Scatter Plots — The Story in Dots", short:"Construction, patterns, jitter, outliers", topics:["scatter plot","pattern reading","outliers"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 What you see</h4>A scatter plot puts X on horizontal, Y on vertical. Each dot = one observation.<br/><br/><b>Read it:</b><ul><li>Direction: Up-right = positive, Down-right = negative</li><li>Form: Straight vs curved?</li><li>Strength: Tight cloud = strong, loose = weak</li><li>Outliers: Isolated dots break the trend</li></ul></div><div class="callout">💡 Always plot BEFORE calculating r. Numbers hide stories, plots reveal them.</div>`,
+   intermediate:`<div class="card"><h4>📘 Construction Rules</h4>1. Choose scales that don't mislead (don't truncate).<br/>2. Label axes with units.<br/>3. Add jitter if many overlaps (e.g., age = 20 repeated).<br/>4. Use color/size for 3rd variable (but that's bubble plot).<br/><div class="formula">Outlier impact: Single point can move r from 0.1 → 0.8. Check Cook's distance later.</div></div>`,
+   advanced:`<div class="card"><h4>📘 Beyond 2D</h4>Scatterplot matrix (pairplot) for multivariate. For n>1000, use hexbin or 2D density.<br/>Transformations: If plot is curved (e.g., Y = X²), try log(Y) vs X to linearize before Pearson.</div>`
+  },
+  code:`import numpy as np, pandas as pd
+np.random.seed(1)
+# Study hours vs Marks with an outlier
+hours = np.array([1,2,3,4,5,6,7,8,9,10,2])
+marks = np.array([35,40,45,50,55,62,68,75,80,85,95]) # last is outlier: 2 hrs 95 marks
+
+print("Without outlier r:", np.corrcoef(hours[:-1], marks[:-1])[0,1])
+print("With outlier r:", np.corrcoef(hours, marks)[0,1])
+
+df = pd.DataFrame({'Hours':hours,'Marks':marks})
+print(df)
+# Tip: In real analysis do df.plot.scatter(x='Hours',y='Marks')
+`,
+  visual:`<div class="controls"><button class="btn primary" onclick="vAction(2,'normal')">Normal Trend</button><button class="btn" onclick="vAction(2,'outlier')">Add Outlier</button><button class="btn" onclick="vAction(2,'curve')">Curved Pattern</button></div><canvas id="vis2" class="scatterCanvas"></canvas><div class="callout" id="vis2txt">Outliers inflate/deflate r dramatically.</div>`
+ },
+ {
+  id:3, title:"Correlation Coefficient for Quantitative Data", short:"Pearson r properties, interpretation", topics:["pearson r","properties","strength"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 r in Plain English</h4><b>r = 1:</b> Perfect line up, every increase exact.<br/><b>r = 0.8:</b> Strong — predictions will be good.<br/><b>r = 0:</b> No linear clue — knowing X doesn't help predict Y.<br/><b>r = -0.9:</b> Strong negative — very predictable but opposite.<br/><br/>Rule of thumb for FDS exams: <span class="kbd">|r|>0.7 strong</span> <span class="kbd">0.3-0.7 moderate</span> <span class="kbd"><0.3 weak</span></div>`,
+   intermediate:`<div class="card"><h4>📘 5 Properties Must Know</h4><ol><li>Unitless — no meters/kg.</li><li>-1 ≤ r ≤ 1 always.</li><li>Symmetric: r(X,Y)=r(Y,X)</li><li>Unaffected by linear shift/scale: r(aX+b, cY+d)=r(X,Y) if a,c same sign</li><li>Sensitive to outliers & restricted range.</li></ol><div class="formula">If data is standardized: Zx=(X-X̄)/σx, Zy=(Y-Ŷ)/σy → r = mean(Zx * Zy)</div></div>`,
+   advanced:`<div class="card"><h4>📘 Inference</h4>Is r significantly non-zero? Test: <span class="mono">t = r*√(n-2)/√(1-r²)</span> ~ t(n-2)<br/>For n=20, |r|>0.44 is significant at 5%.<br/>Confidence interval via Fisher z: <span class="mono">z' = 0.5*ln((1+r)/(1-r))</span></div>`
+  },
+  code:`import numpy as np
+def r_manual(x,y):
+    x=np.array(x,float); y=np.array(y,float)
+    xm=x.mean(); ym=y.mean()
+    num=((x-xm)*(y-ym)).sum()
+    den=np.sqrt(((x-xm)**2).sum()*((y-ym)**2).sum())
+    return num/den
+
+x=[10,20,30,40,50]
+y=[12,22,29,42,51]
+print("Manual r:", r_manual(x,y))
+print("Numpy r:", np.corrcoef(x,y)[0,1])
+
+# Property: scaling doesn't change r
+print("Scaled r (x*100):", np.corrcoef(np.array(x)*100, y)[0,1])
+`,
+  visual:`<div class="controls"><label class="rangeLabel">r = <span id="rval">0.8</span></label><input type="range" id="rSlider" min="-1" max="1" step="0.05" value="0.8" oninput="vAction(3,this.value)"/></div><canvas id="vis3" class="scatterCanvas"></canvas><div id="vis3txt" class="callout">Slide to change correlation and see cloud tighten/loosen.</div>`
+ },
+ {
+  id:4, title:"Computational Formula for r", short:"Raw score formula for exam speed", topics:["computational formula","sum notation"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 Why two formulas?</h4>Definition formula uses means → needs two passes. Computational formula uses raw sums → one pass, less rounding error, faster in exam.<br/><div class="formula">r = [ nΣXY - (ΣX)(ΣY) ] / √[ nΣX² - (ΣX)² ] * √[ nΣY² - (ΣY)² ]</div><b>Steps:</b> Make table: X, Y, XY, X², Y² → sum each column → plug.</div>`,
+   intermediate:`<div class="card"><h4>📘 Example Table</h4><table><tr><th>X</th><th>Y</th><th>XY</th><th>X²</th><th>Y²</th></tr><tr><td>1</td><td>2</td><td>2</td><td>1</td><td>4</td></tr><tr><td>2</td><td>3</td><td>6</td><td>4</td><td>9</td></tr><tr><td>3</td><td>5</td><td>15</td><td>9</td><td>25</td></tr></table><br/>n=3, ΣX=6, ΣY=10, ΣXY=23, ΣX²=14, ΣY²=38<br/>Numerator = 3*23 -6*10=9<br/>Denominator = √(3*14-36)*√(3*38-100)=√6*√14≈9.16 → r≈0.982</div>`,
+   advanced:`<div class="card"><h4>📘 Numerical Stability</h4>For large X (e.g., salary 50k), X² is 2.5B → overflow. Center first: use (X - mean) or use np.corrcoef which does centering. In Pandas, <span class="mono">df.corr()</span> uses stable algorithm.</div>`
+  },
+  code:`import numpy as np
+X=np.array([1,2,3,4,5])
+Y=np.array([2,4,5,4,5])
+
+n=len(X)
+S_X=X.sum(); S_Y=Y.sum()
+S_XY=(X*Y).sum()
+S_X2=(X**2).sum(); S_Y2=(Y**2).sum()
+
+num=n*S_XY - S_X*S_Y
+den=np.sqrt(n*S_X2 - S_X**2)*np.sqrt(n*S_Y2 - S_Y**2)
+r=num/den
+print(f"Computational r = {r:.4f}")
+print(f"Check np.corrcoef = {np.corrcoef(X,Y)[0,1]:.4f}")
+
+# Exam style table using Pandas
+import pandas as pd
+df=pd.DataFrame({'X':X,'Y':Y})
+df['XY']=df.X*df.Y
+df['X2']=df.X**2
+df['Y2']=df.Y**2
+print("\\nTable\\n", df)
+print("Sums\\n", df.sum(numeric_only=True))
+`,
+  visual:`<div class="card"><h4>🧮 Live Formula Calculator</h4><div class="grid2"><div>X (comma): <input id="xIn" class="mono" style="width:100%;padding:6px;border-radius:8px;background:var(--panel3);border:1px solid var(--border);color:var(--text)" value="1,2,3,4,5"/></div><div>Y (comma): <input id="yIn" class="mono" style="width:100%;padding:6px;border-radius:8px;background:var(--panel3);border:1px solid var(--border);color:var(--text)" value="2,4,5,4,5"/></div></div><button class="btn primary" onclick="vAction(4,'calc')">Calculate r</button><div id="vis4" class="vis mono" style="margin-top:8px">Enter values and click Calculate</div></div>`
+ },
+ {
+  id:5, title:"Regression — From Correlation to Prediction", short:"Idea of regression, dependent vs independent", topics:["regression concept","prediction","dependent independent"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 Big Shift</h4>Correlation asks <i>How related?</i> → Regression asks <i>If I know X, what is Y?</i><br/><br/><b>Example:</b> Correlation says study hours & marks have r=0.8. Regression gives equation: <span class="mono">Marks = 30 + 5*Hours</span> → If you study 6 hrs, predict 60.<br/><div class="callout">X = Independent / Predictor / Regressor (you know it)<br/>Y = Dependent / Response (you want to predict)</div></div>`,
+   intermediate:`<div class="card"><h4>📘 Two Lines</h4>There are actually TWO regression lines:<ul><li>Y on X: predict Y from X → <span class="mono">Y = a + bX</span></li><li>X on Y: predict X from Y → <span class="mono">X = a' + b'Y</span></li></ul>They are different unless |r|=1. They intersect at (X̄, Ŷ). For FDS, we mostly use Y on X.</div>`,
+   advanced:`<div class="card"><h4>📘 Historical</h4>Francis Galton coined 'regression' studying fathers' & sons' heights — tall fathers had slightly shorter sons (regression to mediocrity). That's why we still say regression.</div>`
+  },
+  code:`import numpy as np
+# Simple prediction intuition
+hours=np.array([1,2,3,4,5,6,7,8,9,10])
+marks=np.array([35,38,42,48,53,57,62,68,73,78])
+
+# Correlation
+r=np.corrcoef(hours,marks)[0,1]
+print(f"r = {r:.3f}")
+
+# Quick regression using numpy polyfit (degree 1 = line)
+b,a = np.polyfit(hours, marks, 1) # slope, intercept? Actually polyfit returns [b,a] for deg1: y= b x + a? No, first is slope.
+# Let's compute properly
+slope, intercept = np.polyfit(hours, marks, 1)
+print(f"Regression: Marks = {intercept:.2f} + {slope:.2f}*Hours")
+print(f"Predict for 6 hours: {intercept + slope*6:.1f}")
+`,
+  visual:`<canvas id="vis5" class="scatterCanvas"></canvas><div class="controls"><button class="btn primary" onclick="vAction(5,'show')">Show Best Fit Line</button><button class="btn" onclick="vAction(5,'residual')">Show Residuals</button></div><div id="vis5txt" class="callout">Regression finds line that minimizes vertical errors.</div>`
+ },
+ {
+  id:6, title:"Regression Line — Equation Y = a + bX", short:"Slope & intercept meaning", topics:["slope","intercept","equation"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 Anatomy</h4><div class="formula">Ŷ = a + bX</div><ul><li><b>a = intercept:</b> Y when X=0. Sometimes meaningless (height 0?) but needed.</li><li><b>b = slope:</b> For 1 unit increase in X, Y changes by b. If b=5, each extra hour = +5 marks.</li><li><b>Ŷ (Y-hat):</b> Predicted value, not actual Y.</li></ul></div>`,
+   intermediate:`<div class="card"><h4>📘 Formulas (Y on X)</h4><div class="formula">b = r * (Sy / Sx) = [nΣXY - ΣXΣY]/[nΣX²-(ΣX)²]<br/>a = Ŷ - b*X̄</div><b>Interpretation:</b> If r=0, slope=0 → line flat at mean. If you standardize both X,Y to Z-scores, line is <span class="mono">Zy = r * Zx</span> — beautiful!<br/><div class="callout">Slope sign = sign of r. Magnitude depends on scales (Sy/Sx).</div></div>`,
+   advanced:`<div class="card"><h4>📘 Centroid Property</h4>Regression line ALWAYS passes through (X̄, Ŷ). Proof: a = Ŷ - bX̄ → Ŷ = a + bX̄. This is a quick check in exam.</div>`
+  },
+  code:`import numpy as np
+X=np.array([1,2,3,4,5])
+Y=np.array([2,3,5,4,6])
+Xm=X.mean(); Ym=Y.mean()
+Sx=X.std(ddof=1); Sy=Y.std(ddof=1)
+r=np.corrcoef(X,Y)[0,1]
+b=r*(Sy/Sx)
+a=Ym - b*Xm
+print(f"Means: Xbar={Xm}, Ybar={Ym}")
+print(f"r={r:.3f}, b={b:.3f}, a={a:.3f}")
+print(f"Equation: Y = {a:.3f} + {b:.3f} X")
+# Verify passes through mean
+print(f"Check: a + b*Xbar = {a + b*Xm:.3f} should = Ybar {Ym}")
+`,
+  visual:`<canvas id="vis6" class="scatterCanvas"></canvas><div class="controls"><button class="btn" onclick="vAction(6,'slopeUp')">Increase Slope</button><button class="btn" onclick="vAction(6,'slopeDown')">Decrease Slope</button><button class="btn primary" onclick="vAction(6,'best')">Best Fit</button></div><div id="vis6txt" class="callout">Drag intuition: best line balances points above/below.</div>`
+ },
+ {
+  id:7, title:"Least Squares Regression Line — Why Best?", short:"Minimize sum of squared errors", topics:["least squares","SSE","derivation"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 Goal</h4>Many lines can go through cloud. Which is best? The one with smallest total <b>squared vertical distance</b> from points to line.<br/><br/>For each point, error = e_i = Y_i - Ŷ_i. We minimize <span class="mono">SSE = Σ e_i²</span>.<br/>Why square? So + and - don't cancel, and big errors punished more.</div>`,
+   intermediate:`<div class="card"><h4>📘 Derivation Sketch</h4>We minimize <span class="mono">Q(a,b)=Σ(Yi - a - bXi)²</span><br/>Take partial derivatives =0:<br/><div class="formula">∂Q/∂a = -2Σ(Yi - a - bXi)=0 → a = Ŷ - bX̄<br/>∂Q/∂b = -2ΣXi(Yi - a - bXi)=0 → b = Σ(Xi-X̄)(Yi-Ŷ)/Σ(Xi-X̄)²</div>That's least squares solution. No calculus needed in exam, just use formula.</div>`,
+   advanced:`<div class="card"><h4>📘 Gauss-Markov</h4>Under assumptions (linear, errors mean 0, constant variance, uncorrelated), least squares estimator is BLUE — Best Linear Unbiased Estimator. That's why it's everywhere.</div>`
+  },
+  code:`import numpy as np
+X=np.array([1,2,3,4,5,6])
+Y=np.array([2.1,3.9,6.2,5.8,8.1,9.9])
+
+def sse(b,a):
+    Yhat=a+b*X
+    return ((Y-Yhat)**2).sum()
+
+# Brute search best b
+bs=np.linspace(0,3,100)
+sses=[sse(b, Y.mean()-b*X.mean()) for b in bs]
+best_b=bs[np.argmin(sses)]
+print(f"Brute best slope ≈ {best_b:.3f}")
+print(f"Formula slope = {np.cov(X,Y,bias=True)[0,1]/np.var(X):.3f}")
+
+# Using normal equation (X^T X)^-1 X^T y
+Xm = np.vstack([np.ones(len(X)), X]).T
+beta = np.linalg.inv(Xm.T @ Xm) @ Xm.T @ Y
+print(f"Normal eqn: intercept={beta[0]:.3f}, slope={beta[1]:.3f}")
+`,
+  visual:`<canvas id="vis7" class="scatterCanvas"></canvas><div class="controls"><input type="range" id="slopeSlider" min="0" max="3" step="0.05" value="1.5" oninput="vAction(7,this.value)"/><span class="rangeLabel">Slope: <b id="slopeVal">1.5</b> | SSE: <b id="sseVal">-</b></span></div><div id="vis7txt" class="callout">Move slider: SSE is bowl-shaped — minimum at best fit.</div>`
+ },
+ {
+  id:8, title:"Standard Error of Estimate — How Wrong Are We?", short:"Se, residual spread", topics:["standard error","residual","Se"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 Intuition</h4>Regression gives prediction, but predictions are not perfect. <b>Standard Error of Estimate (Se or Sy.x)</b> = typical distance of points from line.<br/>Like standard deviation, but around regression line, not mean.<br/><br/>Small Se → points hug line → predictions trustworthy.<br/>Large Se → cloud fat → predictions risky.</div>`,
+   intermediate:`<div class="card"><h4>📘 Formula</h4><div class="formula">Se = √[ Σ(Yi - Ŷi)² / (n-2) ] = √[ SSE / (n-2) ]<br/>Also: Se = Sy * √(1 - r²) * √[(n-1)/(n-2)] ≈ Sy*√(1-r²)</div><b>Why n-2?</b> We estimated 2 parameters (a,b), so lose 2 degrees of freedom.<br/><br/><b>Prediction interval (approx 95%):</b> Ŷ ± 2*Se</div>`,
+   advanced:`<div class="card"><h4>📘 vs Standard Error of Slope</h4>Don't confuse:<ul><li>Se = spread of residuals (prediction error)</li><li>SE(b) = uncertainty in slope estimate = Se / √Σ(X-X̄)²</li></ul>For inference: t = b / SE(b) tests if slope ≠0.</div>`
+  },
+  code:`import numpy as np
+X=np.array([1,2,3,4,5,6,7,8,9,10],float)
+Y=np.array([2.5,3.6,5.1,6.0,7.2,8.1,9.3,10.2,11.5,12.4])
+
+b,a = np.polyfit(X,Y,1) # b slope, a intercept? polyfit returns [slope, intercept]
+slope, intercept = b, a
+Yhat = slope*X + intercept
+SSE = ((Y-Yhat)**2).sum()
+Se = np.sqrt(SSE/(len(X)-2))
+print(f"Slope {slope:.3f}, Intercept {intercept:.3f}")
+print(f"SSE {SSE:.3f}, Se {Se:.3f}")
+# 95% prediction band
+print(f"For X=5, predicted Y={slope*5+intercept:.2f} ± {2*Se:.2f}")
+
+import pandas as pd
+df=pd.DataFrame({'X':X,'Y':Y,'Yhat':Yhat,'Resid':Y-Yhat})
+print(df)
+`,
+  visual:`<canvas id="vis8" class="scatterCanvas"></canvas><div class="controls"><button class="btn primary" onclick="vAction(8,'band')">Toggle  ±Se Band</button><button class="btn" onclick="vAction(8,'resid')">Show Residuals</button></div><div id="vis8txt" class="callout">Band width = typical error. About 68% points inside ±1Se, 95% inside ±2Se.</div>`
+ },
+ {
+  id:9, title:"Interpretation of r² — Coefficient of Determination", short:"Explained variance", topics:["r squared","explained variance","interpretation"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 Magic Number</h4><div class="formula">r² = (correlation)² = Proportion of variance in Y explained by X</div><b>Example:</b> r=0.8 → r²=0.64 → 64% of variation in marks explained by study hours, 36% is other factors (sleep, luck).<br/><br/><b>Range 0 to 1:</b> 0 = X explains nothing, 1 = perfect explanation.</div>`,
+   intermediate:`<div class="card"><h4>📘 Decomposition</h4>Total variation = Explained + Unexplained<br/><div class="formula">SST = Σ(Y-Ŷbar)² (total)<br/>SSR = Σ(Ŷ-Ŷbar)² (regression/explained)<br/>SSE = Σ(Y-Ŷ)² (error)<br/>SST = SSR + SSE<br/>r² = SSR/SST = 1 - SSE/SST</div><div class="callout">Exam trick: If they give Se and Sy, r² = 1 - (Se²*(n-2))/(Sy²*(n-1))</div></div>`,
+   advanced:`<div class="card"><h4>📘 Adjusted r²</h4>When adding predictors, r² always ↑ (even junk). Adjusted r² penalizes complexity:<br/><div class="formula">Adj r² = 1 - (1-r²)*(n-1)/(n-p-1)</div>Use adjusted for multiple regression comparison.</div>`
+  },
+  code:`import numpy as np
+X=np.array([1,2,3,4,5,6,7,8,9,10],float)
+Y=np.array([2,4,3,5,7,6,8,9,8,10],float)
+r=np.corrcoef(X,Y)[0,1]
+r2=r**2
+
+# Using SST SSR SSE
+Ym=Y.mean()
+Yhat=np.polyval(np.polyfit(X,Y,1), X)
+SST=((Y-Ym)**2).sum()
+SSR=((Yhat-Ym)**2).sum()
+SSE=((Y-Yhat)**2).sum()
+print(f"r={r:.3f}, r2={r2:.3f}")
+print(f"SST={SST:.2f}, SSR={SSR:.2f}, SSE={SSE:.2f}")
+print(f"Check SSR/SST={SSR/SST:.3f}, 1-SSE/SST={1-SSE/SST:.3f}")
+print(f"Interpretation: {r2*100:.1f}% variance explained")
+`,
+  visual:`<div class="controls"><label class="rangeLabel">r: <span id="r2val">0.7</span> → r²: <span id="r2sq">0.49</span></label><input type="range" id="r2Slider" min="0" max="1" step="0.05" value="0.7" oninput="vAction(9,this.value)"/></div><canvas id="vis9" class="scatterCanvas"></canvas><div id="vis9txt" class="callout">Watch explained variance grow as |r| increases.</div>`
+ },
+ {
+  id:10, title:"Multiple Regression Equations", short:"Y with 2+ predictors", topics:["multiple regression","matrix form","partial slope"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 One Y, Many Xs</h4>Real life: Marks depends on Hours + Sleep + Attendance.<br/><div class="formula">Y = a + b1X1 + b2X2 + ... + bkXk + e</div><b>b1</b> = effect of X1 holding other Xs constant (partial).<br/><b>Example:</b> Marks = 20 + 4*Hours + 2*Sleep — each extra hour +4 marks if sleep same.</div>`,
+   intermediate:`<div class="card"><h4>📘 Matrix Form & Solving</h4>Write X matrix with column of 1s for intercept.<br/><div class="formula">[Y] = [X][β] + [e]<br/>β̂ = (XᵀX)⁻¹ XᵀY  (normal equation)</div><b>Assumptions:</b> Linearity, no perfect multicollinearity (X1 not = 2*X2), errors independent.<br/><br/><b>Interpretation:</b> b1 is not same as simple regression slope of Y on X1 alone — it adjusts for others.</div>`,
+   advanced:`<div class="card"><h4>📘 Pitfalls</h4><ul><li><b>Multicollinearity:</b> X1 & X2 highly correlated → coefficients unstable, SE inflates. Check VIF >10 bad.</li><li><b>Dummy variables:</b> For categorical (Dept = IT/HR), create 0/1 columns.</li><li><b>R² vs Adj R²:</b> Always report adjusted when k>1.</li></ul></div>`
+  },
+  code:`import numpy as np, pandas as pd
+np.random.seed(42)
+# Simulated: Marks = 30 + 5*Hours + 2*Sleep + noise
+n=50
+hours=np.random.randint(1,10,n)
+sleep=np.random.randint(4,9,n)
+marks=30 + 5*hours + 2*sleep + np.random.normal(0,3,n)
+
+df=pd.DataFrame({'Hours':hours,'Sleep':sleep,'Marks':marks})
+print(df.head())
+
+# Multiple regression via normal equation
+X=np.column_stack([np.ones(n), hours, sleep])
+Y=marks
+beta=np.linalg.inv(X.T @ X) @ X.T @ Y
+print(f"\\nCoefficients: Intercept={beta[0]:.2f}, b_Hours={beta[1]:.2f}, b_Sleep={beta[2]:.2f}")
+print("True was 30,5,2 — close!")
+
+# Using corr matrix
+print("\\nCorrelation matrix\\n", df.corr().round(2))
+
+# Predict
+pred = beta[0] + beta[1]*6 + beta[2]*7
+print(f"\\nPredict for 6 hrs, 7 sleep: {pred:.1f}")
+`,
+  visual:`<canvas id="vis10" class="scatterCanvas"></canvas><div class="controls"><button class="btn primary" onclick="vAction(10,'plane')">Show Regression Plane</button><button class="btn" onclick="vAction(10,'rotate')">Rotate View</button></div><div id="vis10txt" class="callout">3D intuition: Points in X1-X2-Y space, plane = best fit. Color = residual.</div>`
+ },
+ {
+  id:11, title:"Regression Towards the Mean — The Hidden Law", short:"Why extremes revert", topics:["regression to mean","galton","fallacy"],
+  concept:{
+   beginner:`<div class="card"><h4>📘 Story</h4>Galton: Very tall fathers had sons tall but <i>less</i> tall — closer to average. Short fathers had sons short but less short.<br/><br/><b>Rule:</b> If you select extreme on first measurement, second measurement will be less extreme on average.<br/><br/>Example: Student scores 95% (top) in test1, likely scores ~85% in test2 — not because they got worse, but statistical reversion.</div><div class="callout">⚠️ Trap: Coaches think scolding after bad game caused improvement — actually regression to mean! Bad performance was extreme, next is naturally better.</div>`,
+   intermediate:`<div class="card"><h4>📘 Math</h4>If (X,Y) bivariate normal with correlation r,<br/><div class="formula">E[Y | X = x] = Ŷ + r*(Sy/Sx)*(x - X̄)</div>Since |r|<1, predicted Y is <b>r times</b> as far from mean as X. If r=0.6, and father is +2 SD tall, son expected +1.2 SD tall — closer to mean.<br/><br/><b>Perfect regression line in Z-scores:</b> Zy = r*Zx → slope <1 magnitude.</div>`,
+   advanced:`<div class="card"><h4>📘 Applications & Fallacies</h4><ul><li><b>Sports Illustrated jinx:</b> Rookie of year (extreme) regresses next year.</li><li><b>Medical:</b> Patients selected for high BP will drop even without drug — need control group.</li><li><b>Finance:</b> Top funds last year likely not top next year.</li></ul>To prove real improvement, compare to control group, not just before-after.</div>`
+  },
+  code:`import numpy as np
+np.random.seed(7)
+# Simulate fathers (X) and sons (Y) with r=0.5
+n=200
+r=0.5
+X=np.random.normal(170,10,n) # fathers height
+# Sons: mean 170, correlated
+Y=170 + r*(X-170) + np.random.normal(0, np.sqrt(1-r**2)*10, n)
+
+print(f"Overall corr father-son: {np.corrcoef(X,Y)[0,1]:.3f}")
+# Select extreme tall fathers >190
+tall_fathers = X > 190
+print(f"Tall fathers mean: {X[tall_fathers].mean():.1f}, their sons mean: {Y[tall_fathers].mean():.1f} (regressed toward 170)")
+print(f"Short fathers <150 mean: {X[X<150].mean():.1f}, sons: {Y[X<150].mean():.1f}")
+
+# Z-score view
+Zx=(X-X.mean())/X.std()
+Zy=(Y-Y.mean())/Y.std()
+print(f"\\nIf father +2 SD, son expected +{r*2:.1f} SD")
+`,
+  visual:`<canvas id="vis11" class="scatterCanvas"></canvas><div class="controls"><button class="btn primary" onclick="vAction(11,'mean')">Show Regression to Mean</button><button class="btn" onclick="vAction(11,'animate')">Animate Generations</button></div><div id="vis11txt" class="callout">Green = fathers extreme, blue = sons closer to mean. Line slope = r < 1.</div>`
+ }
+];
+
+function renderSidebar(){
+ const sb=document.getElementById('sidebar');
+ sb.innerHTML=`<div class="sideSec"><h3>Modules</h3>${syllabus.map(m=>`<div class="navItem" data-id="${m.id}" onclick="document.getElementById('mod-${m.id}').scrollIntoView({behavior:'smooth'})"><span>📘 ${m.id}. ${m.title}</span><span class="prog"><i style="width:${20+m.id*7}%"></i></span></div>`).join('')}</div><div class="sideSec"><h3>Progress</h3><div class="card"><div class="progressBar"><i style="width:78%"></i></div><small>11/11 Correlation & Regression • Interactive</small><div style="margin-top:8px"><span class="kbd">Py Status:</span> <span class="pyStatus">Loading...</span></div></div></div>`;
+}
+function makeEditor(id,code){
+ const safeCode=String(code).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+ return `<div class="editorWrap" id="editor-${id}"><div class="editorHead"><span class="mono">💻 Live Python • Module ${id}</span><div style="display:flex;gap:6px"><button type="button" class="btn primary runEditorBtn" onclick="runEditor('${id}')">▶ Run</button><button type="button" class="btn" onclick="resetEditor('${id}')">Reset</button><span class="pyStatus kbd">Loading...</span></div></div><textarea id="pycode-${id}" class="code" spellcheck="false">${safeCode}</textarea><div id="out-${id}" class="out">Click Run to execute (Pyodide: Numpy + Pandas).</div></div>`;
+}
+const topicFormulas={
+1:[["Core idea","r = Cov(X,Y) / (σxσy)"],["Range","−1 ≤ r ≤ 1"]],
+2:[["Pattern","Direction + Form + Strength + Outliers"],["Rule","Plot before interpreting r"]],
+3:[["Pearson r","r = Σ(x−x̄)(y−ȳ) / √[Σ(x−x̄)²Σ(y−ȳ)²]"],["Test","t = r√(n−2) / √(1−r²)"]],
+4:[["Computational r","[nΣXY−ΣXΣY] / √{[nΣX²−(ΣX)²][nΣY²−(ΣY)²]}"],["Check","−1 ≤ r ≤ 1"]],
+5:[["Regression","Ŷ = a + bX"],["Prediction","X known → estimate Y"]],
+6:[["Slope","b = r(Sy/Sx)"],["Intercept","a = ȳ − bx̄"]],
+7:[["Least squares","SSE = Σ(Y−Ŷ)²"],["Best line","Choose a,b that minimize SSE"]],
+8:[["Standard error","Se = √[SSE/(n−2)]"],["Approx. 95%","Ŷ ± 2Se"]],
+9:[["Coefficient","r² = SSR/SST = 1 − SSE/SST"],["Meaning","Explained proportion = 100r²%"]],
+10:[["Multiple regression","Ŷ = a + b₁X₁ + … + bₖXₖ"],["Normal equation","β̂ = (XᵀX)⁻¹XᵀY"]],
+11:[["Regression to mean","E(Y|X=x) = ȳ + r(Sy/Sx)(x−x̄)"],["Z-score form","Ẑy = rẐx"]]
+};
+function makeModule(m){
+ const wrap=document.createElement('div'); wrap.className='module'; wrap.id='mod-'+m.id;
+ wrap.innerHTML=`<div class="moduleHead"><h3>${m.id}. ${m.title}</h3><div class="levelToggle"><button class="active" data-l="beginner" onclick="setLevel(${m.id},'beginner')">Beginner</button><button data-l="intermediate" onclick="setLevel(${m.id},'intermediate')">Intermediate</button><button data-l="advanced" onclick="setLevel(${m.id},'advanced')">Advanced</button></div></div><p style="color:var(--muted);font-size:12px">${m.short} • ${m.topics.join(' • ')}</p>
+<div class="formulaStrip">${(topicFormulas[m.id]||[]).map(f=>`<div class="formula"><b>${f[0]}:</b><br>${f[1]}</div>`).join('')}</div>
+<div class="tabs"><button class="tab active" onclick="switchTab(${m.id},'concept')">📘 Concept</button><button class="tab" onclick="switchTab(${m.id},'code')">💻 Live Code</button><button class="tab" onclick="switchTab(${m.id},'visual')">🔬 Visual Lab</button><button class="btn" onclick="toggleBookmark('${m.id}')">🔖 Bookmark</button></div><div id="concept-${m.id}">${m.concept.beginner}</div><div id="code-${m.id}" style="display:none">${makeEditor(m.id,m.code)}</div><div id="visual-${m.id}" style="display:none"><div class="visualShell"><div class="labTitle"><h4 style="margin:0;color:var(--cyan)">🔬 Visual Lab</h4><span class="labBadge">Interactive Experiment</span></div>${m.visual}</div></div>`;
+ return wrap;
+}
+function switchTab(id,tab){
+ document.getElementById('concept-'+id).style.display=tab==='concept'?'block':'none';
+ document.getElementById('code-'+id).style.display=tab==='code'?'block':'none';
+ document.getElementById('visual-'+id).style.display=tab==='visual'?'block':'none';
+ document.querySelectorAll('#mod-'+id+' .tab').forEach(t=>t.classList.remove('active'));
+ document.querySelector(`#mod-${id} .tab:nth-child(${tab==='concept'?1:tab==='code'?2:3})`).classList.add('active');
+ if(tab==='visual') setTimeout(()=>vAction(id,'init'),100);
+}
+function setLevel(id,level){
+ const mod=syllabus.find(x=>x.id===id);
+ document.getElementById('concept-'+id).innerHTML=mod.concept[level];
+ document.querySelectorAll('#mod-'+id+' .levelToggle button').forEach(b=>b.classList.toggle('active',b.dataset.l===level));
+}
+async function runEditor(id){
+ const codeEl=document.getElementById('pycode-'+id);
+ const outEl=document.getElementById('out-'+id);
+ const editor=document.getElementById('editor-'+id);
+ if(!codeEl || !outEl){
+   console.error('Live editor not found:',id);
+   return;
+ }
+ if(!pyReady){
+   outEl.textContent='⏳ Python is still loading. Wait until the status says Ready, then click Run.';
+   return;
+ }
+ const code=codeEl.value;
+ if(!code.trim()){
+   outEl.textContent='⚠️ The editor is empty.';
+   return;
+ }
+
+ const runBtn=editor?.querySelector('.runEditorBtn');
+ if(runBtn){runBtn.disabled=true;runBtn.textContent='⏳ Running...';}
+ outEl.textContent='⏳ Running Python...';
+
+ const token='__fds_run_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+ const safeToken=token.replace(/[^A-Za-z0-9_]/g,'');
+
+ try{
+   // Capture output for this run. The generated variable names are valid Python identifiers.
+   await pyodide.runPythonAsync(`
+import sys, io
+${safeToken}_old_stdout = sys.stdout
+${safeToken}_old_stderr = sys.stderr
+${safeToken}_capture = io.StringIO()
+sys.stdout = ${safeToken}_capture
+sys.stderr = ${safeToken}_capture
+`);
+   await pyodide.runPythonAsync(code);
+   const output=pyodide.runPython(`${safeToken}_capture.getvalue()`);
+   outEl.textContent=(output && output.trim())
+     ? output.slice(0,12000)
+     : '✓ Executed successfully — add print(...) to display a result.';
+ }catch(err){
+   let msg=String(err);
+   msg=msg.replace(/^PythonError:\s*/,'');
+   outEl.textContent='❌ Python error:\n'+msg;
+ }finally{
+   // Restore streams even when the student's code throws an exception.
+   try{
+     await pyodide.runPythonAsync(`
+sys.stdout = ${safeToken}_old_stdout
+sys.stderr = ${safeToken}_old_stderr
+`);
+   }catch{}
+   try{
+     await pyodide.runPythonAsync(`
+try:
+    del ${safeToken}_old_stdout, ${safeToken}_old_stderr, ${safeToken}_capture
+except Exception:
+    pass
+`);
+   }catch{}
+   if(runBtn){runBtn.disabled=false;runBtn.textContent='▶ Run';}
+ }
+}
+
+function resetEditor(id){
+ const codeEl=document.getElementById('pycode-'+id);
+ const outEl=document.getElementById('out-'+id);
+ if(!codeEl || !outEl) return;
+ const mod=syllabus.find(x=>String(x.id)===String(id));
+ if(mod) codeEl.value=mod.code;
+ else if(id==='final') codeEl.value=window.finalCodeSource || codeEl.value;
+ outEl.textContent='Reset done. Click Run.';
+}
+function toggleBookmark(id){ let bms=store.get('bookmarks',[]); if(bms.includes(id)) bms=bms.filter(x=>x!==id); else bms.push(id); store.set('bookmarks',bms); document.getElementById('bmCount').textContent=bms.length; }
+function renderContent(){
+ const mount=document.getElementById('contentMount');
+ syllabus.forEach(m=>mount.appendChild(makeModule(m)));
+ const finalCode=`import numpy as np, pandas as pd
+
+# 🎯 FINAL LAB: Your own dataset
+# Replace with your data
+X = np.array([2,4,6,8,10,12,14])
+Y = np.array([3,5,7,9,11,13,15])
+
+# Correlation
+r = np.corrcoef(X,Y)[0,1]
+print(f"r = {r:.4f}, r2 = {r**2:.4f}")
+
+# Regression
+slope, intercept = np.polyfit(X,Y,1)
+print(f"Y = {intercept:.3f} + {slope:.3f} X")
+
+# Se
+Yhat = slope*X + intercept
+Se = np.sqrt(((Y-Yhat)**2).sum()/(len(X)-2))
+print(f"Se = {Se:.4f}")
+print(f"Prediction for X=20: {intercept+slope*20:.2f} ± {2*Se:.2f}")
+
+# DataFrame report
+df=pd.DataFrame({'X':X,'Y':Y,'Yhat':Yhat,'Residual':Y-Yhat})
+print("\\n", df)
+`;
+ window.finalCodeSource=finalCode;
+ const fe=document.getElementById('finalEditor');
+ fe.innerHTML=makeEditor('final', finalCode);
+ document.getElementById('code-final').dataset.orig=finalCode;
+}
+function buildSearch(){
+ const input=document.getElementById('searchInput'); const res=document.getElementById('searchRes');
+ input.addEventListener('input',()=>{
+  const q=input.value.toLowerCase().trim(); if(!q){res.style.display='none'; return;}
+  const hits=syllabus.filter(m=>m.title.toLowerCase().includes(q)||m.topics.join(' ').toLowerCase().includes(q)||m.short.toLowerCase().includes(q)).slice(0,10);
+  if(!hits.length){res.style.display='none'; return;}
+  res.innerHTML=hits.map(h=>`<div data-go="${h.id}"><b>${h.id} — ${h.title}</b><br/><small>${h.topics.join(', ')}</small></div>`).join('');
+  res.style.display='block';
+  res.querySelectorAll('div').forEach(d=>d.onclick=()=>{document.getElementById('mod-'+d.dataset.go).scrollIntoView({behavior:'smooth'}); res.style.display='none';});
+ });
+ document.addEventListener('click',e=>{if(!e.target.closest('.searchWrap')) res.style.display='none';});
+}
+function initTheme(){
+ const btn=document.getElementById('themeBtn');
+ btn.onclick=()=>{const cur=document.documentElement.getAttribute('data-theme'); const nxt=cur==='dark'?'light':'dark'; document.documentElement.setAttribute('data-theme',nxt); store.set('theme',nxt);};
+ const saved=store.get('theme','dark'); document.documentElement.setAttribute('data-theme',saved);
+ document.getElementById('bookmarkBtn').onclick=()=>{const bms=store.get('bookmarks',[]); if(!bms.length) alert('No bookmarks yet. Click 🔖 Bookmark in any module.'); else {const id=bms[0]; document.getElementById('mod-'+id).scrollIntoView({behavior:'smooth'});}};
+ document.getElementById('bmCount').textContent=store.get('bookmarks',[]).length;
+}
+function renderDash(){
+ document.getElementById('dashGrid').innerHTML=`
+  <div class="card"><h4>Modules</h4><div class="progressBar"><i style="width:100%"></i></div><small>11/11 Correlation & Regression Complete</small></div>
+  <div class="card"><h4>Live Execution</h4><div class="progressBar"><i style="width:92%"></i></div><small>Pyodide • Numpy ${pyReady?'Ready':'Loading'} • Pandas • Matplotlib logic via Canvas</small></div>
+  <div class="card"><h4>Learning Path</h4><div class="progressBar"><i style="width:85%"></i></div><small>Scatter → r → Formula → Line → Least Squares → Se → r² → Multiple → Mean Reversion</small></div>
+  <div class="card"><h4>Exam Focus</h4><div style="font-size:11px">r formula, b = r*Sy/Sx, Se = Sy√(1-r²), r² = SSR/SST, Normal eqn β=(XᵀX)⁻¹XᵀY</div></div>`;
+ document.getElementById('cheatSheet').innerHTML=`
+ <h3>📋 Master Cheat Sheet — Correlation & Regression</h3>
+ <div class="grid2" style="font-size:11px">
+  <div class="card"><h4>CORRELATION</h4>
+  <b>r range:</b> -1 to 1<br/>
+  <b>Definition:</b> r = Σ(x-x̄)(y-ȳ) / √Σ(x-x̄)²Σ(y-ȳ)² = Cov/(Sx Sy)<br/>
+  <b>Computational:</b> [nΣXY - ΣXΣY]/√[nΣX²-(ΣX)²][nΣY²-(ΣY)²]<br/>
+  <b>Z form:</b> r = mean(Zx Zy)<br/>
+  <b>Interpret:</b> |r|>0.7 strong, sign = direction
+  </div>
+  <div class="card"><h4>REGRESSION LINE</h4>
+  <b>Y on X:</b> Ŷ = a + bX<br/>
+  <b>b =</b> r Sy/Sx = [nΣXY-ΣXΣY]/[nΣX²-(ΣX)²]<br/>
+  <b>a =</b> ȳ - b x̄ → passes through (x̄,ȳ)<br/>
+  <b>X on Y:</b> b' = r Sx/Sy<br/>
+  <b>Std form:</b> Zy = r Zx
+  </div>
+  <div class="card"><h4>LEAST SQUARES & ERRORS</h4>
+  <b>Minimize:</b> SSE = Σ(Yi-Ŷi)²<br/>
+  <b>Normal eqn:</b> (XᵀX)β = XᵀY<br/>
+  <b>Se:</b> √[SSE/(n-2)] ≈ Sy√(1-r²)<br/>
+  <b>95% pred:</b> Ŷ ± 2Se<br/>
+  <b>r²:</b> SSR/SST = 1-SSE/SST = proportion explained
+  </div>
+  <div class="card"><h4>MULTIPLE & MEAN</h4>
+  <b>Multiple:</b> Y = a + b1X1 + b2X2 + ... <br/>
+  <b>β̂ =</b> (XᵀX)⁻¹XᵀY<br/>
+  <b>Adj r²:</b> 1-(1-r²)(n-1)/(n-p-1)<br/>
+  <b>Regression to mean:</b> E[Y|X]= ȳ + r Sy/Sx (x-x̄) → extreme X → less extreme Y<br/>
+  <b>Mindset:</b> Plot first, correlation next, regression last. Never causation without experiment.
+  </div>
+ </div>
+ `;
+}
+
+// ========== VISUAL LABS (Canvas) ==========
+function getCtx(id){ const c=document.getElementById(id); if(!c) return null; const dpr=window.devicePixelRatio||1; c.width=c.clientWidth*dpr; c.height=c.clientHeight*dpr; const ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return {ctx,w:c.clientWidth,h:c.clientHeight,canvas:c}; }
+function drawAxes(ctx,w,h,pad=40){
+ ctx.strokeStyle='rgba(126,244,194,.2)'; ctx.lineWidth=1;
+ ctx.beginPath(); ctx.moveTo(pad,h-pad); ctx.lineTo(w-pad,h-pad); ctx.lineTo(w-pad,pad); ctx.stroke();
+}
+function randNorm(n,mean,sd){ // box-muller
+ const arr=[]; for(let i=0;i<n;i++){ let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random(); arr.push(mean+sd*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)); } return arr;
+}
+let visState={};
+
+function vAction(id, mode='init'){
+ // Module 4 is a DOM calculator, not a canvas. Handle it before getCtx().
+ if(id===4){
+   const out=document.getElementById('vis4');
+   if(!out) return;
+   const parseList=(id)=>{
+     const raw=(document.getElementById(id)?.value||'').trim();
+     if(!raw) return [];
+     return raw.split(/[\s,;]+/).map(Number).filter(Number.isFinite);
+   };
+   const xs=parseList('xIn'), ys=parseList('yIn');
+   if(!xs.length || xs.length!==ys.length){
+     out.innerHTML='<b style="color:var(--rose)">❌ Enter two lists with the same number of numeric values.</b>';
+     return;
+   }
+   if(xs.length<2){
+     out.innerHTML='<b style="color:var(--rose)">❌ At least 2 paired observations are required.</b>';
+     return;
+   }
+   const n=xs.length;
+   const sx=xs.reduce((a,b)=>a+b,0), sy=ys.reduce((a,b)=>a+b,0);
+   const sxy=xs.reduce((a,x,i)=>a+x*ys[i],0);
+   const sx2=xs.reduce((a,x)=>a+x*x,0), sy2=ys.reduce((a,y)=>a+y*y,0);
+   const num=n*sxy-sx*sy;
+   const dx=n*sx2-sx*sx, dy=n*sy2-sy*sy;
+   if(dx<=0 || dy<=0){
+     out.innerHTML='<b style="color:var(--rose)">❌ r is undefined when X or Y has zero variance.</b>';
+     return;
+   }
+   const den=Math.sqrt(dx*dy), r=num/den;
+   const strength=Math.abs(r)>=.7?'strong':Math.abs(r)>=.4?'moderate':'weak';
+   out.innerHTML=`
+     <div class="vcolumns">
+       <div class="vpanel"><h5>Step 1 • Sums</h5>
+         n = <b>${n}</b><br>ΣX = ${sx.toFixed(2)}<br>ΣY = ${sy.toFixed(2)}<br>ΣXY = ${sxy.toFixed(2)}
+       </div>
+       <div class="vpanel"><h5>Step 2 • Formula</h5>
+         <div class="formula">r = [nΣXY − ΣXΣY] / √[(nΣX²−ΣX²)(nΣY²−ΣY²)]</div>
+         <b>Numerator:</b> ${num.toFixed(4)}<br><b>Denominator:</b> ${den.toFixed(4)}
+       </div>
+       <div class="vpanel"><h5>Step 3 • Result</h5>
+         <div class="vmetric">${r.toFixed(4)}</div>
+         <span style="color:var(--cyan)">${strength} ${r>=0?'positive':'negative'} correlation</span><br>
+         r² = ${(r*r).toFixed(4)} → ${(r*r*100).toFixed(1)}% linear variance
+       </div>
+     </div>
+     <div class="vtable" style="margin-top:10px">
+       <table class="vtable"><thead><tr><th>X</th><th>Y</th><th>XY</th><th>X²</th><th>Y²</th></tr></thead>
+       <tbody>${xs.map((x,i)=>`<tr><td>${x}</td><td>${ys[i]}</td><td>${(x*ys[i]).toFixed(2)}</td><td>${(x*x).toFixed(2)}</td><td>${(ys[i]*ys[i]).toFixed(2)}</td></tr>`).join('')}</tbody></table>
+     </div>`;
+   return;
+ }
+
+ const info=getCtx('vis'+id); if(!info) return;
+ const {ctx,w,h}=info, pad=42;
+ ctx.clearRect(0,0,w,h);
+ drawAxes(ctx,w,h,pad);
+ const txt=(s)=>{const el=document.getElementById('vis'+id+'txt');if(el)el.textContent=s;};
+ const norm=(v,a,b)=>a+(v-a)/(b-a||1)*(w-2*pad);
+ const ynorm=(v,a,b)=>h-pad-(v-a)/(b-a||1)*(h-2*pad);
+ const points=(n,r=0.7)=>Array.from({length:n},(_,i)=>{let x=-2+4*i/(n-1);let noise=randNorm(1,0,Math.sqrt(Math.max(.001,1-r*r)))[0];return [x,r*x+noise];});
+ const scatter=(pts,fill='#7cffe7',rad=4)=>{
+   const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+   const ax=Math.min(...xs),bx=Math.max(...xs),ay=Math.min(...ys),by=Math.max(...ys);
+   pts.forEach(p=>{ctx.fillStyle=fill;ctx.beginPath();ctx.arc(norm(p[0],ax,bx),ynorm(p[1],ay,by),rad,0,Math.PI*2);ctx.fill()});
+   return {ax,bx,ay,by};
+ };
+ const regression=(pts)=>{
+   const mx=pts.reduce((s,p)=>s+p[0],0)/pts.length,my=pts.reduce((s,p)=>s+p[1],0)/pts.length;
+   const num=pts.reduce((s,p)=>s+(p[0]-mx)*(p[1]-my),0);
+   const den=pts.reduce((s,p)=>s+(p[0]-mx)**2,0);
+   const b=den?num/den:0,a=my-b*mx;
+   return {a,b,mx,my};
+ };
+
+ if(id===1){
+   const r=mode==='neg'?-0.85:mode==='zero'?0.02:0.85;
+   if(mode==='anscombe'){
+     const pts=[[10,8.04],[8,6.95],[13,7.58],[9,8.81],[11,8.33],[14,9.96],[6,7.24],[4,4.26],[12,10.84],[7,4.82],[5,5.68]];
+     scatter(pts,'#c4a7ff',5);txt('Anscombe example: a similar correlation can hide a very different visual pattern. Plot the data!');
+   }else{
+     const pts=points(65,r);scatter(pts,r>0?'#7cffe7':'#ff7898',4);
+     txt(`Correlation pattern: r ≈ ${r.toFixed(2)} — ${Math.abs(r)>.7?'strong':Math.abs(r)<.2?'near zero':'moderate'} ${r>=0?'positive':'negative'}.`);
+   }
+   return;
+ }
+ if(id===2){
+   let pts;
+   if(mode==='outlier'){pts=points(32,.72);pts.push([3.1,-2.8]);}
+   else if(mode==='curve'){pts=Array.from({length:45},(_,i)=>{let x=-2.5+5*i/44;return[x,x*x*.55+randNorm(1,0,.35)[0]]});}
+   else pts=points(32,.75);
+   const box=scatter(pts,'#79a7ff',4);
+   if(mode==='outlier'){const p=pts.at(-1);ctx.fillStyle='#ff7898';ctx.beginPath();ctx.arc(norm(p[0],box.ax,box.bx),ynorm(p[1],box.ay,box.by),8,0,Math.PI*2);ctx.fill();txt('Outlier spotlight: one unusual observation can pull the correlation and regression line.');}
+   else if(mode==='curve')txt('Curved relationship: Pearson r measures linear association, so always inspect the shape first.');
+   else txt('Scatter-reading challenge: look for direction, form, strength, and unusual observations.');
+   return;
+ }
+ if(id===3){
+   let r=parseFloat(mode);if(!Number.isFinite(r))r=.8;r=Math.max(-.99,Math.min(.99,r));
+   const pts=points(90,r);scatter(pts,'#c4a7ff',3);
+   const rv=document.getElementById('rval');if(rv)rv.textContent=r.toFixed(2);
+   txt(`r = ${r.toFixed(2)}. As |r| approaches 1 the cloud tightens; near 0 it becomes more diffuse.`);
+   return;
+ }
+ if(id===5 || id===6 || id===7 || id===8){
+   if(!visState[id])visState[id]={pts:points(24,.78),showRes:false,showBand:false,slope:1.0};
+   const pts=visState[id].pts, fit=regression(pts);
+   let b=fit.b;
+   if(id===6){
+     if(mode==='slopeUp') visState[id].slope=Math.min(2.5,(visState[id].slope||fit.b)+.25);
+     else if(mode==='slopeDown') visState[id].slope=Math.max(-2.5,(visState[id].slope||fit.b)-.25);
+     else if(mode==='best') visState[id].slope=fit.b;
+     b=visState[id].slope;
+   }
+   if(id===7){
+     b=Number(mode);if(!Number.isFinite(b))b=fit.b;visState[id].slope=b;
+     const sv=document.getElementById('slopeVal');if(sv)sv.textContent=b.toFixed(2);
+   }
+   const a=fit.my-b*fit.mx, box=scatter(pts,'#79a7ff',4);
+   const y0=a+b*box.ax,y1=a+b*box.bx;
+   ctx.strokeStyle='#ffd36a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(norm(box.ax,box.ax,box.bx),ynorm(y0,box.ay,box.by));ctx.lineTo(norm(box.bx,box.ax,box.bx),ynorm(y1,box.ay,box.by));ctx.stroke();
+
+   if(id===5 && mode==='residual')visState[id].showRes=!visState[id].showRes;
+   if(id===8){
+     if(mode==='resid')visState[id].showRes=!visState[id].showRes;
+     if(mode==='band')visState[id].showBand=!visState[id].showBand;
+   }
+   const sse=pts.reduce((s,p)=>s+(p[1]-(a+b*p[0]))**2,0),se=Math.sqrt(sse/Math.max(1,pts.length-2));
+   if(id===7){const e=document.getElementById('sseVal');if(e)e.textContent=sse.toFixed(2);}
+   if(id===8 && visState[id].showBand){
+     ctx.fillStyle='rgba(124,255,231,.12)';
+     ctx.fillRect(pad,pad,w-2*pad,h-2*pad);
+     ctx.strokeStyle='rgba(124,255,231,.5)';ctx.setLineDash([5,5]);
+     ctx.beginPath();ctx.moveTo(pad,ynorm(y0+se,box.ay,box.by));ctx.lineTo(w-pad,ynorm(y1+se,box.ay,box.by));ctx.stroke();
+     ctx.beginPath();ctx.moveTo(pad,ynorm(y0-se,box.ay,box.by));ctx.lineTo(w-pad,ynorm(y1-se,box.ay,box.by));ctx.stroke();ctx.setLineDash([]);
+   }
+   if(visState[id].showRes){
+     ctx.strokeStyle='rgba(255,120,152,.65)';ctx.setLineDash([4,4]);
+     pts.forEach(p=>{const px=norm(p[0],box.ax,box.bx),py=ynorm(p[1],box.ay,box.by),qy=ynorm(a+b*p[0],box.ay,box.by);ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,qy);ctx.stroke()});ctx.setLineDash([]);
+   }
+   if(id===5)txt(mode==='residual'?'Residuals show the vertical prediction errors. The best line minimizes their squared total.':'Click “Show Residuals” to see prediction errors.');
+   if(id===6){
+     const modeText=mode==='slopeUp'?'Slope increased.':mode==='slopeDown'?'Slope decreased.':'Best-fit line selected.';
+     txt(`${modeText} Equation: Ŷ = ${a.toFixed(2)} + ${b.toFixed(2)}X. Slope = change in predicted Y for +1 X.`);
+   }
+   if(id===7)txt(`SSE = ${sse.toFixed(2)}. Move the slope: the best-fit position is the minimum of this error.`);
+   if(id===8)txt(`Se = ${se.toFixed(2)}. ${visState[id].showBand?'The ±Se band is visible.':'Toggle the ±Se band to visualize typical residual spread.'}`);
+   return;
+ }
+ if(id===9){
+   let r=parseFloat(mode);if(!Number.isFinite(r))r=.7;r=Math.max(0,Math.min(1,r));
+   const pts=points(90,r);scatter(pts,'#7cffe7',3);
+   const rv=document.getElementById('r2val'),rs=document.getElementById('r2sq');
+   if(rv)rv.textContent=r.toFixed(2);if(rs)rs.textContent=(r*r).toFixed(2);
+   ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(pad,h-25,w-2*pad,10);ctx.fillStyle='#7cffe7';ctx.fillRect(pad,h-25,(w-2*pad)*r*r,10);
+   txt(`Explained variance r² = ${(r*r*100).toFixed(0)}%. The remaining ${(100-r*r*100).toFixed(0)}% is not explained by this simple linear relationship.`);
+   return;
+ }
+ if(id===10){
+   if(!visState[10])visState[10]={pts:Array.from({length:55},()=>{const x=1+Math.random()*9,y=4+Math.random()*4,z=30+5*x+2*y+randNorm(1,0,3)[0];return{x,y,z}}),angle:0};
+   if(mode==='rotate')visState[10].angle+=.35;
+   const ang=visState[10].angle,pts=visState[10].pts;
+   pts.forEach(p=>{
+     const xx=(p.x-5)*28, yy=(p.y-6)*22, zz=(p.z-65)*2.0;
+     const px=w/2+xx*Math.cos(ang)-yy*Math.sin(ang),py=h/2-zz*.75-xx*Math.sin(ang)*.35-yy*Math.cos(ang)*.35;
+     ctx.fillStyle=p.z>70?'#7cffe7':'#c4a7ff';ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fill();
+   });
+   ctx.strokeStyle='#ffd36a';ctx.lineWidth=2;ctx.strokeRect(pad,pad,w-2*pad,h-2*pad);
+   txt(mode==='plane'?'Regression plane concept: Ŷ = a + b₁Hours + b₂Sleep. Each predictor contributes while the other is held constant.':'Click Rotate View to see the multi-predictor point cloud from another angle.');
+   return;
+ }
+ if(id===11){
+   if(!visState[11])visState[11]={pts:Array.from({length:120},()=>{const x=randNorm(1,170,10)[0],y=170+.5*(x-170)+randNorm(1,0,8.66)[0];return{x,y}})};
+   const pts=visState[11].pts,min=140,max=200;
+   const mx=norm(170,min,max),my=ynorm(170,min,max);
+   ctx.strokeStyle='rgba(255,255,255,.18)';ctx.beginPath();ctx.moveTo(mx,pad);ctx.lineTo(mx,h-pad);ctx.moveTo(pad,my);ctx.lineTo(w-pad,my);ctx.stroke();
+   ctx.strokeStyle='#ffd36a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(pad,ynorm(155,min,max));ctx.lineTo(w-pad,ynorm(185,min,max));ctx.stroke();
+   const extremeOnly=mode==='animate';
+   pts.forEach(p=>{const extreme=p.x>190||p.x<150;ctx.fillStyle=extreme?'#7cffe7':'rgba(196,167,255,.55)';ctx.beginPath();ctx.arc(norm(p.x,min,max),ynorm(p.y,min,max),extreme?5:3,0,Math.PI*2);ctx.fill()});
+   // Animated pulse makes the "toward the mean" effect visually obvious without relying on a library.
+   if(mode==='animate'){
+     ctx.strokeStyle='rgba(124,255,231,.55)';ctx.setLineDash([5,5]);
+     pts.filter(p=>p.x>190||p.x<150).forEach(p=>{
+       const tx=170+.5*(p.x-170);
+       ctx.beginPath();ctx.moveTo(norm(p.x,min,max),ynorm(p.y,min,max));ctx.lineTo(norm(tx,min,max),ynorm(170+.5*(p.x-170),min,max));ctx.stroke();
+     });
+     ctx.setLineDash([]);
+   }
+   txt(mode==='animate'?'Highlighted extremes move toward their predicted, less-extreme Y values — the visual meaning of regression to the mean.':'Green = extreme X observations. Yellow = regression line with slope r = 0.5. The prediction is closer to the mean than a one-to-one line.');
+   return;
+ }
+}
+
+// init
+renderSidebar();
+renderContent();
+syllabus.forEach(m=>vAction(m.id, m.id===3?0.8:m.id===1?'pos':m.id===2?'normal':m.id===4?'calc':m.id===5?'show':m.id===9?0.7:m.id===10?'plane':m.id===11?'mean':'init'));
+buildSearch();
+initTheme();
+renderDash();
+</script>
+</body>
+</html>
